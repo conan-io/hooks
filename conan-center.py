@@ -75,7 +75,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 def pre_source(output, conanfile, conanfile_path, **kwargs):
     conanfile_content = tools.load(conanfile_path)
     if "def source(self):" in conanfile_content:
-        test = "[INMUTABLE SOURCES]"
+        test = "[IMMUTABLE SOURCES]"
         valid_content = [".zip", ".tar", ".tgz", ".tbz2", ".txz"]
         invalid_content = ["git checkout master", "git checkout devel", "git chekcout develop"]
         if "git clone" in conanfile_content and "git checkout" in conanfile_content:
@@ -90,7 +90,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                     fixed_sources = True
 
         if not fixed_sources:
-            output.error("%s Source files does not come from and inmutable place. Checkout to a "
+            output.error("%s Source files does not come from and immutable place. Checkout to a "
                          "commit/tag or download a compressed source file" % test)
         else:
             output.success("%s OK" % test)
