@@ -77,7 +77,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     if "def source(self):" in conanfile_content:
         test = "[IMMUTABLE SOURCES]"
         valid_content = [".zip", ".tar", ".tgz", ".tbz2", ".txz"]
-        invalid_content = ["git checkout master", "git checkout devel", "git chekcout develop"]
+        invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
         if "git clone" in conanfile_content and "git checkout" in conanfile_content:
             fixed_sources = True
             for invalid in invalid_content:
