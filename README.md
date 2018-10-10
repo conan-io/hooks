@@ -16,6 +16,16 @@ Place your hook Python files under *~/.conan/hooks*. The name of the hook would 
 *~/.conan/hook/conan-center.py
 ```
 
+Only copying plugin files will not activate them.
+
+## Conan config as installer
+
+To install all plugins from Conan plugins:
+
+``$ conan config install https://github.com/conan-io/plugins``
+
+Conan config install does not activate any plugins.
+
 ## Hook activation
 
 You can activate any hook with:
@@ -29,6 +39,11 @@ If you handle multiple dependencies in your project is better to add a *conan.co
     attribute_checker
     conan-center
 ```
+
+## Suppoted plugins
+
+- [Conan Center](plugins/conan-center.py): Conan recipe linter
+- [Bintray Update](plugins/bintray-updater.py): Update Bintray package info
 
 ## License
 
