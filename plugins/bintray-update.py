@@ -16,7 +16,6 @@ BINTRAY_API_URL = 'https://bintray.com/api/v1'
 
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     try:
-        output.info("[BINTRAY UPDATE]")
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
         output.info("Reading package info form Bintray...")
         remote_info = _get_package_info_from_bintray(package_url=package_url)
