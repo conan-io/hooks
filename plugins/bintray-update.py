@@ -1,5 +1,21 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Bintray Package info update
+
+This Conan plugin reads your recipe and update it Bintray package info using the attributes.
+
+It's necessary pass Bintray login by environment variables:
+  - CONAN_LOGIN_USERNAME: Bintray login username
+  - CONAN_PASSWORD: Bintray API KEY
+
+The plugin is automatically called when upload command is executed:
+
+    $ conan upload -r bintray-repo package/0.1.0@user/channel
+    Uploading package/0.1.0@user/channel to remote 'bintray-repo'
+    [PLUGIN - bintray-update] post_upload(): Reading package info form Bintray...
+    [PLUGIN - bintray-update] post_upload(): Inspecting recipe info ...
+    [PLUGIN - bintray-update] post_upload(): Bintray is outdated. Updating Bintray package info ...
+
+"""
 
 import os
 import re
@@ -9,12 +25,22 @@ from conans.client import conan_api
 
 
 __version__ = '0.1.0'
+__license__ = 'MIT'
+__author__  = 'Conan Community <https://github.com/conan-community>'
 
 
 BINTRAY_API_URL = 'https://bintray.com/api/v1'
 
 
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
+    """
+    Update Bintray package info after upload Conan recipe
+    :param output: Conan stream output
+    :param conanfile_path: Conan exported recipe file path
+    :param reference: Conan package reference
+    :param remote: Conan remote object
+    :param kwargs: Extra arguments
+    """
     try:
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
         output.info("Reading package info form Bintray...")
