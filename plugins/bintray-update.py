@@ -26,7 +26,7 @@ from conans.client import conan_api
 
 __version__ = '0.1.0'
 __license__ = 'MIT'
-__author__  = 'Conan Community <https://github.com/conan-community>'
+__author__  = 'Conan.io <https://github.com/conan-io>'
 
 
 BINTRAY_API_URL = 'https://bintray.com/api/v1'
