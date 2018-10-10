@@ -16,33 +16,18 @@ BINTRAY_API_URL = 'https://bintray.com/api/v1'
 
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     try:
-        output.info("conanfile_path=%s" % conanfile_path)
-        output.info("reference=%s" % str(reference))
-        output.info("reference.channel=%s" % str(reference.channel))
-        output.info("reference.version=%s" % str(reference.version))
-        output.info("reference.name=%s" % str(reference.name))
-        output.info("reference.user=%s" % str(reference.user))
-        output.info("remote.name=%s" % remote.name)
-        output.info("remote.url=%s" % remote.url)
-        output.info("recipe info: {}".format(
-            _get_package_info_from_recipe(conanfile_path)))
-
-        package_url = _get_bintray_package_url(
-            remote=remote, reference=reference)
-
-        output.info("bintray.info: {}".format(
-            _get_package_info_from_bintray(package_url)))
-
+        output.info("[BINTRAY UPDATE]")
+        package_url = _get_bintray_package_url(remote=remote, reference=reference)
+        output.info("Reading package info form Bintray...")
         remote_info = _get_package_info_from_bintray(package_url=package_url)
-        recipe_info = _get_package_info_from_recipe(
-            conanfile_path=conanfile_path)
-        updated_info = _update_package_info(
-            recipe_info=recipe_info, remote_info=remote_info)
+        output.info("Inspecting recipe info ...")
+        recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
+        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
         if updated_info:
-            output.info("updated info: {}".format(updated_info))
-            _patch_bintray_package_info(
-                package_url=package_url, package_info=updated_info)
-
+            output.info("Bintray is outdated. Updating Bintray package info ...")
+            _patch_bintray_package_info(package_url=package_url, package_info=updated_info)
+        else:
+            output.info("Bintray package info is up-to-date.")
     except Exception as error:
         output.error(str(error))
 
@@ -56,8 +41,7 @@ def _extract_user_repo(remote):
     pattern = r'https?:\/\/api.bintray.com\/conan\/(.*)\/(.*)'
     match = re.match(pattern=pattern, string=remote.url)
     if not match:
-        raise Exception(
-            "Could not extract subject and repo from %s" % remote.url)
+        raise Exception("Could not extract subject and repo from %s" % remote.url)
     return match.group(1), match.group(2)
 
 
@@ -81,8 +65,7 @@ def _get_package_info_from_bintray(package_url):
     """
     response = requests.get(url=package_url)
     if not response.ok:
-        raise Exception(
-            "Could not request package info: {}".format(response.text))
+        raise Exception("Could not request package info: {}".format(response.text))
     return response.json()
 
 
@@ -127,10 +110,8 @@ def _update_package_info(recipe_info, remote_info):
         if remote_info['vcs_url'] != url:
             updated_info['vcs_url'] = url
 
-    issue_tracker_url = "{}/community/issues".format(
-        url[:url.rfind('/')]) if url else ""
-    issue_tracker_url = os.getenv(
-        "BINTRAY_ISSUE_TRACKER_URL", issue_tracker_url)
+    issue_tracker_url = "{}/community/issues".format(url[:url.rfind('/')]) if url else ""
+    issue_tracker_url = os.getenv("BINTRAY_ISSUE_TRACKER_URL", issue_tracker_url)
 
     if issue_tracker_url:
         if remote_info['issue_tracker_url'] != issue_tracker_url:
@@ -153,8 +134,7 @@ def _patch_bintray_package_info(package_url, package_info):
     response = requests.patch(
         url=package_url, json=package_info, auth=HTTPBasicAuth(username, password))
     if not response.ok:
-        raise Exception(
-            "Could not request package info: {}".format(response.text))
+        raise Exception("Could not request package info: {}".format(response.text))
     return response.json()
 
 
