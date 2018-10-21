@@ -13,37 +13,27 @@ import json
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     workdir = os.path.dirname(conanfile_path)
-    if not os.path.isdir(os.path.join(workdir, '.git')):
-        output.info('directory "%s" is not a git repository, skipping GitHub updater')
-        return
-    if not tools.which('git'):
-        output.info('no git executable was found in PATH, skipping GitHub updater')
-        return
     github_token = os.getenv('GITHUB_TOKEN')
     if not github_token:
         output.info('no GITHUB_TOKEN environment variable is set, skipping GitHub updater')
         return
-    try:
-        command = ['git', 'remote', 'get-url', 'origin']
-        remote_url = subprocess.check_output(command, cwd=workdir).decode().strip()
-    except subprocess.CalledProcessError as e:
-        output.error('command "%s" failed with error %s' % (' '.join(command), e))
-        return
-    pattern_https = re.compile(r'https://github\.com/([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)\.git')
-    pattern_git = re.compile(r'git@github\.com:([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)\.git')
-    match = pattern_https.match(remote_url) or pattern_git.match(remote_url)
-    if not match:
-        output.info('not a GitHub repository %s, skipping GitHub updater' % remote_url)
-        return
-    owner, repository = match.groups(0)
 
     conan_instance, _, _ = conan_api.Conan.factory()
     recipe_info = conan_instance.inspect(path=conanfile_path, attributes=None)
     description = recipe_info['description']
+    url = recipe_info['url']
+
+    pattern_https = re.compile(r'https://github\.com/([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)(\.git)?')
+    pattern_git = re.compile(r'git@github\.com:([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)(\.git)?')
+    match = pattern_https.match(url) or pattern_git.match(url)
+    if not match:
+        output.info('not a GitHub repository %s, skipping GitHub updater' % url)
+        return
+    owner, repository = match.groups(0)[0], match.groups(0)[1]
+
     # TODO : conan 1.9
     # tags = recipe_info['tags']
     # homepage = recipe_info['homepage']
-    print(description)
 
     headers = {
         'Accept': 'application/vnd.github.v3+json',
