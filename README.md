@@ -1,25 +1,27 @@
-# Conan Plugins
+# Conan Hooks
 
-Repository to develop **experimental** [Conan](https://conan.io) plugins for Conan >= 1.8.
+Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
-## Plugin setup
+**WARNING**: Hooks were originally named "Plugins"
 
-Place your plugin python files under *~/.conan/plugins*. The name of the plugin would be the same one as the file name.
+## Hook setup
+
+Place your hook Python files under *~/.conan/hooks*. The name of the hook would be the same one as the file name.
 
 ```
-*~/.conan/plugins/conan-center.py
+*~/.conan/hook/conan-center.py
 ```
 
-## Plugin activation
+## Hook activation
 
-You can activate any plugin with:
+You can activate any hook with:
 
-``$ conan config set plugins.conan-center``
+``$ conan config set hooks.conan-center``
 
 If you handle multiple dependencies in your project is better to add a *conan.conf*:
 
 ```
-    [plugin]
+    [hooks]
     attribute_checker
     conan-center
 ```
