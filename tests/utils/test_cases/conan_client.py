@@ -1,14 +1,12 @@
 # coding=utf-8
 
 import os
-import unittest
-import tempfile
 import shutil
 import subprocess
-from contextlib import contextmanager
+import tempfile
+import unittest
 
 from tests.utils.environ_vars import context_env
-
 
 
 class ConanClientTestCase(unittest.TestCase):

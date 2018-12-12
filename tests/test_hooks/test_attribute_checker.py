@@ -1,11 +1,8 @@
 # coding=utf-8
 
-import textwrap
-import unittest
-import tempfile
-import shutil
 import os
-import subprocess
+import textwrap
+
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
