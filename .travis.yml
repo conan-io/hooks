@@ -43,7 +43,7 @@ jobs:
       sudo: true
 
     # Macos is slow, only if everything has passed
-    - stage: Conan 1.10 - Macos
+    - stage: Macos - all Conan versions
       language: generic
       os: osx
       osx_image: xcode8.3
@@ -53,8 +53,7 @@ jobs:
       osx_image: xcode8.3
       env: PYVER=py37 TOXENV=py37-conan110
 
-    - stage: Conan 1.9 - Macos
-      language: generic
+    - language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py27 TOXENV=py27-conan109
@@ -63,8 +62,7 @@ jobs:
       osx_image: xcode8.3
       env: PYVER=py37 TOXENV=py37-conan109
 
-    - stage: Conan 1.8 - Macos
-      language: generic
+    - language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py27 TOXENV=py27-conan108
