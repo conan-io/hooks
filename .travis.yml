@@ -1,0 +1,92 @@
+sudo: false
+language: python
+dist: trusty
+
+jobs:
+  fast_finish: true
+  include:
+    # All Linux first, check versions
+    - stage: Conan 1.10 - Linux
+      python: 2.7
+      env: TOXENV=py27-conan110
+    - python: 3.4
+      env: TOXENV=py34-conan110
+    - python: 3.6
+      env: TOXENV=py36-conan110
+    - python: 3.7
+      env: TOXENV=py37-conan110
+      dist: xenial
+      sudo: true
+
+    - stage: Conan 1.9 - Linux
+      python: 2.7
+      env: TOXENV=py27-conan109
+    - python: 3.4
+      env: TOXENV=py34-conan109
+    - python: 3.6
+      env: TOXENV=py36-conan109
+    - python: 3.7
+      env: TOXENV=py37-conan109
+      dist: xenial
+      sudo: true
+
+    - stage: Conan 1.8 - Linux
+      python: 2.7
+      env: TOXENV=py27-conan108
+    - python: 3.4
+      env: TOXENV=py34-conan108
+    - python: 3.6
+      env: TOXENV=py36-conan108
+    - python: 3.7
+      env: TOXENV=py37-conan108
+      dist: xenial
+      sudo: true
+
+    # Macos is slow, only if everything has passed
+    - stage: Macos - all Conan versions
+      language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py27 TOXENV=py27-conan110
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py37 TOXENV=py37-conan110
+
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py27 TOXENV=py27-conan109
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py37 TOXENV=py37-conan109
+
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py27 TOXENV=py27-conan108
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py37 TOXENV=py37-conan108
+
+before_install:
+  - ./.travis/before_install.sh
+
+install:
+  - |
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
+      if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
+      pyenv activate conan;
+    fi
+  - pip install --upgrade pip
+  - pip install tox tox-venv tox-travis
+
+script:
+  - |
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
+      if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
+      pyenv activate conan
+    fi
+  - tox
