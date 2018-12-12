@@ -11,7 +11,7 @@ from tests.utils.environ_vars import context_env
 
 class ConanClientTestCase(unittest.TestCase):
     """ Helper class to run isolated conan commands """
-    
+
     def _get_environ(self, **kwargs):
         # kwargs = super(ConanClientTestCase, **kwargs)
         home = os.path.join(self._working_dir, 'home')
