@@ -5,6 +5,13 @@ dist: trusty
 jobs:
   fast_finish: true
   include:
+
+    - stage: Conan development - Linux
+      python: 3.7
+      env: TOXENV=py37-conandev
+      dist: xenial
+      sudo: true
+
     # All Linux first, check versions
     - stage: Conan 1.11 - Linux
       python: 2.7
