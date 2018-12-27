@@ -4,9 +4,41 @@ environment:
     PYTHON: "C:\\Python37"
 
     matrix:
+        # Conan development
+        - PYVER: py27
+          TOXENV: py27-conandev
+        - PYVER: py37
+          TOXENV: py37-conandev
 
+        # Conan 1.11.x
+        - PYVER: py27
+          TOXENV: py27-conan111
+        - PYVER: py34
+          TOXENV: py34-conan111
+        - PYVER: py36
+          TOXENV: py36-conan111
+        - PYVER: py37
+          TOXENV: py37-conan111
+
+        # Conan 1.10.x
+        - PYVER: py27
+          TOXENV: py27-conan110
+        - PYVER: py34
+          TOXENV: py34-conan110
+        - PYVER: py36
+          TOXENV: py36-conan110
+        - PYVER: py37
+          TOXENV: py37-conan110
+
+        # Conan 1.09.x
         - PYVER: py27
           TOXENV: py27-conan109
+        - PYVER: py34
+          TOXENV: py34-conan109
+        - PYVER: py36
+          TOXENV: py36-conan109
+        - PYVER: py37
+          TOXENV: py37-conan109
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
