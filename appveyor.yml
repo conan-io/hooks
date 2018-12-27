@@ -1,5 +1,4 @@
-sudo: false
-language: python
+build: false
 
 environment:
     PYTHON: "C:\\Python37"
