@@ -1,0 +1,17 @@
+sudo: false
+language: python
+
+environment:
+    PYTHON: "C:\\Python37"
+
+    matrix:
+
+        - PYVER: py27
+          TOXENV: py27-conan109
+
+install:
+  - set PATH=%PATH%;%PYTHON%/Scripts/
+  - pip.exe install tox tox-venv
+
+test_script:
+  - tox
