@@ -42,6 +42,7 @@ environment:
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
+  - python -m pip install --upgrade pip
   - pip.exe install tox tox-venv
 
 test_script:
