@@ -63,11 +63,11 @@ def side_effect_get(*args, **kwargs):
 def side_effect_patch(*args, **kwargs):
     url = kwargs.get("url")
     auth = kwargs.get("auth")
-    vcs_url = kwargs.get("vcs_url")
+    json_data = kwargs.get("json")
     if auth.username != os.getenv("CONAN_USERNAME") or auth.password != os.getenv("CONAN_PASSWORD"):
         response = {"message":"This resource requires authentication"}
         return MockResponse(response, 401, text=json.dumps(response))
-    if not vcs_url:
+    if not json_data["vcs_url"]:
         response = {"message":"Please enter a valid VCS URL for your package."}
         return MockResponse(response, 400, text=json.dumps(response))
     if url:
