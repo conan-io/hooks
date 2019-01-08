@@ -89,12 +89,18 @@ class BintrayUpdateTests(ConanClientTestCase):
             homepage = "https://github.com/foo/foo"
             topics = ("conan", "foo", "bar", "qux")
         """)
+    conanfile_limited = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            name = "foo"
+            version = "version"
+        """)
 
     def _get_environ(self, **kwargs):
         kwargs = super(BintrayUpdateTests, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks', 'bintray-update')})
         return kwargs
-
 
     @mock.patch('hooks.bintray_update.requests.get', side_effect=side_effect_get)
     @mock.patch('hooks.bintray_update.requests.patch', side_effect=side_effect_patch)
@@ -109,4 +115,19 @@ class BintrayUpdateTests(ConanClientTestCase):
         self.assertIn("Reading package info form Bintray", output)
         self.assertIn("Inspecting recipe info ...", output)
         self.assertIn("Bintray is outdated. Updating Bintray package info ...", output)
+        self.assertNotIn("ERROR", output)
+
+    @mock.patch('hooks.bintray_update.requests.get', side_effect=side_effect_get)
+    @mock.patch('hooks.bintray_update.requests.patch', side_effect=side_effect_patch)
+    def test_conanfile_unfilled(self, mock_get, mock_patch):
+        reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
+        remote = Remote(name="virtual", url="https://api.bintray.com/conan/conan-community/test-distribution", verify_ssl=True)
+        tools.save('conanfile.py', content=self.conanfile_limited)
+        output = TestBufferConanOutput()
+
+        post_upload_recipe(output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
+
+        self.assertIn("Reading package info form Bintray", output)
+        self.assertIn("Inspecting recipe info ...", output)
+        self.assertIn("Bintray package info is up-to-date.", output)
         self.assertNotIn("ERROR", output)
