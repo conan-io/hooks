@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """Bintray Package info update
 
-This Conan plugin reads your recipe and updates its Bintray package info using the attributes.
+This Conan hook reads your recipe and updates its Bintray package info using the attributes.
 
 It's necessary pass Bintray login by environment variables:
   - CONAN_LOGIN_USERNAME: Bintray login username
   - CONAN_PASSWORD: Bintray API KEY
 
-The plugin is automatically called when upload command is executed:
+The hook is automatically called when upload command is executed:
 
     $ conan upload -r bintray-repo package/0.1.0@user/channel
     Uploading package/0.1.0@user/channel to remote 'bintray-repo'
-    [PLUGIN - bintray-update] post_upload(): Reading package info form Bintray...
-    [PLUGIN - bintray-update] post_upload(): Inspecting recipe info ...
-    [PLUGIN - bintray-update] post_upload(): Bintray is outdated. Updating Bintray package info ...
+    [HOOK - bintray-update] post_upload(): Reading package info form Bintray...
+    [HOOK - bintray-update] post_upload(): Inspecting recipe info ...
+    [HOOK - bintray-update] post_upload(): Bintray is outdated. Updating Bintray package info ...
 
 """
 
