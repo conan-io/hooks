@@ -40,7 +40,7 @@ If you handle multiple dependencies in your project is better to add a *conan.co
     conan-center
 ```
 
-## Supported plugins
+## Supported hooks
 
 - [Conan Center](plugins/conan-center.py): Conan recipe linter
 - [Bintray Update](plugins/bintray-update.py): Update Bintray package info
