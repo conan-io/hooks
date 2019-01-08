@@ -20,7 +20,7 @@ Only copying plugin files will not activate them.
 
 ## Conan config as installer
 
-To install all plugins from Conan plugins:
+To install all hooks from Conan repository in Github:
 
 ``$ conan config install https://github.com/conan-io/plugins``
 
