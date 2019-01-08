@@ -16,7 +16,7 @@ Place your hook Python files under *~/.conan/hooks*. The name of the hook would 
 *~/.conan/hook/conan-center.py
 ```
 
-Only copying plugin files will not activate them.
+Only copying hook files will not activate them.
 
 ## Conan config as installer
 
