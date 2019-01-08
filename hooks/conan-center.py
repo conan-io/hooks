@@ -120,7 +120,7 @@ def post_build(output, conanfile, **kwargs):
     test = "[MATCHING CONFIGURATION]"
     if not _files_match_settings(conanfile, conanfile.build_folder):
         output.error("%s Built artifacts does not match the settings used: os=%s, compiler=%s"
-                     % (test, conanfile.settings.os, conanfile.settings.compiler))
+                     % (test, _get_os(conanfile), conanfile.settings.compiler))
     else:
         output.success("%s OK" % test)
 
@@ -159,7 +159,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     test = "[MATCHING CONFIGURATION]"
     if not _files_match_settings(conanfile, conanfile.package_folder):
         output.error("%s Packaged artifacts does not match the settings used: os=%s, compiler=%s"
-                     % (test, conanfile.settings.os, conanfile.settings.compiler))
+                     % (test, _get_os(conanfile), conanfile.settings.compiler))
     else:
         output.success("%s OK" % test)
 
@@ -206,7 +206,8 @@ def _files_match_settings(conanfile, folder):
     mingw_extensions = ["a", "a.dll", "dll", "exe"]
     linux_extensions = ["a", "so"]
     macos_extensions = ["a", "dylib"]
-    if conanfile.settings.os == "Windows":
+    os = _get_os(conanfile)
+    if os == "Windows":
         if conanfile.settings.compiler == "Visual Studio":
             if _has_files_with_extensions(folder, linux_extensions)\
                     or _has_files_with_extensions(folder, macos_extensions):
@@ -214,11 +215,11 @@ def _files_match_settings(conanfile, folder):
             return _has_files_with_extensions(folder, visual_extensions)
         else:
             return _has_files_with_extensions(folder, mingw_extensions)
-    elif conanfile.settings.os == "Linux":
+    elif os == "Linux":
         if _has_files_with_extensions(folder, visual_extensions):
             return False
         return _has_files_with_extensions(folder, linux_extensions)
-    elif conanfile.settings.os == "Macos":
+    elif os == "Macos":
         if _has_files_with_extensions(folder, visual_extensions):
             return False
         return _has_files_with_extensions(folder, macos_extensions)
@@ -232,3 +233,9 @@ def _default_package_structure(folder):
         if folder not in default_folders:
             return False
     return True
+
+
+def _get_os(conanfile):
+    if hasattr(conanfile.settings, "os"):
+        return conanfile.settings.os
+    return conanfile.settings.os_build
