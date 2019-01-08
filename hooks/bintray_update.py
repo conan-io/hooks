@@ -29,7 +29,7 @@ __license__ = 'MIT'
 __author__  = 'Conan.io <https://github.com/conan-io>'
 
 
-BINTRAY_API_URL = os.getenv('BINTRAY_API_URL', 'https://bintray.com/api/v1')
+BINTRAY_API_URL = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
 
 
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
@@ -131,8 +131,7 @@ def _update_package_info(recipe_info, remote_info):
 
     url = recipe_info['url']
     if url:
-        if remote_info['vcs_url'] != url:
-            updated_info['vcs_url'] = url
+        updated_info['vcs_url'] = url
 
     issue_tracker_url = "{}/community/issues".format(url[:url.rfind('/')]) if url else ""
     issue_tracker_url = os.getenv("BINTRAY_ISSUE_TRACKER_URL", issue_tracker_url)
