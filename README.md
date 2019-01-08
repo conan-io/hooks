@@ -22,7 +22,7 @@ Only copying hook files will not activate them.
 
 To install all hooks from Conan repository in Github:
 
-``$ conan config install https://github.com/conan-io/plugins``
+``$ conan config install https://github.com/conan-io/hooks``
 
 Conan config install does not activate any hook.
 
