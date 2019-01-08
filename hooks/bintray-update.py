@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Bintray Package info update
 
-This Conan plugin reads your recipe and update it Bintray package info using the attributes.
+This Conan plugin reads your recipe and updates its Bintray package info using the attributes.
 
 It's necessary pass Bintray login by environment variables:
   - CONAN_LOGIN_USERNAME: Bintray login username
