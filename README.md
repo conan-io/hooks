@@ -24,7 +24,7 @@ To install all plugins from Conan plugins:
 
 ``$ conan config install https://github.com/conan-io/plugins``
 
-Conan config install does not activate any plugins.
+Conan config install does not activate any hook.
 
 ## Hook activation
 
