@@ -3,7 +3,7 @@ import os
 
 from conans import tools
 
-from checks.recipe_metadata import recipe_metadata_check
+from hooks.checks.recipe_metadata import recipe_metadata_check
 
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
