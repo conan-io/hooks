@@ -12,7 +12,8 @@ class WrongConanfileRecipeMetadataTest(unittest.TestCase):
         self.conanfile = None
 
     def test(self):
-        recipe_metadata_check(self.conanfile, self.output)
+        recipe_metadata_check(self.conanfile, self.output, output_name=True,
+                              output_level=self.output.error)
         self.assertIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'url'. It is recommended to "
                       "add it as attribute", self.output)
         self.assertIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'license'. It is recommended"
@@ -28,7 +29,8 @@ class ConanfileRecipeMetadataTest(unittest.TestCase):
         self.output = self.conanfile.output
 
     def no_metadata_test(self):
-        recipe_metadata_check(self.conanfile, self.output)
+        recipe_metadata_check(self.conanfile, self.output, output_name=True,
+                              output_level=self.output.error)
         self.assertIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'url'. It is recommended to "
                       "add it as attribute", self.output)
         self.assertIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'license'. It is recommended"
@@ -40,7 +42,8 @@ class ConanfileRecipeMetadataTest(unittest.TestCase):
         self.conanfile.url = "url"
         self.conanfile.license = "license"
         self.conanfile.description = "description"
-        recipe_metadata_check(self.conanfile, self.output)
+        recipe_metadata_check(self.conanfile, self.output, output_name=True,
+                              output_level=self.output.error)
         self.assertNotIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'url'. It is recommended "
                          "to add it as attribute", self.output)
         self.assertNotIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'license'. It is "
@@ -53,7 +56,8 @@ class ConanfileRecipeMetadataTest(unittest.TestCase):
         self.conanfile.license = "license"
         self.conanfile.description = ""
 
-        recipe_metadata_check(self.conanfile, self.output)
+        recipe_metadata_check(self.conanfile, self.output, output_name=True,
+                              output_level=self.output.error)
 
         self.assertIn("ERROR: [RECIPE METADATA] Conanfile doesn't have 'url'. It is recommended to "
                       "add it as attribute", self.output)
@@ -64,5 +68,6 @@ class ConanfileRecipeMetadataTest(unittest.TestCase):
 
     def alias_test(self):
         self.conanfile.alias = True
-        recipe_metadata_check(self.conanfile, self.output)
+        recipe_metadata_check(self.conanfile, self.output, output_name=True,
+                              output_level=self.output.error)
         self.assertIn("[RECIPE METADATA] OK", self.output)

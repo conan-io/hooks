@@ -1,5 +1,5 @@
 # coding=utf-8
-from hooks.checks.recipe_metadata import recipe_metadata_check
+from checks.recipe_metadata import recipe_metadata_check  # keep imports relative
 
 
 def pre_export(output, conanfile, *args, **kwargs):

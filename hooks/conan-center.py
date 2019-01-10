@@ -3,11 +3,11 @@ import os
 
 from conans import tools
 
-from hooks.checks.recipe_metadata import recipe_metadata_check
+from checks.recipe_metadata import recipe_metadata_check  # keep imports relative
 
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
-    recipe_metadata_check(conanfile, output)
+    recipe_metadata_check(conanfile, output, output_name=True, output_level=output.error)
 
     test = "[HEADER ONLY]"
     settings = getattr(conanfile, "settings", None)
