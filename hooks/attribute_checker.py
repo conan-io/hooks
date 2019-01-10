@@ -2,6 +2,7 @@
 
 
 def pre_export(output, conanfile, *args, **kwargs):
+
     if getattr(conanfile, 'alias', None):
         return
 

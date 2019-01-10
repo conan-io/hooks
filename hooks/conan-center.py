@@ -3,19 +3,11 @@ import os
 
 from conans import tools
 
+from checks.recipe_metadata import recipe_metadata_check
+
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
-    conanfile_content = tools.load(conanfile_path)
-    test = "[RECIPE METADATA]"
-    metadata_error = False
-    for field in ["url", "license", "description"]:
-        field_value = getattr(conanfile, field, None)
-        if not field_value:
-            metadata_error = True
-            output.error("%s Conanfile doesn't have '%s'. It is recommended to add it as attribute"
-                         % (test, field))
-    if not metadata_error:
-        output.success("%s OK" % test)
+    recipe_metadata_check(conanfile, output)
 
     test = "[HEADER ONLY]"
     settings = getattr(conanfile, "settings", None)
