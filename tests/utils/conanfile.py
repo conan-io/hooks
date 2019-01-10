@@ -1,5 +1,5 @@
 from conans import ConanFile
-from test.utils.output import MockOutput
+from tests.utils.output import MockOutput
 
 
 class MockSettings(object):
