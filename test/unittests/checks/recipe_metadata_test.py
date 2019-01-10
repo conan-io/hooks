@@ -1,6 +1,6 @@
 import unittest
 
-from hooks.checks.recipe_metadata import recipe_metadata_check
+from checks.recipe_metadata import recipe_metadata_check
 from test.utils.conanfile import MockConanfile
 from test.utils.output import MockOutput
 
