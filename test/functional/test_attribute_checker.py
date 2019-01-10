@@ -5,7 +5,7 @@ import textwrap
 
 from conans import tools
 
-from hooks.test.utils.test_cases.conan_client import ConanClientTestCase
+from test.utils.test_cases.conan_client import ConanClientTestCase
 
 
 class AttributeCheckerTests(ConanClientTestCase):
@@ -20,7 +20,8 @@ class AttributeCheckerTests(ConanClientTestCase):
 
     def _get_environ(self, **kwargs):
         kwargs = super(AttributeCheckerTests, self)._get_environ(**kwargs)
-        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks', 'attribute_checker')})
+        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks',
+                                                   'attribute_checker')})
         return kwargs
 
     def test_conanfile_basic(self):

@@ -1,8 +1,8 @@
 import unittest
 
 from hooks.checks.recipe_metadata import recipe_metadata_check
-from hooks.test.utils.conanfile import MockConanfile
-from hooks.test.utils.output import MockOutput
+from test.utils.conanfile import MockConanfile
+from test.utils.output import MockOutput
 
 
 class WrongConanfileRecipeMetadataTest(unittest.TestCase):
