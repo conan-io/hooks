@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import os
+import sys
 import re
 import textwrap
 import json
@@ -15,7 +16,8 @@ from conans.test.utils.tools import TestBufferConanOutput
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
-from hooks.bintray_update import post_upload_recipe
+sys.path.append(os.path.join(os.getenv("TOX_WORK_DIR"), '..', 'hooks'))
+import bintray_update
 
 
 class MockResponse:
@@ -102,8 +104,8 @@ class BintrayUpdateTests(ConanClientTestCase):
         kwargs.update({'CONAN_USERNAME': 'chespirito', 'CONAN_PASSWORD': 'elchapulincolorado'})
         return kwargs
 
-    @mock.patch('hooks.bintray_update.requests.get', side_effect=side_effect_get)
-    @mock.patch('hooks.bintray_update.requests.patch', side_effect=side_effect_patch)
+    @mock.patch('bintray_update.requests.get', side_effect=side_effect_get)
+    @mock.patch('bintray_update.requests.patch', side_effect=side_effect_patch)
     def test_conanfile_basic(self, mock_get, mock_patch):
         reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
         remote = Remote(
@@ -114,7 +116,7 @@ class BintrayUpdateTests(ConanClientTestCase):
         output = TestBufferConanOutput()
 
         with context_env(**self._get_environ()):
-            post_upload_recipe(
+            bintray_update.post_upload_recipe(
                 output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
 
             self.assertIn("Reading package info form Bintray", output)
@@ -122,8 +124,8 @@ class BintrayUpdateTests(ConanClientTestCase):
             self.assertIn("Bintray is outdated. Updating Bintray package info ...", output)
             self.assertNotIn("ERROR", output)
 
-    @mock.patch('hooks.bintray_update.requests.get', side_effect=side_effect_get)
-    @mock.patch('hooks.bintray_update.requests.patch', side_effect=side_effect_patch)
+    @mock.patch('bintray_update.requests.get', side_effect=side_effect_get)
+    @mock.patch('bintray_update.requests.patch', side_effect=side_effect_patch)
     def test_conanfile_unfilled(self, mock_get, mock_patch):
         reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
         remote = Remote(
@@ -134,7 +136,7 @@ class BintrayUpdateTests(ConanClientTestCase):
         output = TestBufferConanOutput()
 
         with context_env(**self._get_environ()):
-            post_upload_recipe(
+            bintray_update.post_upload_recipe(
                 output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
 
             self.assertIn("Reading package info form Bintray", output)
