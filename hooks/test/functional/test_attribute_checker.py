@@ -5,7 +5,7 @@ import textwrap
 
 from conans import tools
 
-from tests.utils.test_cases.conan_client import ConanClientTestCase
+from hooks.test.utils.test_cases.conan_client import ConanClientTestCase
 
 
 class AttributeCheckerTests(ConanClientTestCase):

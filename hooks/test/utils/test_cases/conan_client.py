@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
-from tests.utils.environ_vars import context_env
+from hooks.test.utils.environ_vars import context_env
 
 
 class ConanClientTestCase(unittest.TestCase):
