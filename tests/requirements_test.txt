@@ -1,3 +1,2 @@
 tox
 tox-venv
-mock
