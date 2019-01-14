@@ -121,8 +121,10 @@ class BintrayUpdateTests(ConanClientTestCase):
 
             self.assertIn("Reading package info form Bintray", output)
             self.assertIn("Inspecting recipe info ...", output)
-            self.assertIn("Bintray is outdated. Updating Bintray package info: desc labels vcs_url issue_tracker_url website_url", output)
+            self.assertIn("Bintray is outdated. Updating Bintray package info:", output)
             self.assertNotIn("ERROR", output)
+            for attrib in ["desc", "labels", "vcs_url", "issue_tracker_url", "website_url"]
+                self.assertIn(attrib, output)
 
     @mock.patch('bintray_update.requests.get', side_effect=side_effect_get)
     @mock.patch('bintray_update.requests.patch', side_effect=side_effect_patch)
