@@ -31,9 +31,6 @@ __license__ = 'MIT'
 __author__  = 'Conan.io <https://github.com/conan-io>'
 
 
-BINTRAY_API_URL = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
-
-
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     Update Bintray package info after upload Conan recipe
@@ -81,7 +78,8 @@ def _get_bintray_package_url(remote, reference):
     """
     user, repo = _extract_user_repo(remote)
     package = "{}%3A{}".format(reference.name, reference.user)
-    return "{}/packages/{}/{}/{}".format(BINTRAY_API_URL, user, repo, package)
+    url = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
+    return "{}/packages/{}/{}/{}".format(url, user, repo, package)
 
 
 def _get_package_info_from_bintray(package_url):
@@ -155,11 +153,13 @@ def _update_package_info(recipe_info, remote_info):
 
 
 def _patch_bintray_package_info(package_url, package_info, remote):
+    if 'https' not in package_url:
+        raise ValueError("Bad package URL: Only HTTPS is allowed, Bintray API uses Basic Auth")
     username, password = _get_credentials(remote)
     response = requests.patch(
         url=package_url, json=package_info, auth=HTTPBasicAuth(username, password))
     if not response.ok:
-        raise HTTPError("Could not request package info: {}".format(response.text))
+        raise HTTPError("Could not patch package info: {}".format(response.text))
     return response.json()
 
 

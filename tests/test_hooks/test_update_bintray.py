@@ -198,3 +198,23 @@ class BintrayUpdateTests(ConanClientTestCase):
 
             self.assertIn("ERROR", output)
             self.assertIn("Could not request package info: Internal Server Error (500)", output)
+
+    @mock.patch('bintray_update.requests.get', side_effect=side_effect_get)
+    def test_bad_package_url(self, mock_get):
+        reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
+        remote = Remote(
+            name="virtual",
+            url="https://api.bintray.com/conan/conan-community/test-distribution",
+            verify_ssl=True)
+        tools.save('conanfile.py', content=self.conanfile_basic)
+        output = TestBufferConanOutput()
+
+        env = self._get_environ()
+        env["BINTRAY_API_URL"] = "http://api.bintray.com"
+
+        with context_env(**env):
+            bintray_update.post_upload_recipe(
+                output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
+
+            self.assertIn("ERROR", output)
+            self.assertIn("Bad package URL: Only HTTPS is allowed, Bintray API uses Basic Auth", output)
