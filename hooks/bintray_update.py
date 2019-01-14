@@ -19,8 +19,10 @@ The hook is automatically called when upload command is executed:
 
 import os
 import re
+import subprocess
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import HTTPError
 from conans.client import conan_api
 
 
@@ -49,7 +51,7 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
         recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
         updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
         if updated_info:
-            output.info("Bintray is outdated. Updating Bintray package info ...")
+            output.info("Bintray is outdated. Updating Bintray package info: {}".format(" ".join(updated_info.keys())))
             _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
         else:
             output.info("Bintray package info is up-to-date.")
@@ -66,7 +68,7 @@ def _extract_user_repo(remote):
     pattern = r'https?:\/\/api.bintray.com\/conan\/(.*)\/(.*)'
     match = re.match(pattern=pattern, string=remote.url)
     if not match:
-        raise Exception("Could not extract subject and repo from %s" % remote.url)
+        raise ValueError("Could not extract subject and repo from %s: Invalid pattern" % remote.url)
     return match.group(1), match.group(2)
 
 
@@ -90,7 +92,7 @@ def _get_package_info_from_bintray(package_url):
     """
     response = requests.get(url=package_url)
     if not response.ok:
-        raise Exception("Could not request package info: {}".format(response.text))
+        raise HTTPError("Could not request package info: {} ({})".format(response.text, response.status_code))
     return response.json()
 
 
@@ -140,8 +142,9 @@ def _update_package_info(recipe_info, remote_info):
         if remote_info['issue_tracker_url'] != issue_tracker_url:
             updated_info['issue_tracker_url'] = issue_tracker_url
 
-    if 'maturity' not in remote_info or remote_info['maturity'] != "Stable":
-        updated_info['maturity'] = "Stable"
+    if _is_stable_branch(_get_branch()):
+        if 'maturity' not in remote_info or remote_info['maturity'] != "Stable":
+            updated_info['maturity'] = "Stable"
 
     homepage = recipe_info['homepage']
     if homepage:
@@ -156,7 +159,7 @@ def _patch_bintray_package_info(package_url, package_info, remote):
     response = requests.patch(
         url=package_url, json=package_info, auth=HTTPBasicAuth(username, password))
     if not response.ok:
-        raise Exception("Could not request package info: {}".format(response.text))
+        raise HTTPError("Could not request package info: {}".format(response.text))
     return response.json()
 
 
@@ -172,8 +175,57 @@ def _get_credentials(remote):
         if username: break
 
     if not username:
-        raise Exception("Could not update Bintray info: username not found")
+        raise ValueError("Could not update Bintray info: username not found")
     password = os.getenv("CONAN_PASSWORD_%s" % remote_name, os.getenv("CONAN_PASSWORD"))
     if not password:
         raise Exception("Could not update Bintray info: password not found")
     return username, password
+
+
+def _get_branch():
+    """
+    Read current branch name
+    :return: git branch name
+    """
+    ci_manager = {
+        "TRAVIS": "TRAVIS_BRANCH",
+        "APPVEYOR": "APPVEYOR_REPO_BRANCH",
+        "bamboo_buildNumber": "bamboo_planRepository_branch",
+        "JENKINS_URL": "BRANCH_NAME",
+        "GITLAB_CI": "CI_BUILD_REF_NAME",
+        "CIRCLECI": "CIRCLE_BRANCH"
+    }
+
+    for ci, branch in ci_manager.items():
+        if os.getenv(ci) and os.getenv(branch):
+            return os.getenv(branch)
+
+    try:
+        for line in subprocess.check_output("git branch --no-color", shell=True).decode().splitlines():
+            line = line.strip()
+            if line.startswith("*") and " (HEAD detached" not in line:
+                return line.replace("*", "", 1).strip()
+        return None
+    except Exception:
+        pass
+    return None
+
+
+def _is_stable_branch(branch):
+    """
+    Detect if current branch is stable one
+    :param branch: Current Git branch name
+    :return: True if current branch is Stable. Otherwise, False.
+    """
+    stable_branch_pattern = os.getenv("CONAN_STABLE_BRANCH_PATTERN")
+    if stable_branch_pattern:
+        stable_patterns = [stable_branch_pattern]
+    else:
+        stable_patterns = ["master$", "release*", "stable*"]
+
+    for pattern in stable_patterns:
+        prog = re.compile(pattern)
+
+        if branch and prog.match(branch):
+            return True
+    return False

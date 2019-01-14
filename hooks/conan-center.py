@@ -187,7 +187,7 @@ def _shared_files_well_managed(conanfile, folder):
     shared_name = "shared"
     options_dict = {}
     for key, value in conanfile.options.values.as_list():
-        # FIXME: shared_name used to target both 'shared' for pacakge creation
+        # FIXME: shared_name used to target both 'shared' for package creation
         # and 'libname:shared' test_package
         if "shared" in key:
             shared_name = key
@@ -223,6 +223,8 @@ def _files_match_settings(conanfile, folder):
         if _has_files_with_extensions(folder, visual_extensions):
             return False
         return _has_files_with_extensions(folder, macos_extensions)
+    else:
+        return False
 
 
 def _default_package_structure(folder):
@@ -236,6 +238,8 @@ def _default_package_structure(folder):
 
 
 def _get_os(conanfile):
-    if hasattr(conanfile.settings, "os"):
-        return conanfile.settings.os
-    return conanfile.settings.os_build
+    attribs = ["os", "os_build"]
+    for attrib in attribs:
+        if hasattr(conanfile.settings, attrib):
+            return getattr(conanfile.settings, attrib)
+    return None

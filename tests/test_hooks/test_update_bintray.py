@@ -121,7 +121,7 @@ class BintrayUpdateTests(ConanClientTestCase):
 
             self.assertIn("Reading package info form Bintray", output)
             self.assertIn("Inspecting recipe info ...", output)
-            self.assertIn("Bintray is outdated. Updating Bintray package info ...", output)
+            self.assertIn("Bintray is outdated. Updating Bintray package info: desc labels vcs_url issue_tracker_url website_url", output)
             self.assertNotIn("ERROR", output)
 
     @mock.patch('bintray_update.requests.get', side_effect=side_effect_get)
@@ -143,3 +143,56 @@ class BintrayUpdateTests(ConanClientTestCase):
             self.assertIn("Inspecting recipe info ...", output)
             self.assertIn("Bintray package info is up-to-date.", output)
             self.assertNotIn("ERROR", output)
+
+    def test_bad_remote(self):
+        url = "https://foo.bar/conan/test-distribution"
+        reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
+        remote = Remote(
+            name="virtual",
+            url=url,
+            verify_ssl=True)
+        tools.save('conanfile.py', content=self.conanfile_limited)
+        output = TestBufferConanOutput()
+
+        with context_env(**self._get_environ()):
+            bintray_update.post_upload_recipe(
+                output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
+
+            self.assertIn("ERROR", output)
+            self.assertIn("Could not extract subject and repo from {}: Invalid pattern".format(url), output)
+
+    def test_bad_login(self):
+        reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
+        remote = Remote(
+            name="virtual",
+            url="https://api.bintray.com/conan/conan-community/test-distribution",
+            verify_ssl=True)
+        tools.save('conanfile.py', content=self.conanfile_basic)
+        output = TestBufferConanOutput()
+
+        env = self._get_environ()
+        del env["CONAN_USERNAME"]
+
+        with context_env(**env):
+            bintray_update.post_upload_recipe(
+                output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
+
+            self.assertIn("ERROR", output)
+            self.assertIn("Could not update Bintray info: username not found", output)
+
+    @mock.patch('bintray_update.requests.get', return_value=MockResponse(None, 500, False, "Internal Server Error"))
+    def test_bad_server_response(self, mock_get):
+        reference = ConanFileReference.loads("foo/0.1.0@bar/testing")
+        remote = Remote(
+            name="virtual",
+            url="https://api.bintray.com/conan/conan-community/test-distribution",
+            verify_ssl=True)
+        tools.save('conanfile.py', content=self.conanfile_basic)
+        output = TestBufferConanOutput()
+
+        with context_env(**self._get_environ()):
+            bintray_update.post_upload_recipe(
+                output=output, conanfile_path='conanfile.py', reference=reference, remote=remote)
+
+            self.assertIn("ERROR", output)
+            self.assertIn("Could not request package info: Internal Server Error (500)", output)
