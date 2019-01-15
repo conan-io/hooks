@@ -34,4 +34,4 @@ class ConanClientTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls._old_cwd)
-        shutil.rmtree(cls._working_dir)
+        shutil.rmtree(cls._working_dir, ignore_errors=True)
