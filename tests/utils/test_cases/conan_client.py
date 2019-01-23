@@ -2,26 +2,13 @@
 
 import os
 import shutil
+import stat
 import tempfile
 import unittest
 from io import StringIO
 
 from conans.client.command import Conan, CommandOutputer, Command, SUCCESS
 from tests.utils.environ_vars import context_env
-
-
-class OutputStream(object):
-    def __init__(self):
-        self._data = StringIO()
-
-    def write(self, data):
-        self._data.write(data)
-
-    def flush(self):
-        pass
-
-    def as_str(self):
-        return self._data.getvalue()
 
 
 class ConanClientTestCase(unittest.TestCase):
@@ -39,13 +26,14 @@ class ConanClientTestCase(unittest.TestCase):
             # This snippet reproduces code from conans.client.command.main, we cannot directly
             # use it because in case of error it is exiting the python interpreter :/
             conan_api, cache, user_io = Conan.factory()
-            output_stream = OutputStream()
+            output_stream = StringIO()
             user_io.out._stream = output_stream
             outputer = CommandOutputer(user_io, cache)
             cmd = Command(conan_api, cache, user_io, outputer)
             return_code = cmd.run(command)
-            self.assertEqual(return_code, expected_return_code)
-            return output_stream.as_str()
+            self.assertEqual(return_code, expected_return_code,
+                             msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
+            return output_stream.getvalue()
 
     @classmethod
     def setUpClass(cls):
@@ -56,4 +44,13 @@ class ConanClientTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls._old_cwd)
-        shutil.rmtree(cls._working_dir)
+
+        def _change_permissions(func, path, exc_info):
+            if not os.access(path, os.W_OK):
+                os.chmod(path, stat.S_IWUSR)
+                func(path)
+            else:
+                raise OSError(
+                    "Cannot change permissions for {}! Exception info: {}".format(path, exc_info))
+
+        shutil.rmtree(cls._working_dir, onerror=_change_permissions)
