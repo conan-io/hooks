@@ -52,13 +52,4 @@ class ConanClientTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls._old_cwd)
-
-        def _change_permissions(func, path, exc_info):
-            if not os.access(path, os.W_OK):
-                os.chmod(path, stat.S_IWUSR)
-                func(path)
-            else:
-                raise OSError(
-                    "Cannot change permissions for {}! Exception info: {}".format(path, exc_info))
-
-        shutil.rmtree(cls._working_dir, onerror=_change_permissions)
+        shutil.rmtree(cls._working_dir)
