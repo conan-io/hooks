@@ -25,14 +25,14 @@ class AttributeCheckerTests(ConanClientTestCase):
 
     def test_conanfile_basic(self):
         tools.save('conanfile.py', content=self.conanfile_basic)
-        output = self.conan(['conan', 'export', '.', 'name/version@jgsogo/test'])
+        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'url'", output)
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'license'", output)
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'description'", output)
 
     def test_conanfile_alias(self):
         tools.save('conanfile.py', content=self.conanfile_alias)
-        output = self.conan(['conan', 'export', '.', 'name/version@jgsogo/test'])
+        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'url'", output)
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'license'", output)
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'description'", output)
