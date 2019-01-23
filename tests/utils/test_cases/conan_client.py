@@ -30,9 +30,17 @@ class ConanClientTestCase(unittest.TestCase):
             user_io.out._stream = output_stream
             outputer = CommandOutputer(user_io, cache)
             cmd = Command(conan_api, cache, user_io, outputer)
-            return_code = cmd.run(command)
-            self.assertEqual(return_code, expected_return_code,
-                             msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
+            try:
+                return_code = cmd.run(command)
+            except Exception as e:
+                # Conan execution failed
+                self.fail("Conan execution for this test failed with {}: {}".format(type(e), e))
+            else:
+                # Check return code
+                self.assertEqual(return_code, expected_return_code,
+                                 msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
+            finally:
+                conan_api._remote_manager._auth_manager._localdb.connection.close() # Close sqlite3
             return output_stream.getvalue()
 
     @classmethod
