@@ -34,7 +34,7 @@ class ConanClientTestCase(unittest.TestCase):
         kwargs.update({'CONAN_USER_HOME': home, 'CONAN_USER_HOME_SHORT': home_short})
         return kwargs
 
-    def conan(self, *command, expected_return_code=SUCCESS):
+    def conan(self, command, expected_return_code=SUCCESS):
         with context_env(**self._get_environ()):
             # This snippet reproduces code from conans.client.command.main, we cannot directly
             # use it because in case of error it is exiting the python interpreter :/
@@ -43,7 +43,7 @@ class ConanClientTestCase(unittest.TestCase):
             user_io.out._stream = output_stream
             outputer = CommandOutputer(user_io, cache)
             cmd = Command(conan_api, cache, user_io, outputer)
-            return_code = cmd.run(*command)
+            return_code = cmd.run(command)
             self.assertEqual(return_code, expected_return_code)
             return output_stream.as_str()
 
