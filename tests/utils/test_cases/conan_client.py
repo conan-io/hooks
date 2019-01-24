@@ -2,7 +2,6 @@
 
 import os
 import shutil
-import stat
 import tempfile
 import unittest
 from io import StringIO
@@ -13,6 +12,8 @@ from tests.utils.environ_vars import context_env
 
 class ConanClientTestCase(unittest.TestCase):
     """ Helper class to run isolated conan commands """
+    _old_cwd = None
+    _working_dir = None
 
     def _get_environ(self, **kwargs):
         # kwargs = super(ConanClientTestCase, **kwargs)
@@ -40,7 +41,7 @@ class ConanClientTestCase(unittest.TestCase):
                 self.assertEqual(return_code, expected_return_code,
                                  msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
             finally:
-                conan_api._remote_manager._auth_manager._localdb.connection.close() # Close sqlite3
+                conan_api._remote_manager._auth_manager._localdb.connection.close()  # Close sqlite3
             return output_stream.getvalue()
 
     @classmethod
