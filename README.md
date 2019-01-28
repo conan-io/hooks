@@ -30,6 +30,14 @@ If you handle multiple dependencies in your project is better to add a *conan.co
     conan-center
 ```
 
+## Hooks
+
+These are the hooks currently available in this repository
+
+### Attribute checker
+
+This hook checks that some important attributes are present in the ``ConanFile``: url, license and description
+
 ## License
 
 [MIT License](LICENSE)
