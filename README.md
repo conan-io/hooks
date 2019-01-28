@@ -46,13 +46,18 @@ These are the hooks currently available in this repository
 
 ### [Attribute checker](hooks/attribute_checker.py)
 
-This hook checks that some important attributes are present in the ``ConanFile``: url, 
-license and description, and will output a warning for the missing ones. 
+This hook checks that some important attributes are present in the ``ConanFile``: url,
+license and description, and will output a warning for the missing ones.
 
 ### [Bintray Update](hooks/bintray_update.py)
 
-This hooks updates the Bintray package info by the attributes present in the ``ConanFile``.
+This Conan hook reads your recipe and updates its Bintray package info using the attributes.
 
+It's necessary pass Bintray login by environment variables:
+  - CONAN_LOGIN_USERNAME: Bintray login username
+  - CONAN_PASSWORD: Bintray API KEY
+
+The hook is automatically called when upload command is executed.
 
 ## License
 
