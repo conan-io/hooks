@@ -40,10 +40,19 @@ If you handle multiple dependencies in your project is better to add a *conan.co
     conan-center
 ```
 
-## Supported hooks
+## Hooks
 
-- [Conan Center](hooks/conan-center.py): Conan recipe linter
-- [Bintray Update](hooks/bintray_update.py): Update Bintray package info
+These are the hooks currently available in this repository
+
+### [Attribute checker](hooks/attribute_checker.py)
+
+This hook checks that some important attributes are present in the ``ConanFile``: url, 
+license and description, and will output a warning for the missing ones. 
+
+### [Bintray Update](hooks/bintray_update.py)
+
+This hooks updates the Bintray package info by the attributes present in the ``ConanFile``.
+
 
 ## License
 
