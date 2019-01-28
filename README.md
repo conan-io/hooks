@@ -36,7 +36,8 @@ These are the hooks currently available in this repository
 
 ### Attribute checker
 
-This hook checks that some important attributes are present in the ``ConanFile``: url, license and description
+This hook checks that some important attributes are present in the ``ConanFile``: url, 
+license and description, and will output a warning for the missing ones. 
 
 ## License
 
