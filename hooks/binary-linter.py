@@ -145,18 +145,17 @@ class BinaryLinter(object):
             return 'msvcr%s0' % version if version < 14 else 'vcruntime140'
 
         return {str(version): {'MDd': runtime_name(version) + 'd.dll',
-                               'MD': runtime_name(version) + '.dll'} for version in range(8, 15)}
+                               'MD': runtime_name(version) + '.dll'} for version in range(8, 16)}
 
     def _verify_runtime(self):
         for version in self._runtime_libraries:
             for runtime in self._runtime_libraries[version]:
                 library = self._runtime_libraries[version][runtime]
-                if runtime == self._compiler_runtime and version == self._compiler_version:
-                    if not self._has_import(library):
-                        self._output.warn('"%s" does not import runtime library "%s"' % (self._filename, library))
-                else:
-                    if self._has_import(library):
-                        self._output.error('"%s" imports invalid runtime library "%s"' % (self._filename, library))
+                compiler_version = str(self._compiler_version)
+                expected = self._runtime_libraries[compiler_version].get(self._compiler_runtime)
+                expected = library == expected
+                expected = expected and "MT" not in self._compiler_runtime
+                self._check_import(library, expected)
 
     def _verify_macho(self):
         expected_machine_type = {'x86': lief.MachO.CPU_TYPES.x86_64,
