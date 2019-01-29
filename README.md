@@ -39,7 +39,7 @@ These are the hooks currently available in this repository
 This hook checks that some important attributes are present in the ``ConanFile``: url, 
 license and description, and will output a warning for the missing ones. 
 
-### [GitHub Update](plugins/github-updater.py)
+### [GitHub Update](hooks/github-updater.py)
 
 This Conan hook reads your recipe and updates its GitHub repository properties using the attributes.
 
