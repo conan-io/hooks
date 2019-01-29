@@ -39,6 +39,23 @@ These are the hooks currently available in this repository
 This hook checks that some important attributes are present in the ``ConanFile``: url, 
 license and description, and will output a warning for the missing ones. 
 
+### [Binary Linter](hooks/binary-linter.py)
+
+This Conan hook validates produced binary artifacts of the given package.
+
+Binaries stored in the package folder are checked for compatibility with package settings and options.
+
+Currently, the following checks are performed:
+
+- Binary format (Mach-O, ELF or PE)
+- Architecture
+- No shared libraries are produced for *shared=False*
+- Visual Studio runtime library in use
+
+The hook uses [LIEF](https://github.com/lief-project/LIEF) library in order to perform its checks.
+
+The hook is automatically called when *package* command is executed.
+
 ## License
 
 [MIT License](LICENSE)
