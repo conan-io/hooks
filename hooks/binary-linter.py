@@ -48,12 +48,17 @@ class BinaryLinter(object):
                 filename = os.path.join(root, filename)
                 self._verify_file(filename)
 
+    @property
+    def verbose(self):
+        return "VERBOSE" in os.environ
+
     def _verify_file(self, filename):
         self._filename = filename
         self._binary = lief.parse(filename)
 
         if not self._binary:
-            self._output.info('file "%s" is not a executable, skipping...' % filename)
+            if self.verbose:
+                self._output.info('file "%s" is not a executable, skipping...' % filename)
             return
 
         if self._binary.format != self._expected_format:
@@ -134,10 +139,16 @@ class BinaryLinter(object):
         return False
 
     def _check_import(self, library, expected):
-        if self._has_import(library) and not expected:
-            self._output.warn('"%s" imports library "%s"' % (self._filename, library))
-        elif not self._has_import(library) and expected:
-            self._output.error('"%s" doesn\'t import library "%s"' % (self._filename, library))
+        if self._has_import(library):
+            if not expected:
+                self._output.warn('"%s" imports library "%s"' % (self._filename, library))
+            elif self.verbose:
+                self._output.info('"%s" imports library "%s"' % (self._filename, library))
+        elif not self._has_import(library):
+            if expected:
+                self._output.error('"%s" doesn\'t import library "%s"' % (self._filename, library))
+            elif self.verbose:
+                self._output.info('"%s" doesn\'t import library "%s"' % (self._filename, library))
 
     @property
     def _runtime_libraries(self):
