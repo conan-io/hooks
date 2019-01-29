@@ -123,12 +123,21 @@ class BinaryLinter(object):
 
         if self._compiler == 'Visual Studio':
             self._verify_runtime()
+        self._check_import("cygwin1.dll", self._subsystem == "cygwin")
+        self._check_import("msys-1.0.dll", self._subsystem == "msys")
+        self._check_import("msys-2.0.dll", self._subsystem == "msys2")
 
     def _has_import(self, name):
         for i in self._binary.imports:
             if i.name.lower() == name:
                 return True
         return False
+
+    def _check_import(self, library, expected):
+        if self._has_import(library) and not expected:
+            self._output.warn('"%s" imports library "%s"' % (self._filename, library))
+        elif not self._has_import(library) and expected:
+            self._output.error('"%s" doesn\'t import library "%s"' % (self._filename, library))
 
     @property
     def _runtime_libraries(self):
