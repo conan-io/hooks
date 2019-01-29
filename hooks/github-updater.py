@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from conans import tools
-from conans.client import conan_api
 import os
 import requests
 import re
@@ -17,8 +16,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         output.info('no GITHUB_TOKEN environment variable is set, skipping GitHub updater')
         return
 
-    conan_instance, _, _ = conan_api.Conan.factory()
-    recipe_info = conan_instance.inspect(path=conanfile_path, attributes=None)
+    recipe_info = conanfile.inspect(path=conanfile_path, attributes=None)
     url = recipe_info['url']
     if not url:
         output.info('no url attribute was specified withing recipe, skipping GitHub updater')
