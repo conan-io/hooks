@@ -6,7 +6,6 @@ from conans import tools
 from conans.client import conan_api
 import os
 import requests
-import subprocess
 import re
 import json
 
