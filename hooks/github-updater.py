@@ -9,15 +9,14 @@ import json
 
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
-    del conanfile, reference, kwargs
+    del conanfile_path, reference, kwargs
 
     github_token = os.getenv('GITHUB_TOKEN')
     if not github_token:
         output.info('no GITHUB_TOKEN environment variable is set, skipping GitHub updater')
         return
 
-    recipe_info = conanfile.inspect(path=conanfile_path, attributes=None)
-    url = recipe_info['url']
+    url = conanfile.url
     if not url:
         output.info('no url attribute was specified withing recipe, skipping GitHub updater')
         return
@@ -38,14 +37,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     request = dict()
 
-    def add_attribute(name):
-        if name in recipe_info:
-            attribute = recipe_info[name]
-            if attribute:
-                request[name] = attribute
-
-    add_attribute('description')
-    add_attribute('homepage')
+    if conanfile.description:
+        request['description'] = conanfile.description
+    if conanfile.homepage:
+        request['homepage'] = conanfile.homepage
 
     # https://developer.github.com/v3/repos/#edit
     url = 'https://api.github.com/repos/{owner}/{repository}'.format(owner=owner,
@@ -61,7 +56,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             output.error('GitHub PATCH request failed with %s %s' % (response.status_code,
                                                                      response.content))
 
-    topics = recipe_info["topics"]
+    topics = conanfile.topics
     if not topics or not isinstance(topics, tuple):
         output.info('no topics to update')
     else:
