@@ -97,8 +97,8 @@ class ExportMetadataTests(ConanClientTestCase):
     @unittest.skipUnless(capabilities.svn(), "SVN not available")
     def test_svn_repository(self, pristine_repo):
         if pristine_repo and tools.SVN.get_version() < tools.SVN.API_CHANGE_VERSION:
-            raise unittest.skip("Required SVN >= {} to test for pristine "
-                                "repo".format(tools.SVN.API_CHANGE_VERSION))
+            raise unittest.SkipTest("Required SVN >= {} to test for pristine "
+                                    "repo".format(tools.SVN.API_CHANGE_VERSION))
 
         reference = 'name/version@jgsogo/test'
 
