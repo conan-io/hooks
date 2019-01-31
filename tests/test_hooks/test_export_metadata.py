@@ -97,7 +97,7 @@ class ExportMetadataTests(ConanClientTestCase):
     @parameterized.expand([(True,), (False,)])
     @unittest.skipUnless(capabilities.svn(), "SVN not available")
     def test_svn_repository(self, pristine_repo):
-        if pristine_repo and tools.SVN.get_version() < tools.SVN.API_CHANGE_VERSION:
+        if pristine_repo and not bool(tools.SVN.get_version() >= tools.SVN.API_CHANGE_VERSION):
             raise unittest.SkipTest("Required SVN >= {} to test for pristine "
                                     "repo".format(tools.SVN.API_CHANGE_VERSION))
 
@@ -125,8 +125,9 @@ class ExportMetadataTests(ConanClientTestCase):
         # Check that the file is in the export folder, contains expected data and is in the manifest
         output = self.conan(['get', reference, METADATA_FILENAME])
         data = json.loads(output)
-        self.assertListEqual(data.keys(), [six.u('type'), six.u('url'),
-                                           six.u('revision'), six.u('dirty')])
+        self.assertListEqual(sorted(data.keys()),
+                             sorted([six.u('type'), six.u('url'),
+                                     six.u('revision'), six.u('dirty')]))
         self.assertEqual(data['type'], six.u('svn'))
         self.assertEqual(data['url'].lower(), six.u(repo_url).lower())
         self.assertEqual(data['revision'], six.u(svn.get_revision()))

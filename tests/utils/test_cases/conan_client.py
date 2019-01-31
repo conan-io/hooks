@@ -51,6 +51,8 @@ class ConanClientTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        from time import sleep
+        sleep(1)
         os.chdir(cls._old_cwd)
         shutil.rmtree(cls._working_dir)
 
