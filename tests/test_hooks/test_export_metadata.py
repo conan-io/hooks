@@ -7,6 +7,7 @@ import sys
 import textwrap
 import unittest
 
+import six
 from parameterized import parameterized
 from six.moves.urllib.parse import quote
 
@@ -124,9 +125,9 @@ class ExportMetadataTests(ConanClientTestCase):
         # Check that the file is in the export folder, contains expected data and is in the manifest
         output = self.conan(['get', reference, METADATA_FILENAME])
         data = json.loads(output)
-        self.assertDictEqual(data, {'type': 'svn',
-                                    'url': repo_url,
-                                    'revision': svn.get_revision(),
-                                    'dirty': bool(not pristine_repo)})
+        self.assertDictEqual(data, {six.u('type'): six.u('svn'),
+                                    six.u('url'): repo_url,
+                                    six.u('revision'): six.u(svn.get_revision()),
+                                    six.u('dirty'): bool(not pristine_repo)})
         output = self.conan(['get', reference, CONAN_MANIFEST])
         self.assertIn(METADATA_FILENAME, output)
