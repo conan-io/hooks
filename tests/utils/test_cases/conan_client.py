@@ -26,8 +26,8 @@ class ConanClientTestCase(unittest.TestCase):
 
     def conan(self, command, expected_return_code=SUCCESS):
         with context_env(**self._get_environ()):
-            output_stream = StringIO()
-            with conan_command(output_stream) as cmd:
+            stream = StringIO()
+            with conan_command(stream) as cmd:
                 try:
                     return_code = cmd.run(command)
                 except Exception as e:
@@ -36,13 +36,16 @@ class ConanClientTestCase(unittest.TestCase):
                 else:
                     # Check return code
                     self.assertEqual(return_code, expected_return_code,
-                                     msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
-            return output_stream.getvalue()
+                                     msg="Unexpected return code\n\n{}".format(stream.getvalue()))
+            return stream.getvalue()
 
     def setUp(self):
         testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
         os.makedirs(testcase_dir)
         os.chdir(testcase_dir)
+
+    def tearDown(self):
+        os.chdir(self._old_cwd)
 
     @classmethod
     def setUpClass(cls):
@@ -51,8 +54,6 @@ class ConanClientTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        from time import sleep
-        sleep(1)
         os.chdir(cls._old_cwd)
         shutil.rmtree(cls._working_dir)
 
