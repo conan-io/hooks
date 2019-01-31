@@ -15,7 +15,6 @@ class ConanClientTestCase(unittest.TestCase):
     """ Helper class to run isolated conan commands """
     _old_cwd = None
     _working_dir = None
-    _user_subdir = 'dev'
 
     def _get_environ(self, **kwargs):
         # kwargs = super(ConanClientTestCase, **kwargs)
@@ -47,13 +46,9 @@ class ConanClientTestCase(unittest.TestCase):
             return output_stream.getvalue()
 
     def setUp(self):
-        user_working_dir = os.path.join(self._working_dir, self._user_subdir)
-        os.makedirs(user_working_dir)
-        os.chdir(user_working_dir)
-
-    def tearDown(self):
-        # Clean working directory
-        shutil.rmtree(os.path.join(self._working_dir, self._user_subdir))
+        testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
+        os.makedirs(testcase_dir)
+        os.chdir(testcase_dir)
 
     @classmethod
     def setUpClass(cls):
