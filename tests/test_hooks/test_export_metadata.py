@@ -130,7 +130,7 @@ class ExportMetadataTests(ConanClientTestCase):
                                      six.u('revision'), six.u('dirty')]))
         self.assertEqual(data['type'], six.u('svn'))
         self.assertEqual(data['url'].lower(), six.u(repo_url).lower())
-        self.assertEqual(data['revision'], six.u(svn.get_revision()))
+        self.assertEqual(data['revision'], svn.get_revision())
         self.assertEqual(data['dirty'], bool(not pristine_repo))
 
         output = self.conan(['get', reference, CONAN_MANIFEST])

@@ -44,9 +44,6 @@ class ConanClientTestCase(unittest.TestCase):
         os.makedirs(testcase_dir)
         os.chdir(testcase_dir)
 
-    def tearDown(self):
-        os.chdir(self._old_cwd)
-
     @classmethod
     def setUpClass(cls):
         cls._working_dir = tempfile.mkdtemp()
@@ -55,7 +52,17 @@ class ConanClientTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.chdir(cls._old_cwd)
-        shutil.rmtree(cls._working_dir)
+
+        def handleRemoveReadonly(func, path, exc):
+            import errno, stat
+            excvalue = exc[1]
+            if func in (os.rmdir, os.remove, os.unlink) and excvalue.errno == errno.EACCES:
+                os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)  # 0777
+                func(path)
+            else:
+                raise Exception("Failed to remove '{}'".format(path))
+
+        shutil.rmtree(cls._working_dir, onerror=handleRemoveReadonly)
 
     def _gimme_tmp(self):
         return os.path.join(self._working_dir, str(uuid.uuid4()))
