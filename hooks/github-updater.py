@@ -35,16 +35,29 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         'Authorization': 'token %s' % github_token
     }
 
+    # https://developer.github.com/v3/repos/#edit
+    url = 'https://api.github.com/repos/{owner}/{repository}'.format(owner=owner,
+                                                                     repository=repository)
+
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        output.error('GitHub GET request failed with %s %s' % (response.status_code,
+                                                               response.content))
+
+    content = json.loads(response.content)
+    default_branch = content["default_branch"]
+    reference = "%s/%s" % (conanfile.channel, conanfile.version)
+    if reference != default_branch:
+        output.info('default "%s" branch doesn\'t match conanfile reference "%s"' % (default_branch,
+                                                                                     reference))
+        return
+
     request = dict()
 
     if conanfile.description:
         request['description'] = conanfile.description
     if conanfile.homepage:
         request['homepage'] = conanfile.homepage
-
-    # https://developer.github.com/v3/repos/#edit
-    url = 'https://api.github.com/repos/{owner}/{repository}'.format(owner=owner,
-                                                                     repository=repository)
 
     if not request:
         output.info('not attributes to update')
