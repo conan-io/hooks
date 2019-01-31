@@ -1,2 +1,2 @@
-tox
-tox-venv
+pytest>=3.6
+parameterized
