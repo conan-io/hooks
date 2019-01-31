@@ -76,6 +76,16 @@ The hook uses [LIEF](https://github.com/lief-project/LIEF) library in order to p
 
 The hook is automatically called when *package* command is executed.
 
+### [SPDX checker](hooks/spdx-checker.py)
+
+This Conan hook validates conanfile's [license](https://docs.conan.io/en/latest/reference/conanfile/attributes.html?highlight=license#license) attribute specifies valid license identifier(s) from the [SPDX license list](https://spdx.org/licenses/).
+
+The hook uses [spdx_lookup](https://pypi.org/project/spdx-lookup/) python module in order to perform its checks.
+
+Use `pip install spdx_lookup` in outder to install required dependency.
+
+The hook is automatically called when *export* command is executed.
+
 ## License
 
 [MIT License](LICENSE)
