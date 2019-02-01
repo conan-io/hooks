@@ -96,7 +96,7 @@ This Conan hook validates that conanfile's [license](https://docs.conan.io/en/la
 
 The hook uses [spdx_lookup](https://pypi.org/project/spdx-lookup/) python module in order to perform its checks.
 
-Use `pip install spdx_lookup` in outder to install required dependency.
+Use `pip install spdx_lookup` in order to install required dependency.
 
 The hook is automatically called when *export* command is executed.
 
