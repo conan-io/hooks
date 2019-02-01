@@ -92,7 +92,7 @@ It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
 
 ### [SPDX checker](hooks/spdx-checker.py)
 
-This Conan hook validates conanfile's [license](https://docs.conan.io/en/latest/reference/conanfile/attributes.html?highlight=license#license) attribute specifies valid license identifier(s) from the [SPDX license list](https://spdx.org/licenses/).
+This Conan hook validates that conanfile's [license](https://docs.conan.io/en/latest/reference/conanfile/attributes.html?highlight=license#license) attribute specifies valid license identifier(s) from the [SPDX license list](https://spdx.org/licenses/).
 
 The hook uses [spdx_lookup](https://pypi.org/project/spdx-lookup/) python module in order to perform its checks.
 
