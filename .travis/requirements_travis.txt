@@ -1,2 +1,1 @@
 tox-travis
--r ../tests/requirements_test.txt
