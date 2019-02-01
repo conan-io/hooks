@@ -41,7 +41,6 @@ class ExportMetadataTests(ConanClientTestCase):
             pass
         """)
     conanfile_plain = conanfile_base.format(exports="")
-    conanfile_with_exports = conanfile_base.format(exports='"myfile.txt"')
 
     def _get_environ(self, **kwargs):
         kwargs = super(ExportMetadataTests, self)._get_environ(**kwargs)
@@ -65,9 +64,9 @@ class ExportMetadataTests(ConanClientTestCase):
             output = self.conan(['export', '.', 'name/version@jgsogo/test'])
             self.assertNotIn("ERROR: Target file to write metadata already exists", output)
 
-    @parameterized.expand([(True,), (False,)])
-    def test_git_repository(self, with_exports):
-        conanfile = self.conanfile_with_exports if with_exports else self.conanfile_plain
+    @parameterized.expand([('"myfile.txt"',), ('("myfile1", "myfile2")',), (None, )])
+    def test_git_repository(self, exports):
+        conanfile = self.conanfile_base.format(exports=exports) if exports else self.conanfile_plain
         reference = 'name/version@jgsogo/test'
         url = 'http://some.url'
 
