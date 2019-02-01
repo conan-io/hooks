@@ -14,7 +14,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     del conanfile_path, reference, kwargs
 
     if "license" not in conanfile.__dict__:
-        output.error("recipe doesn't have a license attribute")
+        output.info("recipe doesn't have a license attribute")
         return
     if isinstance(conanfile.license, str):
         licenses = [conanfile.license]
