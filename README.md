@@ -76,6 +76,22 @@ The hook uses [LIEF](https://github.com/lief-project/LIEF) library in order to p
 
 The hook is automatically called when *package* command is executed.
 
+### [GitHub Update](hooks/github-updater.py)
+
+This Conan hook reads your recipe and updates its GitHub repository properties using the attributes.
+
+The following attributes are updated:
+
+- homepage
+
+- description
+
+- topics
+
+It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
+
+The hook is automatically called when *export* command is executed.
+
 ## License
 
 [MIT License](LICENSE)
