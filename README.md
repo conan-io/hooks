@@ -44,6 +44,31 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 
 These are the hooks currently available in this repository
 
+### [Conan Center](hooks/conan-center.py)
+
+This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
+in [Conan Center](https://bintray.com/conan/conan-center).
+
+It is mostly intended for users who want to contribute packages to Conan Center. With this hook 
+they will test some of the requirements in the guidelines, as this hook will check for recipe 
+metadata, binary matching... during the ``conan create`` step and will output the result of each 
+check as ``OK``, ``WARNING`` or ``ERROR``:
+
+```
+[HOOK - conan-center.py] pre_export(): [RECIPE METADATA] OK
+[HOOK - conan-center.py] pre_export(): [HEADER ONLY] OK
+[HOOK - conan-center.py] pre_export(): [NO COPY SOURCE] OK
+[HOOK - conan-center.py] pre_export(): [FPIC OPTION] OK
+[HOOK - conan-center.py] pre_export(): [FPIC MANAGEMENT] 'fPIC' option not found
+[HOOK - conan-center.py] pre_export(): [VERSION RANGES] OK
+[HOOK - conan-center.py] post_package(): ERROR: [PACKAGE LICENSE] No package licenses found in: ~/
+.conan/data/name/version/jgsogo/test/package/3475bd55b91ae904ac96fde0f106a136ab951a5e. Please
+ package the library license to a 'licenses' folder
+[HOOK - conan-center.py] post_package(): [DEFAULT PACKAGE LAYOUT] OK
+[HOOK - conan-center.py] post_package(): [MATCHING CONFIGURATION] OK
+[HOOK - conan-center.py] post_package(): [SHARED ARTIFACTS] OK
+```
+
 ### [Attribute checker](hooks/attribute_checker.py)
 
 This hook checks that some important attributes are present in the ``ConanFile``: url,
