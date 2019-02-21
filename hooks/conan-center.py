@@ -19,9 +19,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     test = "[HEADER ONLY]"
     settings = getattr(conanfile, "settings", None)
-    build = getattr(conanfile, "build", None)
+    build = "def build(self):" in tools.load(conanfile_path)
     if not settings and build:
-        output.warn("%s Recipe does not declare 'settings' and has a 'build()' step")
+        output.warn("%s Recipe does not declare 'settings' and has a 'build()' step" % test)
     else:
         output.success("%s OK" % test)
 
@@ -100,6 +100,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 def post_source(output, conanfile, conanfile_path, **kwargs):
     test = "[LIBCXX]"
     cpp_extensions = ["cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+    c_extensions = ["c", "h"]
 
     def _is_removing_libcxx():
         conanfile_content = tools.load(conanfile_path)
@@ -109,7 +110,8 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
         return conf in low and conf2 in low
 
     if not _is_removing_libcxx()\
-            and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions):
+            and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
+            and _has_files_with_extensions(conanfile.source_folder, c_extensions):
         output.error("%s Can't detect C++ source files but recipe does not remove 'compiler.libcxx'"
                      % test)
     else:
@@ -120,7 +122,7 @@ def post_build(output, conanfile, **kwargs):
     test = "[MATCHING CONFIGURATION]"
     if not _files_match_settings(conanfile, conanfile.build_folder):
         output.error("%s Built artifacts does not match the settings used: os=%s, compiler=%s"
-                     % (test, _get_os(conanfile), conanfile.settings.compiler))
+                     % (test, _get_os(conanfile), conanfile.settings.get_safe("compiler")))
     else:
         output.success("%s OK" % test)
 
@@ -138,7 +140,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         for filename in filenames:
             if "licenses" in root.split(os.path.sep):
                 # licenses folder, almost anything here should be a license
-                if fnmatch.fnmatch(filename.lower(), "*copying*") or fnmatch.fnmatch(filename.lower(), "*readme*"):
+                if fnmatch.fnmatch(filename.lower(), "*copying*") or \
+                        fnmatch.fnmatch(filename.lower(), "*readme*"):
                     licenses.append(os.path.join(root, filename))
 
                 if fnmatch.fnmatch(filename.lower(), "*license*"):
@@ -159,7 +162,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     test = "[MATCHING CONFIGURATION]"
     if not _files_match_settings(conanfile, conanfile.package_folder):
         output.error("%s Packaged artifacts does not match the settings used: os=%s, compiler=%s"
-                     % (test, _get_os(conanfile), conanfile.settings.compiler))
+                     % (test, _get_os(conanfile), conanfile.settings.get_safe("compiler")))
     else:
         output.success("%s OK" % test)
 
@@ -168,7 +171,6 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         output.error("%s Package with 'shared' option did not contains any shared artifact" % test)
     else:
         output.success("%s OK" % test)
-
 
 
 def _has_files_with_extensions(folder, extensions):
@@ -185,20 +187,14 @@ def _has_files_with_extensions(folder, extensions):
 def _shared_files_well_managed(conanfile, folder):
     shared_extensions = ["dll", "so", "dylib"]
     shared_name = "shared"
-    options_dict = {}
-    for key, value in conanfile.options.values.as_list():
-        # FIXME: shared_name used to target both 'shared' for package creation
-        # and 'libname:shared' test_package
-        if "shared" in key:
-            shared_name = key
-        options_dict[key] = value
+    options_dict = {key: value for key, value in conanfile.options.values.as_list()}
     if shared_name in options_dict.keys():
         if _has_files_with_extensions(folder, shared_extensions):
             return options_dict[shared_name] == "True"
         else:
             return options_dict[shared_name] == "False"
     else:
-        return False
+        return True
 
 
 def _files_match_settings(conanfile, folder):
@@ -208,7 +204,7 @@ def _files_match_settings(conanfile, folder):
     macos_extensions = ["a", "dylib"]
     os = _get_os(conanfile)
     if os == "Windows":
-        if conanfile.settings.compiler == "Visual Studio":
+        if conanfile.settings.get_safe("compiler") == "Visual Studio":
             if _has_files_with_extensions(folder, linux_extensions)\
                     or _has_files_with_extensions(folder, macos_extensions):
                 return False
@@ -223,8 +219,8 @@ def _files_match_settings(conanfile, folder):
         if _has_files_with_extensions(folder, visual_extensions):
             return False
         return _has_files_with_extensions(folder, macos_extensions)
-    else:
-        return False
+    else:  # Not able to compare os setting
+        return True
 
 
 def _default_package_structure(folder):
@@ -238,8 +234,10 @@ def _default_package_structure(folder):
 
 
 def _get_os(conanfile):
-    attribs = ["os", "os_build"]
-    for attrib in attribs:
-        if hasattr(conanfile.settings, attrib):
-            return getattr(conanfile.settings, attrib)
-    return None
+    settings = getattr(conanfile, "settings", None)
+    if settings:
+        for attrib in ["os", "os_build"]:
+            the_os = settings.get_safe(attrib)
+    else:
+        the_os = None
+    return the_os
