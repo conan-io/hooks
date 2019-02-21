@@ -71,8 +71,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings "
-                      "used: os=Windows, compiler=None", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
+                      output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
