@@ -19,7 +19,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     test = "[HEADER ONLY]"
     settings = getattr(conanfile, "settings", None)
-    build = "def build(self):" in tools.load(conanfile_path)
+    build = "def build(self):" in conanfile_content
     if not settings and build:
         output.warn("%s Recipe does not declare 'settings' and has a 'build()' step" % test)
     else:
