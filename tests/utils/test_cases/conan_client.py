@@ -7,7 +7,9 @@ import unittest
 import uuid
 from io import StringIO
 
+from conans.__init__ import __version__ as conan_version
 from conans.client.command import Conan, CommandOutputer, Command, SUCCESS
+from conans.model.version import Version
 from tests.utils.environ_vars import context_env
 
 
@@ -42,7 +44,8 @@ class ConanClientTestCase(unittest.TestCase):
                 self.assertEqual(return_code, expected_return_code,
                                  msg="Unexpected return code\n\n{}".format(output_stream.getvalue()))
             finally:
-                conan_api._remote_manager._auth_manager._localdb.connection.close()  # Close sqlite3
+                if Version(conan_version) < "1.13":
+                    conan_api._remote_manager._auth_manager._localdb.connection.close()  # Close sqlite3
             return output_stream.getvalue()
 
     def setUp(self):
