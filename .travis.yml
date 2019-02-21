@@ -6,6 +6,12 @@ jobs:
   fast_finish: true
   include:
 
+    - stage: Conan develop - Windows
+      name: Conan develop - Windows - Python 3.7
+      os: windows
+      language: generic
+      env: PYVER=py37 TOXENV=py37-conandev
+
     - stage: Conan develop - Linux
       name: Conan develop - Linux - Python 3.7
       python: 3.7
