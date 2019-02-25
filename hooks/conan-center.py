@@ -1,4 +1,5 @@
 import fnmatch
+import inspect
 import os
 
 from conans import tools
@@ -19,8 +20,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     test = "[HEADER ONLY]"
     settings = getattr(conanfile, "settings", None)
-    build = "def build(self):" in conanfile_content
-    if not settings and build:
+    build_method = getattr(conanfile, "build")
+    # Check settings exist and build() is not the original one
+    if not settings and "This conanfile has no build step" not in inspect.getsource(build_method):
         output.warn("%s Recipe does not declare 'settings' and has a 'build()' step" % test)
     else:
         output.success("%s OK" % test)
@@ -174,14 +176,13 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
 
 def _has_files_with_extensions(folder, extensions):
-    ret = False
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
             for filename in filenames:
                 for ext in extensions:
                     if filename.endswith(".%s" % ext):
-                        ret = True
-    return ret
+                        return True
+    return False
 
 
 def _shared_files_well_managed(conanfile, folder):
