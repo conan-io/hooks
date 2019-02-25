@@ -25,7 +25,7 @@ class ConanCenterTests(ConanClientTestCase):
     def _get_environ(self, **kwargs):
         kwargs = super(ConanCenterTests, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks',
-                                                   'conan-center')})
+                                                   'conan-center_reviewer')})
         return kwargs
 
     def test_conanfile(self):
