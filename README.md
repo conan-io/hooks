@@ -79,8 +79,8 @@ license and description, and will output a warning for the missing ones.
 This Conan hook reads your recipe and updates its Bintray package info using the attributes.
 
 It's necessary pass Bintray login by environment variables:
-  - CONAN_LOGIN_USERNAME: Bintray login username
-  - CONAN_PASSWORD: Bintray API KEY
+  - BINTRAY_LOGIN_USERNAME: Bintray login username
+  - BINTRAY_PASSWORD: Bintray API KEY
 
 The hook is automatically called when upload command is executed.
 
