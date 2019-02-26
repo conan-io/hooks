@@ -18,7 +18,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         return
     if isinstance(conanfile.license, str):
         licenses = [conanfile.license]
-    elif isinstance(conanfile.license, tuple):
+    elif isinstance(conanfile.license, (tuple, list)):
         licenses = conanfile.license
     else:
         output.error("don't know how to process license attribute which is neither string nor tuple")
