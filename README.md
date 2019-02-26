@@ -55,18 +55,18 @@ metadata, binary matching... during the ``conan create`` step and will output th
 check as ``OK``, ``WARNING`` or ``ERROR``:
 
 ```
-[HOOK - conan-center.py] pre_export(): [RECIPE METADATA] OK
-[HOOK - conan-center.py] pre_export(): [HEADER ONLY] OK
-[HOOK - conan-center.py] pre_export(): [NO COPY SOURCE] OK
-[HOOK - conan-center.py] pre_export(): [FPIC OPTION] OK
-[HOOK - conan-center.py] pre_export(): [FPIC MANAGEMENT] 'fPIC' option not found
-[HOOK - conan-center.py] pre_export(): [VERSION RANGES] OK
-[HOOK - conan-center.py] post_package(): ERROR: [PACKAGE LICENSE] No package licenses found in: ~/
+[HOOK - conan-center_reviewer.py] pre_export(): [RECIPE METADATA] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [HEADER ONLY] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [NO COPY SOURCE] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [FPIC OPTION] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [FPIC MANAGEMENT] 'fPIC' option not found
+[HOOK - conan-center_reviewer.py] pre_export(): [VERSION RANGES] OK
+[HOOK - conan-center_reviewer.py] post_package(): ERROR: [PACKAGE LICENSE] No package licenses found in: ~/
 .conan/data/name/version/jgsogo/test/package/3475bd55b91ae904ac96fde0f106a136ab951a5e. Please
  package the library license to a 'licenses' folder
-[HOOK - conan-center.py] post_package(): [DEFAULT PACKAGE LAYOUT] OK
-[HOOK - conan-center.py] post_package(): [MATCHING CONFIGURATION] OK
-[HOOK - conan-center.py] post_package(): [SHARED ARTIFACTS] OK
+[HOOK - conan-center_reviewer.py] post_package(): [DEFAULT PACKAGE LAYOUT] OK
+[HOOK - conan-center_reviewer.py] post_package(): [MATCHING CONFIGURATION] OK
+[HOOK - conan-center_reviewer.py] post_package(): [SHARED ARTIFACTS] OK
 ```
 
 ### [Attribute checker](hooks/attribute_checker.py)
