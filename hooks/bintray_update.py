@@ -4,8 +4,8 @@
 This Conan hook reads your recipe and updates its Bintray package info using the attributes.
 
 It's necessary pass Bintray login by environment variables:
-  - CONAN_LOGIN_USERNAME: Bintray login username
-  - CONAN_PASSWORD: Bintray API KEY
+  - BINTRAY_LOGIN_USERNAME: Bintray login username
+  - BINTRAY_PASSWORD: Bintray API KEY
 
 The hook is automatically called when upload command is executed:
 
@@ -170,13 +170,13 @@ def _get_credentials(remote):
     :return: username, password
     """
     remote_name = str(remote.name).upper()
-    for var in [("CONAN_LOGIN_USERNAME_%s" % remote_name), "CONAN_LOGIN_USERNAME", "CONAN_USERNAME"]:
+    for var in [("BINTRAY_LOGIN_USERNAME_%s" % remote_name), "BINTRAY_LOGIN_USERNAME", "BINTRAY_USERNAME"]:
         username = os.getenv(var)
         if username: break
 
     if not username:
         raise ValueError("Could not update Bintray info: username not found")
-    password = os.getenv("CONAN_PASSWORD_%s" % remote_name, os.getenv("CONAN_PASSWORD"))
+    password = os.getenv("BINTRAY_PASSWORD_%s" % remote_name, os.getenv("BINTRAY_PASSWORD"))
     if not password:
         raise Exception("Could not update Bintray info: password not found")
     return username, password
