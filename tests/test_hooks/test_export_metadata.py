@@ -86,10 +86,10 @@ class ExportMetadataTests(ConanClientTestCase):
         # Check that the file is in the export folder, contains expected data and is in the manifest
         output = self.conan(['get', reference, METADATA_FILENAME])
         data = json.loads(output)
-        self.assertDictEqual(data, {'type': 'git',
-                                    'url': url,
-                                    'revision': git.get_commit(),
-                                    'dirty': False})
+        self.assertDictEqual(data['repo'], {'type': 'git',
+                                            'url': url,
+                                            'revision': git.get_commit(),
+                                            'dirty': False})
         output = self.conan(['get', reference, CONAN_MANIFEST])
         self.assertIn(METADATA_FILENAME, output)
 
@@ -124,13 +124,13 @@ class ExportMetadataTests(ConanClientTestCase):
         # Check that the file is in the export folder, contains expected data and is in the manifest
         output = self.conan(['get', reference, METADATA_FILENAME])
         data = json.loads(output)
-        self.assertListEqual(sorted(data.keys()),
+        self.assertListEqual(sorted(data['repo'].keys()),
                              sorted([six.u('type'), six.u('url'),
                                      six.u('revision'), six.u('dirty')]))
-        self.assertEqual(data['type'], six.u('svn'))
-        self.assertEqual(data['url'].lower(), six.u(repo_url).lower())
-        self.assertEqual(data['revision'], svn.get_revision())
-        self.assertEqual(data['dirty'], bool(not pristine_repo))
+        self.assertEqual(data['repo']['type'], six.u('svn'))
+        self.assertEqual(data['repo']['url'].lower(), six.u(repo_url).lower())
+        self.assertEqual(data['repo']['revision'], svn.get_revision())
+        self.assertEqual(data['repo']['dirty'], bool(not pristine_repo))
 
         output = self.conan(['get', reference, CONAN_MANIFEST])
         self.assertIn(METADATA_FILENAME, output)

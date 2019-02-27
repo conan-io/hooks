@@ -74,8 +74,11 @@ def pre_export(output, conanfile, conanfile_path, *args, **kwargs):
                     "directory '{}' (tried SVN and Git)".format(path))
         return
 
+    # Build the json
+    json_data = {'repo': scm_data}
+
     # Dump information to file and export it with the recipe
-    content = json.dumps(scm_data)
+    content = json.dumps(json_data)
     save(target_path, content)
     if not getattr(conanfile, 'exports'):
         setattr(conanfile, 'exports', os.path.basename(filename))
