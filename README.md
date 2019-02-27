@@ -37,14 +37,14 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 ```
     [hooks]
     attribute_checker
-    conan-center
+    conan-center_reviewer
 ```
 
 ## Hooks
 
 These are the hooks currently available in this repository
 
-### [Conan Center](hooks/conan-center.py)
+### [Conan Center reviewer](hooks/conan-center_reviewer.py)
 
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
 in [Conan Center](https://bintray.com/conan/conan-center).
@@ -55,18 +55,18 @@ metadata, binary matching... during the ``conan create`` step and will output th
 check as ``OK``, ``WARNING`` or ``ERROR``:
 
 ```
-[HOOK - conan-center.py] pre_export(): [RECIPE METADATA] OK
-[HOOK - conan-center.py] pre_export(): [HEADER ONLY] OK
-[HOOK - conan-center.py] pre_export(): [NO COPY SOURCE] OK
-[HOOK - conan-center.py] pre_export(): [FPIC OPTION] OK
-[HOOK - conan-center.py] pre_export(): [FPIC MANAGEMENT] 'fPIC' option not found
-[HOOK - conan-center.py] pre_export(): [VERSION RANGES] OK
-[HOOK - conan-center.py] post_package(): ERROR: [PACKAGE LICENSE] No package licenses found in: ~/
+[HOOK - conan-center_reviewer.py] pre_export(): [RECIPE METADATA] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [HEADER ONLY] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [NO COPY SOURCE] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [FPIC OPTION] OK
+[HOOK - conan-center_reviewer.py] pre_export(): [FPIC MANAGEMENT] 'fPIC' option not found
+[HOOK - conan-center_reviewer.py] pre_export(): [VERSION RANGES] OK
+[HOOK - conan-center_reviewer.py] post_package(): ERROR: [PACKAGE LICENSE] No package licenses found in: ~/
 .conan/data/name/version/jgsogo/test/package/3475bd55b91ae904ac96fde0f106a136ab951a5e. Please
  package the library license to a 'licenses' folder
-[HOOK - conan-center.py] post_package(): [DEFAULT PACKAGE LAYOUT] OK
-[HOOK - conan-center.py] post_package(): [MATCHING CONFIGURATION] OK
-[HOOK - conan-center.py] post_package(): [SHARED ARTIFACTS] OK
+[HOOK - conan-center_reviewer.py] post_package(): [DEFAULT PACKAGE LAYOUT] OK
+[HOOK - conan-center_reviewer.py] post_package(): [MATCHING CONFIGURATION] OK
+[HOOK - conan-center_reviewer.py] post_package(): [SHARED ARTIFACTS] OK
 ```
 
 ### [Attribute checker](hooks/attribute_checker.py)
@@ -74,7 +74,7 @@ check as ``OK``, ``WARNING`` or ``ERROR``:
 This hook checks that some important attributes are present in the ``ConanFile``: url,
 license and description, and will output a warning for the missing ones.
 
-### [Bintray Update](hooks/bintray_update.py)
+### [Bintray Updater](hooks/bintray_updater.py)
 
 This Conan hook reads your recipe and updates its Bintray package info using the attributes.
 
@@ -84,7 +84,7 @@ It's necessary pass Bintray login by environment variables:
 
 The hook is automatically called when upload command is executed.
 
-### [Binary Linter](hooks/binary-linter.py)
+### [Binary Linter](hooks/binary_linter.py)
 
 This Conan hook validates produced binary artifacts of the given package.
 
@@ -101,7 +101,7 @@ The hook uses [LIEF](https://github.com/lief-project/LIEF) library in order to p
 
 The hook is automatically called when *package* command is executed.
 
-### [GitHub Update](hooks/github-updater.py)
+### [GitHub Updater](hooks/github_updater.py)
 
 This Conan hook reads your recipe and updates its GitHub repository properties using the attributes.
 
