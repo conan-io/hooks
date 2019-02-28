@@ -101,7 +101,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
 def post_source(output, conanfile, conanfile_path, **kwargs):
     test = "[LIBCXX]"
-    cpp_extensions = ["cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+    cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
     c_extensions = ["c", "h"]
 
     def _is_removing_libcxx():
