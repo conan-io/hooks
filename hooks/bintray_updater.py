@@ -11,9 +11,9 @@ The hook is automatically called when upload command is executed:
 
     $ conan upload -r bintray-repo package/0.1.0@user/channel
     Uploading package/0.1.0@user/channel to remote 'bintray-repo'
-    [HOOK - bintray-update] post_upload(): Reading package info form Bintray...
-    [HOOK - bintray-update] post_upload(): Inspecting recipe info ...
-    [HOOK - bintray-update] post_upload(): Bintray is outdated. Updating Bintray package info ...
+    [HOOK - bintray_updater] post_upload(): Reading package info form Bintray...
+    [HOOK - bintray_updater] post_upload(): Inspecting recipe info ...
+    [HOOK - bintray_updater] post_upload(): Bintray is outdated. Updating Bintray package info ...
 
 """
 
@@ -29,6 +29,9 @@ from conans.client import conan_api
 __version__ = '0.1.0'
 __license__ = 'MIT'
 __author__  = 'Conan.io <https://github.com/conan-io>'
+
+# Bintray API Address: https://bintray.com/docs/api
+_BINTRAY_API_URL  = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
 
 
 def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
@@ -78,8 +81,7 @@ def _get_bintray_package_url(remote, reference):
     """
     user, repo = _extract_user_repo(remote)
     package = "{}%3A{}".format(reference.name, reference.user)
-    url = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
-    return "{}/packages/{}/{}/{}".format(url, user, repo, package)
+    return "{}/packages/{}/{}/{}".format(_BINTRAY_API_URL, user, repo, package)
 
 
 def _get_package_info_from_bintray(package_url):
@@ -90,7 +92,7 @@ def _get_package_info_from_bintray(package_url):
     """
     response = requests.get(url=package_url)
     if not response.ok:
-        raise HTTPError("Could not request package info: {} ({})".format(response.text, response.status_code))
+        raise HTTPError("Could not request package info ({}): {}".format(response.status_code, response.text))
     return response.json()
 
 
@@ -124,6 +126,12 @@ def _update_package_info(recipe_info, remote_info):
 
     licenses = recipe_info['license']
     if licenses:
+        # INFO (uilianries): Bintray does not follow SDPX for BSD licenses
+        for version in [2, 3]:
+            licenses = ["BSD %d-Clause" % version if it.lower() == ("bsd-%d-clause" % version) else it for it in licenses]
+        supported_licenses = _get_oss_licenses()
+        licenses = [it for it in licenses if it in supported_licenses]
+
         if isinstance(licenses, str):
             licenses = [licenses]
         if not bool(set(licenses).intersection(remote_info['licenses'])):
@@ -229,3 +237,15 @@ def _is_stable_branch(branch):
         if branch and prog.match(branch):
             return True
     return False
+
+
+def _get_oss_licenses():
+    """ Retrieve all supported OSS licenses on Bintray
+        Both BSD-2-Clause and BSD-3-Clause are incorrect
+    :return: List with licenses short names
+    """
+    oss_url = _BINTRAY_API_URL + "/licenses/oss_licenses"
+    response = requests.get(url=oss_url)
+    if not response.ok:
+        raise HTTPError("Could not request OSS licenses ({}): {}".format(response.status_code, response.text))
+    return [license["name"] for license in response.json()]
