@@ -3,7 +3,6 @@
 import os
 import textwrap
 import responses
-import platform
 
 from conans import tools
 
@@ -211,9 +210,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics')
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        # XXX (uilianries): Python 2.7 is not able to find the substring. enconding?
-        if platform.python_version().startswith("3."):
-            self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
+        self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): WARN: The topics are outdated and they will be updated to conan, dummy, qux, baz.', output)
         self.assertIn('pre_export(): The topics have been updated with success.', output)
@@ -247,7 +244,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
         tools.save('conanfile.py', content=self.conanfile_url)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/testing'])
-        self.assertIn('ERROR: The attributes description, homepage are not configured in the recipe.', output)
+        self.assertIn('ERROR: The attributes description and homepage are not configured in the recipe.', output)
 
     @responses.activate
     def test_invalid_url(self):
@@ -261,8 +258,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        if platform.python_version().startswith("3."):
-            self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
+        self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
         self.assertIn('pre_export(): ERROR: GitHub PATCH request failed with (500): {"message": "Internal Server Error"}.', output)
 
     @responses.activate
@@ -271,8 +267,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
         tools.save('conanfile.py', content=self.conanfile_no_topics)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        if platform.python_version().startswith("3."):
-            self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
+        self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): ERROR: No topics were found in conan recipe.', output)
 
@@ -283,8 +278,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        if platform.python_version().startswith("3."):
-            self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
+        self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): ERROR: GitHub GET request failed with (500): {"message": "Internal Server Error"}', output)
 
@@ -296,8 +290,7 @@ class GithubUpdaterTest(ConanClientTestCase):
         responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        if platform.python_version().startswith("3."):
-            self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
+        self.assertIn('pre_export(): WARN: The attributes description, homepage, name are outdated and they will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): ERROR: GitHub PUT request failed with (500): {"message": "Internal Server Error"}.', output)
         self.assertIn('pre_export(): WARN: The topics are outdated and they will be updated to conan, dummy, qux, baz.', output)

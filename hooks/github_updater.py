@@ -40,18 +40,6 @@ def _create_github_address(github_repo, token):
     return GithubAddress(url, headers)
 
 
-def _get_repository_metadata(github_address):
-    """ Request repository information from Github
-    :param github_address: GithubAddress instance
-    :return: Project JSON metadata from Github
-    """
-    response = requests.get(github_address.url, headers=github_address.headers)
-    if not response.ok:
-        raise ConanException('GitHub GET request failed ({}): {}.'.format(
-            response.status_code, response.text))
-    return response.json()
-
-
 def _create_githubrepo(conanfile):
     """ Extract the owner and repository name based on URL present in the recipe
     :param conanfile: Conan recipe instance
@@ -71,7 +59,7 @@ def _create_githubrepo(conanfile):
     return GithubRepo(match.groups(0)[0], match.groups(0)[1])
 
 
-def _update_attribute(output, conanfile, github_repo, github_address, metadata):
+def _update_attribute(output, conanfile, github_repo, github_address):
     """ Update outdated attributes on Github.
         Both homepage and description are extracted from Conan recipe and comparated
         to Github information.
@@ -79,30 +67,33 @@ def _update_attribute(output, conanfile, github_repo, github_address, metadata):
     :param conanfile: Conan recipe instance
     :param github_repo: GithubRepo instance
     :param github_address: GithubAddress instance
-    :param metadata: Github project's metadata
     """
-    request = dict()
-    attributes = ['description', 'homepage']
-    all_none = True
+    if conanfile.description is None or conanfile.homepage is None:
+        raise ConanException("The attributes description and homepage are not configured in the recipe.")
+
+    response = requests.get(github_address.url, headers=github_address.headers)
+    if not response.ok:
+        raise ConanException('GitHub GET request failed ({}): {}.'.format(response.status_code, response.text))
+
+    metadata = response.json()
+    attributes = ["homepage", "description"]
+    request = {}
+
     for attribute in attributes:
-        recipe_attr_value = getattr(conanfile, attribute, None)
-        if recipe_attr_value is not None:
-            all_none = False
-            if recipe_attr_value != metadata[attribute]:
-                request[attribute] = recipe_attr_value
+        recipe_attr_value = getattr(conanfile, attribute)
+        if recipe_attr_value != metadata[attribute]:
+            request[attribute] = recipe_attr_value
+
     if request:
         request['name'] = github_repo.repository
         output.warn("The attributes {} are outdated and they will be updated.".format(
-            ", ".join(request)))
+            ", ".join(sorted(request))))
         response = requests.patch(github_address.url, headers=github_address.headers, json=request)
         if not response.ok:
             raise ConanException("GitHub PATCH request failed with ({}): {}.".format(
                 response.status_code, response.text))
         output.info("The attributes have been updated with success.")
     else:
-        if all_none:
-            raise ConanException("The attributes {} are not configured in the recipe.".format(
-                ", ".join(attributes)))
         output.info("The attributes are up-to-date.")
 
 
@@ -168,8 +159,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         github_token = _get_github_token()
         github_repo = _create_githubrepo(conanfile)
         github_address = _create_github_address(github_repo, github_token)
-        metadata = _get_repository_metadata(github_address)
-        _update_attribute(output, conanfile, github_repo, github_address, metadata)
+        _update_attribute(output, conanfile, github_repo, github_address)
         _update_topics(output, conanfile, github_address)
     except Exception as error:
         output.error(str(error))
