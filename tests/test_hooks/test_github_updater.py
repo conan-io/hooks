@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import textwrap
-import json
-import mock
+import responses
 
 from conans import tools
 
@@ -158,47 +157,6 @@ _GITHUB_TOPICS_DATA_UPDATED = {
   ]
 }
 
-class MockResponse(object):
-    def __init__(self, json_data={}, status=200, ok=True):
-        self.json_data = json_data
-        self.status_code = status
-        self.ok = ok
-        self.text = json.dumps(json_data)
-
-    def json(self):
-        return self.json_data
-
-def _mock_patch_get(*args, **kwargs):
-    print("_mock_patch_get ARGS: {}".format(args))
-    print("_mock_patch_get KWARGS: {}".format(kwargs))
-    if args:
-        if args[0] == "https://api.github.com/repos/foobar/conan-dummy":
-            return MockResponse(_GITHUB_REPO_DATA)
-        elif args[0] == "https://api.github.com/repos/foobar/conan-dummy/topics":
-            return MockResponse(_GITHUB_TOPICS_DATA)
-
-    return MockResponse(None, 404, False)
-
-def _mock_patch_get_updated(*args, **kwargs):
-    print("_mock_patch_get ARGS: {}".format(args))
-    print("_mock_patch_get KWARGS: {}".format(kwargs))
-    if args:
-        if args[0] == "https://api.github.com/repos/foobar/conan-dummy":
-            return MockResponse(_GITHUB_REPO_DATA_UPDATED)
-        elif args[0] == "https://api.github.com/repos/foobar/conan-dummy/topics":
-            return MockResponse(_GITHUB_TOPICS_DATA_UPDATED)
-
-    return MockResponse(None, 404, False)
-
-def _mock_patch_get_unauthorized(*args, **kwargs):
-    return MockResponse({"message": "401 Unauthorized"}, 401, False)
-
-def _mock_patch_patch(*args, **kwargs):
-    return MockResponse()
-
-def _mock_patch_put(*args, **kwargs):
-    return MockResponse()
-
 
 class GithubUpdaterEnvironmentTest(ConanClientTestCase):
     conanfile_base = textwrap.dedent("""\
@@ -244,80 +202,92 @@ class GithubUpdaterTest(ConanClientTestCase):
                        'GITHUB_TOKEN': "a5719b5cef0214351c6767bd4f7c1ee14a7d23c5"})
         return kwargs
 
-
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get))
-    @mock.patch('requests.patch', mock.Mock(side_effect=_mock_patch_patch))
-    @mock.patch('requests.put', mock.Mock(side_effect=_mock_patch_put))
+    @responses.activate
     def test_complete_attributes(self):
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', json=_GITHUB_TOPICS_DATA)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
+        responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics')
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
-        self.assertIn('pre_export(): WARN: The attributes homepage, description, name are outdated and it will be updated.', output)
+        self.assertIn('WARN: The attributes description, homepage, name are outdated and it will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
-        self.assertIn('pre_export(): WARN: The topics are outdated and they will be updated to conan, dummy, qux, baz.', output)
+        self.assertIn('WARN: The topics are outdated and they will be updated to conan, dummy, qux, baz.', output)
         self.assertIn('pre_export(): The topics have been updated with success.', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get_updated))
-    @mock.patch('requests.patch', mock.Mock(side_effect=_mock_patch_patch), json)
-    @mock.patch('requests.put', mock.Mock(side_effect=_mock_patch_put))
+    @responses.activate
     def test_updated_project(self):
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA_UPDATED)
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', json=_GITHUB_TOPICS_DATA_UPDATED)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
+        responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics')
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('pre_export(): The attributes are up-to-date.', output)
         self.assertIn('pre_export(): The topics are up-to-date.', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get_unauthorized))
+    @responses.activate
     def test_unauthorized(self):
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json={"message": "401 Unauthorized"}, status=401)
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('pre_export(): ERROR: GitHub GET request failed (401): {"message": "401 Unauthorized"}', output)
 
+    @responses.activate
     def test_no_url_attribute(self):
         tools.save('conanfile.py', content=self.conanfile_basic)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/testing'])
         self.assertIn("ERROR: No url attribute was specified withing recipe, skipping GitHub updater.", output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get))
+    @responses.activate
     def test_no_homepage_attribute(self):
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
         tools.save('conanfile.py', content=self.conanfile_url)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/testing'])
         self.assertIn('ERROR: The attributes description, homepage are not configured in the recipe.', output)
 
+    @responses.activate
     def test_invalid_url(self):
         tools.save('conanfile.py', content=self.conanfile_invalid_url)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/testing'])
         self.assertIn('ERROR: Not a GitHub repository: "https://gitlab.com/foobar/conan-dummy", skipping GitHub updater.', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get_unauthorized))
+    @responses.activate
     def test_failed_attribute_update(self):
-        #responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy', status=500, json={"message": "Internal Server Error"})
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('WARN: The attributes description, homepage, name are outdated and it will be updated.', output)
         self.assertIn('pre_export(): ERROR: GitHub PATCH request failed with (500): {"message": "Internal Server Error"}.', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get))
-    @mock.patch('requests.patch', mock.Mock(side_effect=_mock_patch_patch))
+    @responses.activate
     def test_no_topics(self):
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
         tools.save('conanfile.py', content=self.conanfile_no_topics)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('WARN: The attributes description, homepage, name are outdated and it will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): ERROR: No topics were found in conan recipe.', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get))
-    @mock.patch('requests.patch', mock.Mock(side_effect=_mock_patch_patch))
+    @responses.activate
     def test_failed_topics_get(self):
-        #responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('WARN: The attributes description, homepage, name are outdated and it will be updated.', output)
         self.assertIn('pre_export(): The attributes have been updated with success.', output)
         self.assertIn('pre_export(): ERROR: GitHub GET request failed with (500): {"message": "Internal Server Error"}', output)
 
-    @mock.patch('requests.get', mock.Mock(side_effect=_mock_patch_get))
-    @mock.patch('requests.patch', mock.Mock(side_effect=_mock_patch_patch))
+    @responses.activate
     def test_failed_topics_put(self):
-        #responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy', json=_GITHUB_REPO_DATA)
+        responses.add(responses.GET, 'https://api.github.com/repos/foobar/conan-dummy/topics', json=_GITHUB_TOPICS_DATA)
+        responses.add(responses.PATCH, 'https://api.github.com/repos/foobar/conan-dummy')
+        responses.add(responses.PUT, 'https://api.github.com/repos/foobar/conan-dummy/topics', status=500, json={"message": "Internal Server Error"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         output = self.conan(['export', '.', 'name/0.1.0@foobar/stable'])
         self.assertIn('WARN: The attributes description, homepage, name are outdated and it will be updated.', output)
