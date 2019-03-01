@@ -92,7 +92,7 @@ def _update_attribute(output, conanfile, github_repo, github_address, metadata):
                 request[attribute] = recipe_attr_value
     if request:
         request['name'] = github_repo.repository
-        output.warn("The attributes {} are outdated and it will be updated.".format(
+        output.warn("The attributes {} are outdated and they will be updated.".format(
             ", ".join(request)))
         response = requests.patch(github_address.url, headers=github_address.headers, json=request)
         if not response.ok:
