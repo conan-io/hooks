@@ -40,9 +40,8 @@ def _create_github_address(github_repo, token):
     return GithubAddress(url, headers)
 
 
-def _get_repository_metadata(conanfile, github_address):
+def _get_repository_metadata(github_address):
     """ Request repository information from Github
-    :param conanfile: Conan recipe instance
     :param github_address: GithubAddress instance
     :return: Project JSON metadata from Github
     """
@@ -50,14 +49,7 @@ def _get_repository_metadata(conanfile, github_address):
     if not response.ok:
         raise ConanException('GitHub GET request failed ({}): {}.'.format(
             response.status_code, response.text))
-
-    content = response.json()
-    default_branch = content["default_branch"]
-    reference = "%s/%s" % (conanfile.channel, conanfile.version)
-    if reference != default_branch:
-        raise ConanException('default "%s" branch does not match conanfile reference "%s"' %
-                             (default_branch, reference))
-    return content
+    return response.json()
 
 
 def _create_githubrepo(conanfile):
@@ -104,8 +96,8 @@ def _update_attribute(output, conanfile, github_repo, github_address, metadata):
             ", ".join(request)))
         response = requests.patch(github_address.url, headers=github_address.headers, json=request)
         if not response.ok:
-            raise ConanException('GitHub PATCH request failed with %s %s.' % (response.status_code,
-                                                                              response.content))
+            raise ConanException("GitHub PATCH request failed with ({}): {}.".format(
+                response.status_code, response.text))
         output.info("The attributes have been updated with success.")
     else:
         if all_none:
@@ -134,20 +126,17 @@ def _update_topics(output, conanfile, github_address):
     response = requests.get(url=url, headers=headers)
     if not response.ok:
         raise ConanException("GitHub GET request failed with ({}): {}.".format(
-            response.status_code, response.content))
+            response.status_code, response.text))
     metadata = response.json()
 
-    if "conan" not in topics:
-        topics += ("conan", )
-    request = {"names": metadata["names"] + list(set(topics) - set(metadata["names"]))}
-
-    if set(metadata["names"]) != set(request["names"]):
-        output.warn("The topics {} are outdated and it will be updated.".format(", ".join(
-            request["names"])))
-        response = requests.put(url, headers=headers, json=request)
+    if set(metadata["names"]) != set(topics):
+        metadata["names"] = topics
+        output.warn("The topics are outdated and they will be updated to {}.".format(", ".join(
+            metadata["names"])))
+        response = requests.put(url, headers=headers, json=metadata)
         if not response.ok:
             raise ConanException("GitHub PUT request failed with ({}): {}.".format(
-                response.status_code, response.content))
+                response.status_code, response.text))
         output.info("The topics have been updated with success.")
     else:
         output.info("The topics are up-to-date.")
@@ -179,8 +168,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         github_token = _get_github_token()
         github_repo = _create_githubrepo(conanfile)
         github_address = _create_github_address(github_repo, github_token)
-        metadata = _get_repository_metadata(conanfile, github_address)
+        metadata = _get_repository_metadata(github_address)
         _update_attribute(output, conanfile, github_repo, github_address, metadata)
         _update_topics(output, conanfile, github_address)
     except Exception as error:
-        output.error(error)
+        output.error(str(error))
