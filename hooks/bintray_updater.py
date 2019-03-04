@@ -72,7 +72,6 @@ def _extract_user_repo(remote):
         raise ValueError("The remote '{}' is not a valid Bintray URL.".format(remote.name))
     return match.group(1), match.group(2)
 
-
 def _get_bintray_package_url(remote, reference):
     """
     Retrieve Bintray package repository URL
