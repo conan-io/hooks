@@ -30,9 +30,6 @@ __version__ = '0.1.0'
 __license__ = 'MIT'
 __author__  = 'Conan.io <https://github.com/conan-io>'
 
-# Bintray API Address: https://bintray.com/docs/api
-_BINTRAY_API_URL  = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
-
 
 def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
@@ -43,20 +40,22 @@ def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     :param remote: Conan remote object
     :param kwargs: Extra arguments
     """
-    #try:
-    package_url = _get_bintray_package_url(remote=remote, reference=reference)
-    output.info("Reading package info form Bintray...")
-    remote_info = _get_package_info_from_bintray(package_url=package_url)
-    output.info("Inspecting recipe info ...")
-    recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
-    updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
-    if updated_info:
-        output.info("Bintray is outdated. Updating Bintray package info: {}".format(" ".join(updated_info.keys())))
-        _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
-    else:
-        output.info("Bintray package info is up-to-date.")
-    #except Exception as error:
-    #    output.error(str(error))
+    try:
+        _get_credentials(remote)
+        package_url = _get_bintray_package_url(remote=remote, reference=reference)
+        output.info("Reading package info from Bintray.")
+        remote_info = _get_package_info_from_bintray(package_url=package_url)
+        output.info("Inspecting recipe info.")
+        recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
+        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
+        if updated_info:
+            output.info("Bintray is outdated. Updating Bintray package info: {}.".format(" ".join(sorted(updated_info.keys()))))
+            _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
+            output.info("Bintray package information has been updated with success.")
+        else:
+            output.info("Bintray package info is up-to-date.")
+    except Exception as error:
+        output.error(str(error))
 
 
 def _extract_user_repo(remote):
@@ -81,7 +80,7 @@ def _get_bintray_package_url(remote, reference):
     """
     user, repo = _extract_user_repo(remote)
     package = "{}%3A{}".format(reference.name, reference.user)
-    return "{}/packages/{}/{}/{}".format(_BINTRAY_API_URL, user, repo, package)
+    return "{}/packages/{}/{}/{}".format(_get_bintray_api_url(), user, repo, package)
 
 
 def _get_package_info_from_bintray(package_url):
@@ -115,16 +114,17 @@ def _update_package_info(recipe_info, remote_info):
     """
     updated_info = {}
     description = recipe_info['description']
-    if description:
-        if remote_info['desc'] != description:
+    if description and remote_info['desc'] != description:
             updated_info['desc'] = description
 
     topics = recipe_info['topics']
-    if topics:
-        if remote_info['labels'] != topics:
+    if topics and sorted(remote_info['labels']) != sorted(topics):
             updated_info['labels'] = topics
 
     licenses = recipe_info['license']
+    if isinstance(licenses, str):
+        licenses = [licenses]
+
     if licenses:
         # INFO (uilianries): Bintray does not follow SDPX for BSD licenses
         for version in [2, 3]:
@@ -132,35 +132,37 @@ def _update_package_info(recipe_info, remote_info):
         supported_licenses = _get_oss_licenses()
         licenses = [it for it in licenses if it in supported_licenses]
 
-        if isinstance(licenses, str):
-            licenses = [licenses]
-        if not bool(set(licenses).intersection(remote_info['licenses'])):
+        if sorted(remote_info['licenses']) != sorted(licenses):
             updated_info['licenses'] = licenses
 
     url = recipe_info['url']
-    if url:
+    if url and remote_info['vcs_url'] != url:
         updated_info['vcs_url'] = url
 
     issue_tracker_url = "{}/community/issues".format(url[:url.rfind('/')]) if url else ""
     issue_tracker_url = os.getenv("BINTRAY_ISSUE_TRACKER_URL", issue_tracker_url)
 
-    if issue_tracker_url:
-        if remote_info['issue_tracker_url'] != issue_tracker_url:
-            updated_info['issue_tracker_url'] = issue_tracker_url
+    if issue_tracker_url and remote_info['issue_tracker_url'] != issue_tracker_url:
+        updated_info['issue_tracker_url'] = issue_tracker_url
 
     if _is_stable_branch(_get_branch()):
         if 'maturity' not in remote_info or remote_info['maturity'] != "Stable":
             updated_info['maturity'] = "Stable"
 
     homepage = recipe_info['homepage']
-    if homepage:
-        if remote_info['website_url'] != homepage:
+    if homepage and remote_info['website_url'] != homepage:
             updated_info['website_url'] = homepage
 
     return updated_info
 
 
 def _patch_bintray_package_info(package_url, package_info, remote):
+    """ Apply package information changes on Bintray page
+    :param package_url: Bintray package URL
+    :param package_info: Bintray package information
+    :param remote: Remote name to get credentials
+    :return: JSON response from Bintray
+    """
     if 'https' not in package_url:
         raise ValueError("Bad package URL: Only HTTPS is allowed, Bintray API uses Basic Auth")
     username, password = _get_credentials(remote)
@@ -244,8 +246,15 @@ def _get_oss_licenses():
         Both BSD-2-Clause and BSD-3-Clause are incorrect
     :return: List with licenses short names
     """
-    oss_url = _BINTRAY_API_URL + "/licenses/oss_licenses"
+    oss_url = _get_bintray_api_url() + "/licenses/oss_licenses"
     response = requests.get(url=oss_url)
     if not response.ok:
         raise HTTPError("Could not request OSS licenses ({}): {}".format(response.status_code, response.text))
     return [license["name"] for license in response.json()]
+
+
+def _get_bintray_api_url():
+    """ Retrieve Bintray API URL
+    :return: Official Bintray URL
+    """
+    return os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
