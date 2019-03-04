@@ -16,6 +16,7 @@ The hook is automatically called when export command is executed:
     [HOOK - github_updater.py] pre_export(): The topics are up-to-date.
     Exporting package recipe
 """
+
 import os
 import re
 from collections import namedtuple
