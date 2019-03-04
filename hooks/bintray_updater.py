@@ -65,7 +65,7 @@ def _extract_user_repo(remote):
     pattern = r'https?:\/\/api.bintray.com\/conan\/(.*)\/(.*)'
     match = re.match(pattern=pattern, string=remote.url)
     if not match:
-        raise ValueError("Could not extract subject and repo from %s: Invalid pattern" % remote.url)
+        raise ValueError("The remote {} is not a Bintray repository." % remote.name)
     return match.group(1), match.group(2)
 
 
