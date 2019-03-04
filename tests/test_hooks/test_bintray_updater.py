@@ -5,11 +5,13 @@ import textwrap
 import responses
 
 from conans import tools
-from conans.client.command import ERROR_GENERAL
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
 def accept_conan_upload(func):
+    """ Decorator to replace remote URLs
+    :param func: Wrapped function
+    """
     def wrapper(*args, **kwargs):
         empty_package_response = {
             "desc":None,
@@ -34,6 +36,9 @@ def accept_conan_upload(func):
 
 
 def add_fake_remote(func):
+    """ Decorator that add fake Conan remote
+    :param func: Wrapped function
+    """
     def wrapper(*args, **kwargs):
         instance = args[0]
         output = instance.conan(['remote', 'list'])
@@ -44,6 +49,10 @@ def add_fake_remote(func):
 
 
 class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
+    """ Execute test without Bintray env vars
+    """
+
+    # Empty Recipe
     conanfile_base = textwrap.dedent("""\
         from conans import ConanFile
         class DummyConan(ConanFile):
@@ -59,6 +68,8 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_unset_bintray_credentials(self):
+        """ The hook must not work when BINTRAY_USERNAME is not configured
+        """
         tools.save('conanfile.py', content=self.conanfile_base)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
@@ -69,6 +80,8 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_unset_bintray_password(self):
+        """ The hook must not work when BINTRAY_PASSWORD is not configured
+        """
         with tools.environment_append({"BINTRAY_USERNAME": "foobar"}):
             tools.save('conanfile.py', content=self.conanfile_base)
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -78,6 +91,9 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
 
 
 class BintrayUpdaterTest(ConanClientTestCase):
+    """ Test the hook with valid credentials
+    """
+
     conanfile_base = textwrap.dedent("""\
         from conans import ConanFile
 
@@ -103,6 +119,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_valid_upload(self):
+        """ Regular flow using the hook. Inpect, read, compare and update.
+            If this test fails it's because something is REALLY bad.
+        """
         tools.save('conanfile.py', content=self.conanfile_complete)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
@@ -117,6 +136,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_bad_oss_licenses(self):
+        """ Test when is not possible to retrieve the supported OSS license list from Bintray.
+            The hook must stop when is not possible to request OSS licenses.
+        """
         responses.add(responses.GET, "https://api.bintray.com/licenses/oss_licenses", status=500, json={"message": "You have reached a dark spot"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -130,6 +152,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @responses.activate
     @accept_conan_upload
     def test_bad_remote_address(self):
+        """ Test non Bintray remote address.
+            The hooks must not upload when is not a Bintray valid address.
+        """
         responses.add(responses.GET, 'https://api.fake.io/v1/ping')
         responses.add(responses.GET, 'https://api.fake.io/v1/conans/dummy/0.1.0/foobar/stable/digest', json={"conanmanifest.txt":""})
         responses.add(responses.GET, 'https://api.fake.io', status=404)
@@ -150,6 +175,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_bad_package_info_request(self):
+        """ Test bad request when retrieving package information from Bintray.
+            The hook must not continue when is not possible to retrieve the cached information.
+        """
         responses.replace(responses.GET, 'https://api.bintray.com/packages/foobar/conan/dummy%3Afoobar', status=500, json={"message": "You have reached a dark spot"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -164,6 +192,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_bad_patch_package_info(self):
+        """ Test bad request when patching the package information on Bintray.
+            The hook must not continue when is not possible to patch the information.
+        """
         responses.replace(responses.PATCH, "https://api.bintray.com/packages/foobar/conan/dummy%3Afoobar", status=500, json={"message": "You have reached a dark spot"})
         tools.save('conanfile.py', content=self.conanfile_complete)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -181,6 +212,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_stable_branch(self):
+        """ Test the maturity level update.
+            The hook must update the maturity level when the branch matches to the stable branch pattern.
+        """
         with tools.environment_append({"TRAVIS": "TRUE", "TRAVIS_BRANCH": "release/0.1.0"}):
             tools.save('conanfile.py', content=self.conanfile_complete)
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -197,6 +231,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_stable_branch_pattern(self):
+        """ Test the maturity level update with custom branch pattern.
+            The stable branch pattern can be customized by environment variable.
+        """
         with tools.environment_append({"TRAVIS": "TRUE", "TRAVIS_BRANCH": "tag/0.1.0", "CONAN_STABLE_BRANCH_PATTERN": "tag/*"}):
             tools.save('conanfile.py', content=self.conanfile_complete)
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
@@ -213,6 +250,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_unsafe_url(self):
+        """ Check if HTTPS is the only option.
+            The hooks must not support HTTP, since Bintray uses Basic Auth.
+        """
         empty_package_response = {
             "desc":None,
             "labels":[],
@@ -246,6 +286,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
     @accept_conan_upload
     @add_fake_remote
     def test_up_to_date_info(self):
+        """ Do not update when the information is up-to-date.
+            The hook must not patch when there is no different between local recipe and remote info.
+        """
         information = {
             "desc": "This a dummy library",
             "labels":["conan", "dummy", "qux", "baz"],

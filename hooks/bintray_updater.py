@@ -25,10 +25,9 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from conans.client import conan_api
 
-
 __version__ = '0.1.0'
 __license__ = 'MIT'
-__author__  = 'Conan.io <https://github.com/conan-io>'
+__author__ = 'Conan.io <https://github.com/conan-io>'
 
 
 def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
@@ -40,6 +39,7 @@ def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     :param remote: Conan remote object
     :param kwargs: Extra arguments
     """
+    del kwargs
     try:
         _get_credentials(remote)
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
@@ -49,8 +49,10 @@ def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
         recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
         updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
         if updated_info:
-            output.info("Bintray is outdated. Updating Bintray package info: {}.".format(" ".join(sorted(updated_info.keys()))))
-            _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
+            output.info("Bintray is outdated. Updating Bintray package info: {}.".format(" ".join(
+                sorted(updated_info.keys()))))
+            _patch_bintray_package_info(
+                package_url=package_url, package_info=updated_info, remote=remote)
             output.info("Bintray package information has been updated with success.")
         else:
             output.info("Bintray package info is up-to-date.")
@@ -91,7 +93,8 @@ def _get_package_info_from_bintray(package_url):
     """
     response = requests.get(url=package_url)
     if not response.ok:
-        raise HTTPError("Could not request package info ({}): {}".format(response.status_code, response.text))
+        raise HTTPError("Could not request package info ({}): {}".format(
+            response.status_code, response.text))
     return response.json()
 
 
@@ -115,11 +118,11 @@ def _update_package_info(recipe_info, remote_info):
     updated_info = {}
     description = recipe_info['description']
     if description and remote_info['desc'] != description:
-            updated_info['desc'] = description
+        updated_info['desc'] = description
 
     topics = recipe_info['topics']
     if topics and sorted(remote_info['labels']) != sorted(topics):
-            updated_info['labels'] = topics
+        updated_info['labels'] = topics
 
     licenses = recipe_info['license']
     if isinstance(licenses, str):
@@ -128,7 +131,10 @@ def _update_package_info(recipe_info, remote_info):
     if licenses:
         # INFO (uilianries): Bintray does not follow SDPX for BSD licenses
         for version in [2, 3]:
-            licenses = ["BSD %d-Clause" % version if it.lower() == ("bsd-%d-clause" % version) else it for it in licenses]
+            licenses = [
+                "BSD %d-Clause" % version if it.lower() == ("bsd-%d-clause" % version) else it
+                for it in licenses
+            ]
         supported_licenses = _get_oss_licenses()
         licenses = [it for it in licenses if it in supported_licenses]
 
@@ -151,7 +157,7 @@ def _update_package_info(recipe_info, remote_info):
 
     homepage = recipe_info['homepage']
     if homepage and remote_info['website_url'] != homepage:
-            updated_info['website_url'] = homepage
+        updated_info['website_url'] = homepage
 
     return updated_info
 
@@ -180,9 +186,11 @@ def _get_credentials(remote):
     :return: username, password
     """
     remote_name = str(remote.name).upper()
-    for var in [("BINTRAY_LOGIN_USERNAME_%s" % remote_name), "BINTRAY_LOGIN_USERNAME", "BINTRAY_USERNAME"]:
+    for var in [("BINTRAY_LOGIN_USERNAME_%s" % remote_name), "BINTRAY_LOGIN_USERNAME",
+                "BINTRAY_USERNAME"]:
         username = os.getenv(var)
-        if username: break
+        if username:
+            break
 
     if not username:
         raise ValueError("Could not update Bintray info: username not found")
@@ -206,12 +214,13 @@ def _get_branch():
         "CIRCLECI": "CIRCLE_BRANCH"
     }
 
-    for ci, branch in ci_manager.items():
-        if os.getenv(ci) and os.getenv(branch):
+    for manager, branch in ci_manager.items():
+        if os.getenv(manager) and os.getenv(branch):
             return os.getenv(branch)
 
     try:
-        for line in subprocess.check_output("git branch --no-color", shell=True).decode().splitlines():
+        for line in subprocess.check_output(
+                "git branch --no-color", shell=True).decode().splitlines():
             line = line.strip()
             if line.startswith("*") and " (HEAD detached" not in line:
                 return line.replace("*", "", 1).strip()
@@ -249,7 +258,8 @@ def _get_oss_licenses():
     oss_url = _get_bintray_api_url() + "/licenses/oss_licenses"
     response = requests.get(url=oss_url)
     if not response.ok:
-        raise HTTPError("Could not request OSS licenses ({}): {}".format(response.status_code, response.text))
+        raise HTTPError("Could not request OSS licenses ({}): {}".format(
+            response.status_code, response.text))
     return [license["name"] for license in response.json()]
 
 
