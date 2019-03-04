@@ -168,7 +168,7 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'badremote'", output)
         self.assertNotIn("pre_upload_recipe(): Reading package info from Bintray.", output)
         self.assertNotIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertIn('pre_upload_recipe(): ERROR: Could not extract subject and repo from https://api.fake.io: Invalid pattern', output)
+        self.assertIn("pre_upload_recipe(): ERROR: The remote 'badremote' is not a valid Bintray URL.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'badremote'", output)
 
     @responses.activate
