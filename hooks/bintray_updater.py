@@ -34,7 +34,7 @@ __author__  = 'Conan.io <https://github.com/conan-io>'
 _BINTRAY_API_URL  = os.getenv('BINTRAY_API_URL', 'https://api.bintray.com')
 
 
-def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
+def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     Update Bintray package info after upload Conan recipe
     :param output: Conan stream output
@@ -43,20 +43,20 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     :param remote: Conan remote object
     :param kwargs: Extra arguments
     """
-    try:
-        package_url = _get_bintray_package_url(remote=remote, reference=reference)
-        output.info("Reading package info form Bintray...")
-        remote_info = _get_package_info_from_bintray(package_url=package_url)
-        output.info("Inspecting recipe info ...")
-        recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
-        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
-        if updated_info:
-            output.info("Bintray is outdated. Updating Bintray package info: {}".format(" ".join(updated_info.keys())))
-            _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
-        else:
-            output.info("Bintray package info is up-to-date.")
-    except Exception as error:
-        output.error(str(error))
+    #try:
+    package_url = _get_bintray_package_url(remote=remote, reference=reference)
+    output.info("Reading package info form Bintray...")
+    remote_info = _get_package_info_from_bintray(package_url=package_url)
+    output.info("Inspecting recipe info ...")
+    recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
+    updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
+    if updated_info:
+        output.info("Bintray is outdated. Updating Bintray package info: {}".format(" ".join(updated_info.keys())))
+        _patch_bintray_package_info(package_url=package_url, package_info=updated_info, remote=remote)
+    else:
+        output.info("Bintray package info is up-to-date.")
+    #except Exception as error:
+    #    output.error(str(error))
 
 
 def _extract_user_repo(remote):
