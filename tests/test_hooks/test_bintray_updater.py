@@ -47,7 +47,6 @@ def add_fake_remote(func):
         func(*args, **kwargs)
     return wrapper
 
-
 class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
     """ Execute test without Bintray env vars
     """
@@ -89,7 +88,6 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
             self.assertIn("pre_upload_recipe(): ERROR: Could not update Bintray info: password not found", output)
             self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
 
-
 class BintrayUpdaterTest(ConanClientTestCase):
     """ Test the hook with valid credentials
     """
@@ -114,6 +112,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
                        'BINTRAY_USERNAME': "frogarian",
                        'BINTRAY_PASSWORD': "e91d34eb1c11aafaf44ag2e5194f29690ad6f383"})
         return kwargs
+
+    def tearDown(self):
+        self.conan(["remove", "--force", "dummy/0.1.0@foobar/stable"])
 
     @responses.activate
     @accept_conan_upload
