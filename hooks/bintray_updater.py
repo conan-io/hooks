@@ -24,13 +24,14 @@ import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from conans.client import conan_api
+from conans import tools
 
 __version__ = '0.1.0'
 __license__ = 'MIT'
 __author__ = 'Conan.io <https://github.com/conan-io>'
 
 
-def pre_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
+def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     Update Bintray package info after upload Conan recipe
     :param output: Conan stream output
@@ -218,12 +219,7 @@ def _get_branch():
             return os.getenv(branch)
 
     try:
-        for line in subprocess.check_output(
-                "git branch --no-color", shell=True).decode().splitlines():
-            line = line.strip()
-            if line.startswith("*") and " (HEAD detached" not in line:
-                return line.replace("*", "", 1).strip()
-        return None
+        return tools.Git().get_branch()
     except Exception:
         pass
     return None

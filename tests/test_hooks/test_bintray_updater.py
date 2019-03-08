@@ -73,8 +73,8 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile_base)
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
-        self.assertIn("pre_upload_recipe(): ERROR: Could not update Bintray info: username not found", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+        self.assertIn("post_upload_recipe(): ERROR: Could not update Bintray info: username not found", output)
 
     @responses.activate
     @accept_conan_upload
@@ -86,8 +86,8 @@ class BintrayUpdaterEnvironmentTest(ConanClientTestCase):
             tools.save('conanfile.py', content=self.conanfile_base)
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
             output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
-            self.assertIn("pre_upload_recipe(): ERROR: Could not update Bintray info: password not found", output)
             self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+            self.assertIn("post_upload_recipe(): ERROR: Could not update Bintray info: password not found", output)
 
 
 class BintrayUpdaterTest(ConanClientTestCase):
@@ -126,11 +126,11 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-        self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertIn("pre_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses vcs_url website_url.", output)
-        self.assertIn("pre_upload_recipe(): Bintray package information has been updated with success.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+        self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+        self.assertIn("post_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses vcs_url website_url.", output)
+        self.assertIn("post_upload_recipe(): Bintray package information has been updated with success.", output)
 
     @responses.activate
     @accept_conan_upload
@@ -144,10 +144,10 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-        self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertIn('pre_upload_recipe(): ERROR: Could not request OSS licenses (500): {"message": "You have reached a dark spot"}', output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake'", output)
+        self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+        self.assertIn('post_upload_recipe(): ERROR: Could not request OSS licenses (500): {"message": "You have reached a dark spot"}', output)
 
     @responses.activate
     @accept_conan_upload
@@ -166,10 +166,10 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=badremote', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'badremote'", output)
-        self.assertNotIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertNotIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertIn("pre_upload_recipe(): ERROR: The remote 'badremote' is not a valid Bintray URL.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'badremote'", output)
+        self.assertNotIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertNotIn("post_upload_recipe(): Inspecting recipe info.", output)
+        self.assertIn("post_upload_recipe(): ERROR: The remote 'badremote' is not a valid Bintray URL.", output)
 
     @responses.activate
     @accept_conan_upload
@@ -183,10 +183,10 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-        self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertIn('ERROR: Could not request package info (500): {"message": "You have reached a dark spot"}', output)
-        self.assertNotIn("pre_upload_recipe(): Inspecting recipe info.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+        self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertIn('ERROR: Could not request package info (500): {"message": "You have reached a dark spot"}', output)
+        self.assertNotIn("post_upload_recipe(): Inspecting recipe info.", output)
 
     @responses.activate
     @accept_conan_upload
@@ -200,13 +200,12 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-        self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertIn("pre_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses vcs_url website_url.", output)
-        self.assertIn('pre_upload_recipe(): ERROR: Could not patch package info: {"message": "You have reached a dark spot"}', output)
-        self.assertNotIn("pre_upload_recipe(): Bintray package information has been updated with success.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
-
+        self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+        self.assertIn("post_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses vcs_url website_url.", output)
+        self.assertIn('post_upload_recipe(): ERROR: Could not patch package info: {"message": "You have reached a dark spot"}', output)
+        self.assertNotIn("post_upload_recipe(): Bintray package information has been updated with success.", output)
 
     @responses.activate
     @accept_conan_upload
@@ -220,12 +219,12 @@ class BintrayUpdaterTest(ConanClientTestCase):
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
             output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
             self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-            self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-            self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-            self.assertIn("pre_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses maturity vcs_url website_url.", output)
-            self.assertIn("pre_upload_recipe(): Bintray package information has been updated with success.", output)
-            self.assertNotIn('pre_upload_recipe(): ERROR', output)
             self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+            self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+            self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+            self.assertIn("post_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses maturity vcs_url website_url.", output)
+            self.assertIn("post_upload_recipe(): Bintray package information has been updated with success.", output)
+            self.assertNotIn('post_upload_recipe(): ERROR', output)
 
     @responses.activate
     @accept_conan_upload
@@ -239,12 +238,12 @@ class BintrayUpdaterTest(ConanClientTestCase):
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
             output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
             self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-            self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-            self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-            self.assertIn("pre_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses maturity vcs_url website_url.", output)
-            self.assertIn("pre_upload_recipe(): Bintray package information has been updated with success.", output)
-            self.assertNotIn('pre_upload_recipe(): ERROR', output)
             self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+            self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+            self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+            self.assertIn("post_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels licenses maturity vcs_url website_url.", output)
+            self.assertIn("post_upload_recipe(): Bintray package information has been updated with success.", output)
+            self.assertNotIn('post_upload_recipe(): ERROR', output)
 
     @responses.activate
     @accept_conan_upload
@@ -276,11 +275,11 @@ class BintrayUpdaterTest(ConanClientTestCase):
             self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
             output = self.conan(['upload', '--remote=unsafe', 'dummy/0.1.0@foobar/stable'])
             self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'unsafe'", output)
-            self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-            self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-            self.assertIn("pre_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels vcs_url website_url.", output)
-            self.assertIn('pre_upload_recipe(): ERROR: Bad package URL: Only HTTPS is allowed, Bintray API uses Basic Auth', output)
             self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'unsafe': http://api.bintray.com/conan/foobar/conan", output)
+            self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+            self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+            self.assertIn("post_upload_recipe(): Bintray is outdated. Updating Bintray package info: desc issue_tracker_url labels vcs_url website_url.", output)
+            self.assertIn('post_upload_recipe(): ERROR: Bad package URL: Only HTTPS is allowed, Bintray API uses Basic Auth', output)
 
     @responses.activate
     @accept_conan_upload
@@ -303,9 +302,9 @@ class BintrayUpdaterTest(ConanClientTestCase):
         self.conan(['export', '.', 'dummy/0.1.0@foobar/stable'])
         output = self.conan(['upload', '--remote=fake', 'dummy/0.1.0@foobar/stable'])
         self.assertIn("Uploading dummy/0.1.0@foobar/stable to remote 'fake'", output)
-        self.assertIn("pre_upload_recipe(): Reading package info from Bintray.", output)
-        self.assertIn("pre_upload_recipe(): Inspecting recipe info.", output)
-        self.assertNotIn("pre_upload_recipe(): Bintray is outdated.", output)
-        self.assertIn("pre_upload_recipe(): Bintray package info is up-to-date.", output)
-        self.assertNotIn("pre_upload_recipe(): Bintray package information has been updated with success.", output)
         self.assertIn("Uploaded conan recipe 'dummy/0.1.0@foobar/stable' to 'fake': https://bintray.com/foobar/conan", output)
+        self.assertIn("post_upload_recipe(): Reading package info from Bintray.", output)
+        self.assertIn("post_upload_recipe(): Inspecting recipe info.", output)
+        self.assertNotIn("post_upload_recipe(): Bintray is outdated.", output)
+        self.assertIn("post_upload_recipe(): Bintray package info is up-to-date.", output)
+        self.assertNotIn("post_upload_recipe(): Bintray package information has been updated with success.", output)
