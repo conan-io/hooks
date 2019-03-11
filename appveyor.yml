@@ -10,6 +10,14 @@ environment:
         - PYVER: py37
           TOXENV: py37-conandev
 
+        # Conan current version
+        - PYVER: py27
+          TOXENV: py27-conancurrent
+        - PYVER: py36
+          TOXENV: py36-conancurrent
+        - PYVER: py37
+          TOXENV: py37-conancurrent
+
         # Conan 1.12.x
         - PYVER: py27
           TOXENV: py27-conan112

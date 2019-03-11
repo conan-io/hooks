@@ -6,16 +6,6 @@ jobs:
   fast_finish: true
   include:
 
-    - stage: Conan latest - Linux
-      name: Conan latest - Linux - Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conanlatest
-      dist: xenial
-      sudo: true
-    - name: Conan latest - Linux - Python 2.7
-      python: 2.7
-      env: TOXENV=py27-conanlatest
-
     - stage: Conan develop - Linux
       name: Conan develop - Linux - Python 3.7
       python: 3.7
@@ -27,6 +17,18 @@ jobs:
       env: TOXENV=py27-conandev
 
     # All Linux first, check versions
+    - stage: Conan Current - Linux
+      python: 2.7
+      env: TOXENV=py27-conancurrent
+    - python: 3.4
+      env: TOXENV=py34-conancurrent
+    - python: 3.6
+      env: TOXENV=py36-conancurrent
+    - python: 3.7
+      env: TOXENV=py37-conancurrent
+      dist: xenial
+      sudo: true
+
     - stage: Conan 1.12 - Linux
       python: 2.7
       env: TOXENV=py27-conan112
@@ -70,6 +72,15 @@ jobs:
       os: osx
       osx_image: xcode8.3
       env: PYVER=py37 TOXENV=py37-conandev
+
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py27 TOXENV=py27-conancurrent
+    - language: generic
+      os: osx
+      osx_image: xcode8.3
+      env: PYVER=py37 TOXENV=py37-conancurrent
 
     - language: generic
       os: osx
