@@ -6,6 +6,16 @@ jobs:
   fast_finish: true
   include:
 
+    - stage: Conan latest - Linux
+      name: Conan latest - Linux - Python 3.7
+      python: 3.7
+      env: TOXENV=py37-conanlatest
+      dist: xenial
+      sudo: true
+    - name: Conan latest - Linux - Python 2.7
+      python: 2.7
+      env: TOXENV=py27-conanlatest
+
     - stage: Conan develop - Linux
       name: Conan develop - Linux - Python 3.7
       python: 3.7
