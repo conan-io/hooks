@@ -25,6 +25,10 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from conans.client import conan_api
 from conans import tools
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 __version__ = '0.1.0'
 __license__ = 'MIT'
@@ -142,8 +146,15 @@ def _update_package_info(recipe_info, remote_info):
             updated_info['licenses'] = licenses
 
     url = recipe_info['url']
-    if url and remote_info['vcs_url'] != url:
-        updated_info['vcs_url'] = url
+    if url:
+        if remote_info['vcs_url'] != url:
+            updated_info['vcs_url'] = url
+
+        parsed_url = urlparse(url)
+        if "github.com" in parsed_url.hostname:
+            path = parsed_url.path[1:]
+            if path != remote_info['github_repo']:
+                updated_info['github_repo'] = path
 
     issue_tracker_url = "{}/community/issues".format(url[:url.rfind('/')]) if url else ""
     issue_tracker_url = os.getenv("BINTRAY_ISSUE_TRACKER_URL", issue_tracker_url)
