@@ -39,13 +39,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     test = "[FPIC OPTION]"
     fpic_error = False
     options = getattr(conanfile, "options", None)
-    if settings and options and "fPIC" not in options:
+    installer = settings is not None and "os_build" in settings and "arch_build" in settings
+    if settings and options and "fPIC" not in options and not installer:
         fpic_error = True
         output.warn("%s This recipe does not include an 'fPIC' option. Make sure you are using the "
                     "right casing" % test)
     elif options and not settings and ("fPIC" in options or "shared" in options):
         fpic_error = True
-        output.error("%s This recipe has 'shared' or 'fPIC' options but does not delcare any "
+        output.error("%s This recipe has 'shared' or 'fPIC' options but does not declare any "
                      "settings" % test)
     if not fpic_error:
         output.success("%s OK" % test)
