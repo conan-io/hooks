@@ -46,13 +46,15 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     del kwargs
     try:
-        _get_credentials(remote)
+        username, password = _get_credentials(remote)
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
         output.info("Reading package info from Bintray.")
         remote_info = _get_package_info_from_bintray(package_url=package_url)
         output.info("Inspecting recipe info.")
         recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
-        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info)
+        supported_licenses = _get_oss_licenses(username, password)
+        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info,
+                                            supported_licenses=supported_licenses)
         if updated_info:
             output.info("Bintray is outdated. Updating Bintray package info: {}.".format(" ".join(
                 sorted(updated_info.keys()))))
@@ -112,11 +114,12 @@ def _get_package_info_from_recipe(conanfile_path):
     return conan_instance.inspect(path=conanfile_path, attributes=None)
 
 
-def _update_package_info(recipe_info, remote_info):
+def _update_package_info(recipe_info, remote_info, supported_licenses):
     """
     Merge recipe data info remote data
     :param recipe_info: Data collected from Conan recipe
     :param remote_info: Data collected from Bintray repository
+    :param supported_licenses: Supported licenses by Bintray
     :return: is it outdated, updated bintray info
     """
     updated_info = {}
@@ -139,7 +142,6 @@ def _update_package_info(recipe_info, remote_info):
                 "BSD %d-Clause" % version if it.lower() == ("bsd-%d-clause" % version) else it
                 for it in licenses
             ]
-        supported_licenses = _get_oss_licenses()
         licenses = [it for it in licenses if it in supported_licenses]
 
         if sorted(remote_info['licenses']) != sorted(licenses):
@@ -256,13 +258,15 @@ def _is_stable_branch(branch):
     return False
 
 
-def _get_oss_licenses():
+def _get_oss_licenses(username, password):
     """ Retrieve all supported OSS licenses on Bintray
         Both BSD-2-Clause and BSD-3-Clause are incorrect
+    :param username: Bintray user name
+    :param password: Bintray API Key
     :return: List with licenses short names
     """
     oss_url = _get_bintray_api_url() + "/licenses/oss_licenses"
-    response = requests.get(url=oss_url)
+    response = requests.get(url=oss_url, auth=HTTPBasicAuth(username, password))
     if not response.ok:
         raise HTTPError("Could not request OSS licenses ({}): {}".format(
             response.status_code, response.text))
