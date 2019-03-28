@@ -6,7 +6,7 @@ import responses
 
 from conans import tools
 from tests.utils.test_cases.conan_client import ConanClientTestCase
-from tests.utils.licenses import OSS_LICENSES
+
 
 def accept_conan_upload(func):
     """ Decorator to replace remote URLs
@@ -23,13 +23,22 @@ def accept_conan_upload(func):
             "vcs_url":None,
             "maturity":""
         }
+        oss_licenses = [{
+            "name": "MIT",
+            "longname": "The MIT License",
+            "url": "http://www.opensource.org/licenses/mit-license.php"
+        }, {
+            "name": "BSD 2-Clause",
+            "longname": "Berkeley Software Distribution Simplified (BSD Simplified)",
+            "url": "http://opensource.org/licenses/BSD-2-Clause"
+        }]
         responses.add(responses.GET, 'https://api.bintray.com/conan/foobar/conan/v1/ping')
         responses.add(responses.GET, 'https://api.bintray.com/conan/foobar/conan/v1/conans/dummy/0.1.0/foobar/stable/digest', json={"conanmanifest.txt":""})
         responses.add(responses.GET, 'https://api.bintray.com/conan/foobar/conan', status=404)
         responses.add(responses.GET, 'https://api.bintray.com/conan/foobar/conan/v1/users/check_credentials')
         responses.add(responses.GET, 'https://api.bintray.com/conan/foobar/conan/v1/conans/dummy/0.1.0/foobar/stable', json={})
         responses.add(responses.POST, 'https://api.bintray.com/conan/foobar/conan/v1/conans/dummy/0.1.0/foobar/stable/upload_urls', json={})
-        responses.add(responses.GET, "https://api.bintray.com/licenses/oss_licenses", json=OSS_LICENSES)
+        responses.add(responses.GET, "https://api.bintray.com/licenses/oss_licenses", json=oss_licenses)
         responses.add(responses.PATCH, "https://api.bintray.com/packages/foobar/conan/dummy%3Afoobar", json={})
         responses.add(responses.GET, 'https://api.bintray.com/packages/foobar/conan/dummy%3Afoobar', json=empty_package_response)
         func(*args, **kwargs)
