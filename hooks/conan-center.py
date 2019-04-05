@@ -225,7 +225,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         known_folders = ["lib", "bin", "include", "res"]
         for filename in os.listdir(conanfile.package_folder):
-            if os.path.isdir(filename) and filename not in known_folders:
+            if os.path.isdir(os.path.join(conanfile.package_folder, filename)) and filename not in known_folders:
                 out.error("Unknown folder {} in the package".format(filename))
             elif filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
                 out.error("Unknown file {} in the package".format(filename))
