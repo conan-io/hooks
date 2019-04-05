@@ -223,9 +223,12 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("DEFAULT PACKAGE LAYOUT", output)
     def test(out):
-        if not _default_package_structure(conanfile.package_folder):
-            out.error("Generated package without default package structure. Check %s"
-                      % conanfile.package_folder)
+        known_folders = ["lib", "bin", "include", "res"]
+        for filename in os.listdir(conanfile.package_folder):
+            if os.path.isdir(filename) and filename not in known_folders:
+                out.error("Unknown folder {} in the package".format(filename))
+            elif filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
+                out.error("Unknown file {} in the package".format(filename))
 
     @run_test("MATCHING CONFIGURATION", output)
     def test(out):
@@ -286,16 +289,6 @@ def _files_match_settings(conanfile, folder):
         return _has_files_with_extensions(folder, macos_extensions)
     else:  # Not able to compare os setting
         return True
-
-
-def _default_package_structure(folder):
-    default_folders = ["lib", "bin", "include", "res"]
-    for folder in os.listdir(folder):
-        if folder in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
-            continue
-        if folder not in default_folders:
-            return False
-    return True
 
 
 def _get_os(conanfile):
