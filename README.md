@@ -49,7 +49,7 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 
 These are the hooks currently available in this repository
 
-### [Conan Center reviewer](hooks/conan-center_reviewer.py)
+### [Conan Center](hooks/conan-center.py)
 
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
 in [Conan Center](https://bintray.com/conan/conan-center).
@@ -73,6 +73,13 @@ check as ``OK``, ``WARNING`` or ``ERROR``:
 [HOOK - conan-center_reviewer.py] post_package(): [MATCHING CONFIGURATION] OK
 [HOOK - conan-center_reviewer.py] post_package(): [SHARED ARTIFACTS] OK
 ```
+
+If you want the hook to fail the execution, if an error is reported, you can adjust the environment
+variable ``CONAN_HOOK_ERROR_LEVEL``:
+   - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
+   - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
+   
+   
 
 ### [Attribute checker](hooks/attribute_checker.py)
 
