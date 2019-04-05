@@ -206,24 +206,30 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("PACKAGE LICENSE", output)
     def test(out):
+        licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
+        if not os.path.exists(licenses_folder):
+            out.error("No 'licenses' folder found in package: %s " % conanfile.package_folder)
+            return
         licenses = []
-        for root, dirnames, filenames in os.walk(conanfile.package_folder):
+        found_files = []
+        for root, dirnames, filenames in os.walk(licenses_folder):
             for filename in filenames:
-                if "licenses" in root.split(os.path.sep):
-                    # licenses folder, almost anything here should be a license
-                    if fnmatch.fnmatch(filename.lower(), "*copying*") or \
-                            fnmatch.fnmatch(filename.lower(), "*readme*"):
-                        licenses.append(os.path.join(root, filename))
+                found_files.append(filename)
+                # licenses folder, almost anything here should be a license
+                if fnmatch.fnmatch(filename.lower(), "*copying*") or \
+                        fnmatch.fnmatch(filename.lower(), "*readme*"):
+                    licenses.append(os.path.join(root, filename))
 
-                    if fnmatch.fnmatch(filename.lower(), "*license*"):
-                        licenses.append(os.path.join(root, filename))
+                if fnmatch.fnmatch(filename.lower(), "*license*"):
+                    licenses.append(os.path.join(root, filename))
         if not licenses:
-            out.error("No package licenses found in: %s. Please package the library "
-                      "license to a 'licenses' folder" % conanfile.package_folder)
+            out.error("Not known valid licenses files "
+                      "found at: %s\n"
+                      "Files: %s" % (licenses_folder, ", ".join(found_files)))
 
     @run_test("DEFAULT PACKAGE LAYOUT", output)
     def test(out):
-        known_folders = ["lib", "bin", "include", "res"]
+        known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
                 if filename not in known_folders:
