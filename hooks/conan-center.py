@@ -89,8 +89,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         for field in ["url", "license", "description"]:
             field_value = getattr(conanfile, field, None)
             if not field_value:
-                out.error("Conanfile doesn't have '%s'. "
-                          "It is recommended to add it as attribute" % field)
+                out.error("Conanfile doesn't have '%s' attribute. " % field)
 
     @run_test("HEADER ONLY", output)
     def test(out):
