@@ -211,21 +211,13 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("No 'licenses' folder found in package: %s " % conanfile.package_folder)
             return
         licenses = []
-        found_files = []
         for root, dirnames, filenames in os.walk(licenses_folder):
             for filename in filenames:
-                found_files.append(filename)
-                # licenses folder, almost anything here should be a license
-                if fnmatch.fnmatch(filename.lower(), "*copying*") or \
-                        fnmatch.fnmatch(filename.lower(), "*readme*"):
-                    licenses.append(os.path.join(root, filename))
-
-                if fnmatch.fnmatch(filename.lower(), "*license*"):
-                    licenses.append(os.path.join(root, filename))
+                licenses.append(filename)
         if not licenses:
             out.error("Not known valid licenses files "
                       "found at: %s\n"
-                      "Files: %s" % (licenses_folder, ", ".join(found_files)))
+                      "Files: %s" % (licenses_folder, ", ".join(licenses)))
 
     @run_test("DEFAULT PACKAGE LAYOUT", output)
     def test(out):
