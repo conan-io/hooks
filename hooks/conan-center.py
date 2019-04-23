@@ -229,6 +229,9 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             else:
                 if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
                     out.error("Unknown file {} in the package".format(filename))
+        if out.failed:
+            out.info("If you are trying to package a tool put all the contents under the 'bin' "
+                     "folder")
 
     @run_test("MATCHING CONFIGURATION", output)
     def test(out):
