@@ -248,9 +248,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 def _has_files_with_extensions(folder, extensions):
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
-            print("Looking at: {}".format(root))
             for filename in filenames:
-                print("File is: {}".format(filename))
                 for ext in extensions:
                     if filename.endswith(".%s" % ext):
                         return True
@@ -263,6 +261,7 @@ def _shared_files_well_managed(conanfile, folder):
     options_dict = {key: value for key, value in conanfile.options.values.as_list()}
     if shared_name in options_dict.keys():
         if _has_files_with_extensions(folder, shared_extensions):
+            print("OPTION: {}".format(options_dict[shared_name]))
             return options_dict[shared_name] == "True"
         else:
             return options_dict[shared_name] == "False"
