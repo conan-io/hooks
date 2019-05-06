@@ -259,14 +259,10 @@ def _shared_files_well_managed(conanfile, folder):
     shared_extensions = ["dll", "so", "dylib"]
     shared_name = "shared"
     options_dict = {key: value for key, value in conanfile.options.values.as_list()}
-    if shared_name in options_dict.keys():
-        if _has_files_with_extensions(folder, shared_extensions):
-            print("OPTION: {}".format(options_dict[shared_name]))
-            return options_dict[shared_name] == "True"
-        else:
-            return options_dict[shared_name] == "False"
-    else:
-        return True
+    if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
+        if not _has_files_with_extensions(folder, shared_extensions):
+            return False
+    return True
 
 
 def _files_match_settings(conanfile, folder):
