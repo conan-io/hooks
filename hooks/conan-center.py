@@ -244,6 +244,29 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if not _shared_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared' option did not contains any shared artifact")
 
+    @run_test("CMAKE MODULES/PC-FILES", output)
+    def test(out):
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*Config.cmake",
+                                                                             "*Targets.cmake",
+                                                                             "Find*.cmake",
+                                                                             "*.pc"])
+        if bad_files:
+            out.error("The conan-center repository doesn't allow the packages to package CMake "
+                      "find modules or config files nor `pc` files either. The packages have to "
+                      "be located using generators and the declared `cpp_info` information")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+
+def _get_files_following_patterns(folder, patterns):
+    ret = []
+    with tools.chdir(folder):
+        for (root, _, filenames) in os.walk("."):
+            for filename in filenames:
+                for pattern in patterns:
+                    if fnmatch.fnmatch(filename, pattern):
+                        ret.append(os.path.join(root, filename))
+    return ret
+
 
 def _has_files_with_extensions(folder, extensions):
     with tools.chdir(folder):
