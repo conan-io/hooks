@@ -248,7 +248,9 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 def _has_files_with_extensions(folder, extensions):
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
+            print("Looking at: {}".format(root))
             for filename in filenames:
+                print("File is: {}".format(filename))
                 for ext in extensions:
                     if filename.endswith(".%s" % ext):
                         return True
