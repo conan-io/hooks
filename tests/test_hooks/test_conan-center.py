@@ -40,7 +40,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX] OK", output)
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         print(output)
@@ -57,7 +57,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX] OK", output)
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
 
@@ -74,7 +74,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
                       output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
 
