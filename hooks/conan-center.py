@@ -139,6 +139,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if all([char in line for char in ("@", "[", "]")]):
                     out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
 
+    @run_test("RECIPE FOLDER SIZE", output)
+    def test(out):
+        max_folder_size = int(os.getenv("CONAN_MAX_RECIPE_FOLDER_SIZE_KB", 256))
+        dir_path = os.path.dirname(conanfile_path)
+        total_size = 0
+        for path, dirs, files in os.walk(dir_path):
+            for files_it in files:
+                file_path = os.path.join(path, files_it)
+                total_size += os.path.getsize(file_path)
+        total_size_kb = total_size / 1024
+        out.info("total_size_kb: %sKB" % total_size_kb)
+        if total_size_kb > max_folder_size:
+            out.error("The size of your recipe folder ({}KB) is larger than the maximum allowed"
+                      " size ({}KB).".format(total_size_kb, max_folder_size))
 
 @raise_if_error_output
 def pre_source(output, conanfile, conanfile_path, **kwargs):
