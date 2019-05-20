@@ -145,9 +145,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         total_size = 0
         for path, dirs, files in os.walk(dir_path):
+            dirs[:] = [d for d in dirs if d not in [".conan"]]  # Discard the generated .conan directory
             for files_it in files:
-                if files_it == "_create.json":  # Discard the generated json output file
-                    continue
                 file_path = os.path.join(path, files_it)
                 total_size += os.path.getsize(file_path)
         total_size_kb = total_size / 1024
