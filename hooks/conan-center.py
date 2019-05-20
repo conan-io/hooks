@@ -260,6 +260,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("CMAKE MODULES/PC-FILES", output)
     def test(out):
+        if conanfile.name == "cmake":
+            return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*Config.cmake",
                                                                              "*Targets.cmake",
                                                                              "Find*.cmake",
