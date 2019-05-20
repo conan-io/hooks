@@ -25,7 +25,7 @@ class ConanCenterTests(ConanClientTestCase):
     def _get_environ(self, **kwargs):
         kwargs = super(ConanCenterTests, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks',
-                                                   'conan-center_reviewer')})
+                                                   'conan-center')})
         return kwargs
 
     def test_conanfile(self):
@@ -40,7 +40,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX] OK", output)
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         print(output)
@@ -57,7 +57,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX] OK", output)
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
 
@@ -74,6 +74,26 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
                       output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        self.assertIn("ERROR: [PACKAGE LICENSE] No package licenses found", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
+
+    def test_regular_folder_size(self):
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("[RECIPE FOLDER SIZE] OK", output)
+        self.assertNotIn("ERROR: [RECIPE FOLDER SIZE]", output)
+
+    def test_larger_folder_size(self):
+        content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        tools.save('big_file', content=content)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
+
+    def test_custom_folder_size(self):
+        with tools.environment_append({"CONAN_MAX_RECIPE_FOLDER_SIZE_KB": "0"}):
+            content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
+            tools.save('conanfile.py', content=self.conanfile_installer)
+            output = self.conan(['export', '.', 'name/version@user/channel'])
+            self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
