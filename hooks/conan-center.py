@@ -261,12 +261,13 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("CMAKE MODULES/PC-FILES", output)
     def test(out):
-        if conanfile.name == "cmake":
+        if conanfile.name in ["cmake", "msys2"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*Config.cmake",
                                                                              "*Targets.cmake",
                                                                              "Find*.cmake",
-                                                                             "*.pc"])
+                                                                             "*.pc",
+                                                                             "*config.cmake"])
         if bad_files:
             out.error("The conan-center repository doesn't allow the packages to package CMake "
                       "find modules or config files nor `pc` files either. The packages have to "
