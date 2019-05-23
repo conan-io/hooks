@@ -66,20 +66,20 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertNotIn("[PACKAGE LICENSE] OK", output)
 
-    @parameterized.expand([("lib", "Windows"), ("so", "Darwin"), ("so", "Linux")])
-    def test_matching_configuration(self, extension, system_name):
-        cf = self.conanfile_match_conf.format(extension=extension,
-                                              settings="settings = 'os', 'compiler', 'arch', "
-                                                       "'build_type'")
-        tools.save('conanfile.py', content=cf)
-        tools.save('file.%s' % extension, content="")
-        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        if platform.system() == system_name:
-            self.assertIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
-        else:
-            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+    #@parameterized.expand([("lib", "Windows"), ("so", "Darwin"), ("so", "Linux")])
+    #def test_matching_configuration(self, extension, system_name):
+    #    cf = self.conanfile_match_conf.format(extension=extension,
+    #                                          settings="settings = 'os', 'compiler', 'arch', "
+    #                                                   "'build_type'")
+    #    tools.save('conanfile.py', content=cf)
+    #    tools.save('file.%s' % extension, content="")
+    #    output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+    #    if platform.system() == system_name:
+    #        self.assertIn("[MATCHING CONFIGURATION] OK", output)
+    #        self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+    #    else:
+    #        self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+    #        self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
 
     def test_matching_configuration_header_only_package_id(self):
         cf = self.conanfile_match_conf.format(extension="h",
