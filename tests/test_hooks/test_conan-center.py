@@ -20,6 +20,9 @@ class ConanCenterTests(ConanClientTestCase):
             description = "whatever"
             exports_sources = "header.h"
             {placeholder}
+
+            def package(self):
+                self.copy("*", dst="include")
         """)
     conanfile_header_only_with_settings = textwrap.dedent("""\
         from conans import ConanFile
@@ -47,7 +50,7 @@ class ConanCenterTests(ConanClientTestCase):
             def package(self):
                 self.copy("*")
     """)
-    conanfile_header_only = conanfile_base.format(placeholder='pass')
+    conanfile_header_only = conanfile_base.format(placeholder='')
     conanfile_installer = conanfile_base.format(placeholder='settings = "os_build"')
     conanfile = conanfile_base.format(placeholder='settings = "os"')
 
@@ -83,9 +86,10 @@ class ConanCenterTests(ConanClientTestCase):
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
         cf = cf + """
-        def package_id(self):
-            self.info.header_only()
+    def package_id(self):
+        self.info.header_only()
         """
+        print("CONANFILE", cf)
         tools.save('conanfile.py', content=cf)
         tools.save('file.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
@@ -110,40 +114,41 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
 
-    # def test_conanfile(self):
-    #     tools.save('conanfile.py', content=self.conanfile)
-    #     output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-    #     self.assertIn("[RECIPE METADATA] OK", output)
-    #     self.assertIn("[HEADER ONLY] OK", output)
-    #     self.assertIn("[NO COPY SOURCE] OK", output)
-    #     self.assertIn("[FPIC OPTION] OK", output)
-    #     self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
-    #     self.assertIn("[VERSION RANGES] OK", output)
-    #     self.assertIn("[LIBCXX] OK", output)
-    #     self.assertIn("[MATCHING CONFIGURATION] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #     self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
-    #     self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #     print(output)
+    def test_conanfile(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[RECIPE METADATA] OK", output)
+        self.assertIn("[HEADER ONLY] OK", output)
+        self.assertIn("[NO COPY SOURCE] OK", output)
+        self.assertIn("[FPIC OPTION] OK", output)
+        self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES] OK", output)
+        self.assertIn("[LIBCXX] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)  # Empty package
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+        print(output)
 
-    # def test_conanfile_header_only(self):
-    #     tools.save('conanfile.py', content=self.conanfile_header_only)
-    #     tools.save('header.h', content="")
-    #     output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-    #     self.assertIn("[RECIPE METADATA] OK", output)
-    #     self.assertIn("[HEADER ONLY] OK", output)
-    #     self.assertIn("[NO COPY SOURCE] This recipe seems to be for a header only", output)
-    #     self.assertIn("[FPIC OPTION] OK", output)
-    #     self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
-    #     self.assertIn("[VERSION RANGES] OK", output)
-    #     self.assertIn("[LIBCXX] OK", output)
-    #     self.assertIn("[MATCHING CONFIGURATION] OK", output)
-    #     self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #     self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
-    #     self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
+    def test_conanfile_header_only(self):
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        tools.save('header.h', content="")
+        print(self.conanfile_header_only)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[RECIPE METADATA] OK", output)
+        self.assertIn("[HEADER ONLY] OK", output)
+        self.assertIn("[NO COPY SOURCE] This recipe seems to be for a header only", output)
+        self.assertIn("[FPIC OPTION] OK", output)
+        self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES] OK", output)
+        self.assertIn("[LIBCXX] OK", output)
+        self.assertIn("[MATCHING CONFIGURATION] OK", output)
+        self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
 
     # def test_conanfile_header_only_with_settings(self):
     #     print(self.conanfile_header_only_with_settings)

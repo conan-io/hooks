@@ -3,7 +3,7 @@ import inspect
 import os
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
-from conans import tools
+from conans import tools, Settings
 
 
 class _HooksOutputErrorCollector(object):
@@ -73,7 +73,7 @@ def run_test(test_name, output):
 @raise_if_error_output
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
-    settings = getattr(conanfile, "settings", None)
+    settings = _get_settings(conanfile)
 
     @run_test("REFERENCE LOWERCASE", output)
     def test(out):
@@ -184,22 +184,21 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("LIBCXX", output)
     def test(out):
-        if _is_header_only(conanfile, conanfile_path):
-            return
-        cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
-        c_extensions = ["c", "h"]
+        if not _is_recipe_header_only(conanfile):
+            cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+            c_extensions = ["c", "h"]
 
-        def _is_removing_libcxx():
-            conanfile_content = tools.load(conanfile_path)
-            low = conanfile_content.lower()
-            conf = "def configure(self):"
-            conf2 = "del self.settings.compiler.libcxx"
-            return conf in low and conf2 in low
+            def _is_removing_libcxx():
+                conanfile_content = tools.load(conanfile_path)
+                low = conanfile_content.lower()
+                conf = "def configure(self):"
+                conf2 = "del self.settings.compiler.libcxx"
+                return conf in low and conf2 in low
 
-        if not _is_removing_libcxx()\
-                and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                and _has_files_with_extensions(conanfile.source_folder, c_extensions):
-            out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+            if not _is_removing_libcxx()\
+                    and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
+                    and _has_files_with_extensions(conanfile.source_folder, c_extensions):
+                out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
 @raise_if_error_output
@@ -335,7 +334,8 @@ def _files_match_settings(conanfile, folder):
         # empty package?
         print("empty package?")
         return False
-    if _is_header_only(conanfile):
+    if _is_recipe_header_only(conanfile):
+        print("header only pkg id")
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
@@ -353,22 +353,23 @@ def _files_match_settings(conanfile, folder):
     return False
 
 
-def _is_header_only(conanfile=None, conanfile_path=None):
-    assert conanfile is not None or conanfile_path is not None, "Provide one argument at least"
-    if conanfile:
-        settings = getattr(conanfile, "settings", None)
-        without_settings = bool(settings)
-        package_id_method = getattr(conanfile, "package_id")
-        header_only_id = "self.info.header_only()" in inspect.getsource(package_id_method)
-    if conanfile_path:
-        content = tools.load(conanfile_path)
-        without_settings = "settings =" not in content
-        header_only_id = "self.info.header_only()" in content
+def _is_recipe_header_only(conanfile):
+    without_settings = not bool(_get_settings(conanfile))
+    package_id_method = getattr(conanfile, "package_id")
+    header_only_id = "self.info.header_only()" in inspect.getsource(package_id_method)
     return header_only_id or without_settings
 
 
+def _get_settings(conanfile):
+    settings = getattr(conanfile, "settings")
+    if isinstance(settings, Settings):
+        return None if not settings.values.fields else settings
+    else:
+        return settings
+
+
 def _get_os(conanfile):
-    settings = getattr(conanfile, "settings", None)
+    settings = _get_settings(conanfile)
     if not settings:
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
