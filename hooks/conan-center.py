@@ -323,19 +323,11 @@ def _files_match_settings(conanfile, folder):
     has_linux = _has_files_with_extensions(folder, linux_extensions)
     has_macos = _has_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
-    print("os: ", os)
-    print("has_header: ", has_header)
-    print("has_visual: ", has_visual)
-    print("has_mingw: ", has_mingw)
-    print("has_linux: ", has_linux)
-    print("has_macos: ", has_macos)
 
     if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
         # empty package?
-        print("empty package?")
         return False
     if _is_recipe_header_only(conanfile):
-        print("header only pkg id")
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
@@ -348,7 +340,6 @@ def _files_match_settings(conanfile, folder):
         return has_macos and not has_visual and not has_mingw and not has_linux
     if os is None:
         # Header only
-        print("header only")
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     return False
 

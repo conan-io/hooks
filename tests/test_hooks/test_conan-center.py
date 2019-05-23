@@ -89,7 +89,6 @@ class ConanCenterTests(ConanClientTestCase):
     def package_id(self):
         self.info.header_only()
         """
-        print("CONANFILE", cf)
         tools.save('conanfile.py', content=cf)
         tools.save('file.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
@@ -129,12 +128,10 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
-        print(output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
         tools.save('header.h', content="")
-        print(self.conanfile_header_only)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA] OK", output)
         self.assertIn("[HEADER ONLY] OK", output)
@@ -150,58 +147,55 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
 
-    # def test_conanfile_header_only_with_settings(self):
-    #     print(self.conanfile_header_only_with_settings)
-    #     tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
-    #     tools.save('header.h', content="")
-    #     output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-    #     print(output)
-    #     self.assertIn("[RECIPE METADATA] OK", output)
-    #     self.assertIn("[HEADER ONLY] OK", output)
-    #     self.assertIn("[NO COPY SOURCE] OK", output)
-    #     self.assertIn("[FPIC OPTION] OK", output)
-    #     self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
-    #     self.assertIn("[VERSION RANGES] OK", output)
-    #     self.assertIn("[LIBCXX] OK", output)
-    #     self.assertIn("[MATCHING CONFIGURATION] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #     self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
-    #     self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #
-    # def test_conanfile_installer(self):
-    #     tools.save('conanfile.py', content=self.conanfile_installer)
-    #     output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-    #     self.assertIn("[RECIPE METADATA] OK", output)
-    #     self.assertIn("[HEADER ONLY] OK", output)
-    #     self.assertIn("[NO COPY SOURCE] OK", output)
-    #     self.assertIn("[FPIC OPTION] OK", output)
-    #     self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
-    #     self.assertIn("[VERSION RANGES] OK", output)
-    #     self.assertIn("[LIBCXX] OK", output)
-    #     self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
-    #                   output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #     self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
-    #     self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
-    #     self.assertIn("[SHARED ARTIFACTS] OK", output)
-    #
-    # def test_regular_folder_size(self):
-    #     tools.save('conanfile.py', content=self.conanfile_installer)
-    #     output = self.conan(['export', '.', 'name/version@user/channel'])
-    #     self.assertIn("[RECIPE FOLDER SIZE] OK", output)
-    #     self.assertNotIn("ERROR: [RECIPE FOLDER SIZE]", output)
-    #
-    # def test_larger_folder_size(self):
-    #     content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
-    #     tools.save('conanfile.py', content=self.conanfile_installer)
-    #     tools.save('big_file', content=content)
-    #     output = self.conan(['export', '.', 'name/version@user/channel'])
-    #     self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
-    #
-    # def test_custom_folder_size(self):
-    #     with tools.environment_append({"CONAN_MAX_RECIPE_FOLDER_SIZE_KB": "0"}):
-    #         content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
-    #         tools.save('conanfile.py', content=self.conanfile_installer)
-    #         output = self.conan(['export', '.', 'name/version@user/channel'])
-    #         self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
+    def test_conanfile_header_only_with_settings(self):
+        tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
+        tools.save('header.h', content="")
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[RECIPE METADATA] OK", output)
+        self.assertIn("[HEADER ONLY] OK", output)
+        self.assertIn("[NO COPY SOURCE] OK", output)
+        self.assertIn("[FPIC OPTION] OK", output)
+        self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES] OK", output)
+        self.assertIn("[LIBCXX] OK", output)
+        self.assertIn("[MATCHING CONFIGURATION] OK", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+
+    def test_conanfile_installer(self):
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[RECIPE METADATA] OK", output)
+        self.assertIn("[HEADER ONLY] OK", output)
+        self.assertIn("[NO COPY SOURCE] OK", output)
+        self.assertIn("[FPIC OPTION] OK", output)
+        self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES] OK", output)
+        self.assertIn("[LIBCXX] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
+                      output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
+        self.assertIn("[SHARED ARTIFACTS] OK", output)
+
+    def test_regular_folder_size(self):
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("[RECIPE FOLDER SIZE] OK", output)
+        self.assertNotIn("ERROR: [RECIPE FOLDER SIZE]", output)
+
+    def test_larger_folder_size(self):
+        content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        tools.save('big_file', content=content)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
+
+    def test_custom_folder_size(self):
+        with tools.environment_append({"CONAN_MAX_RECIPE_FOLDER_SIZE_KB": "0"}):
+            tools.save('conanfile.py', content=self.conanfile_installer)
+            output = self.conan(['export', '.', 'name/version@user/channel'])
+            self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
