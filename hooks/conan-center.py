@@ -331,13 +331,13 @@ def _files_match_settings(conanfile, folder):
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
-            return has_visual and not has_mingw and not has_linux and not has_macos
+            return has_visual and not has_mingw
         if conanfile.settings.get_safe("compiler") == "gcc":
-            return has_mingw and not has_visual and not has_linux and not has_macos
+            return has_mingw and not has_visual
     if os == "Linux":
-        return has_linux and not has_visual and not has_mingw and not has_macos
+        return has_linux
     if os == "Macos":
-        return has_macos and not has_visual and not has_mingw and not has_linux
+        return has_macos
     if os is None:
         # Header only
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
