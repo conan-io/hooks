@@ -240,10 +240,10 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
                 if filename not in known_folders:
-                    out.error("Unknown folder {} in the package".format(filename))
+                    out.error("Unknown folder '{}' in the package".format(filename))
             else:
                 if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
-                    out.error("Unknown file {} in the package".format(filename))
+                    out.error("Unknown file '{}' in the package".format(filename))
         if out.failed:
             out.info("If you are trying to package a tool put all the contents under the 'bin' "
                      "folder")
