@@ -3,7 +3,7 @@ import inspect
 import os
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
-from conans import tools
+from conans import tools, Settings
 
 
 class _HooksOutputErrorCollector(object):
@@ -39,8 +39,7 @@ class _HooksOutputErrorCollector(object):
         self._output.warn(self._get_message(message))
 
     def error(self, message):
-        if self._error_level and self._error_level <= ERROR:
-            self._error = True
+        self._error = True
         self._output.error(self._get_message(message))
 
     @property
@@ -48,7 +47,7 @@ class _HooksOutputErrorCollector(object):
         return self._error
 
     def raise_if_error(self):
-        if self._error:
+        if self._error and self._error_level and self._error_level <= ERROR:
             raise Exception("Some checks failed running the hook, check the output")
 
 
@@ -68,14 +67,13 @@ def run_test(test_name, output):
         if not out.failed:
             out.success("OK")
         return ret
-
     return tmp
 
 
 @raise_if_error_output
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
-    settings = getattr(conanfile, "settings", None)
+    settings = _get_settings(conanfile)
 
     @run_test("REFERENCE LOWERCASE", output)
     def test(out):
@@ -155,6 +153,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The size of your recipe folder ({}KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
 
+
 @raise_if_error_output
 def pre_source(output, conanfile, conanfile_path, **kwargs):
     conanfile_content = tools.load(conanfile_path)
@@ -185,20 +184,21 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("LIBCXX", output)
     def test(out):
-        cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
-        c_extensions = ["c", "h"]
+        if not _is_recipe_header_only(conanfile):
+            cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+            c_extensions = ["c", "h"]
 
-        def _is_removing_libcxx():
-            conanfile_content = tools.load(conanfile_path)
-            low = conanfile_content.lower()
-            conf = "def configure(self):"
-            conf2 = "del self.settings.compiler.libcxx"
-            return conf in low and conf2 in low
+            def _is_removing_libcxx():
+                conanfile_content = tools.load(conanfile_path)
+                low = conanfile_content.lower()
+                conf = "def configure(self):"
+                conf2 = "del self.settings.compiler.libcxx"
+                return conf in low and conf2 in low
 
-        if not _is_removing_libcxx()\
-                and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                and _has_files_with_extensions(conanfile.source_folder, c_extensions):
-            out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+            if not _is_removing_libcxx()\
+                    and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
+                    and _has_files_with_extensions(conanfile.source_folder, c_extensions):
+                out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
 @raise_if_error_output
@@ -290,8 +290,11 @@ def _has_files_with_extensions(folder, extensions):
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
             for filename in filenames:
-                for ext in extensions:
+                for ext in [ext for ext in extensions if ext != ""]:
                     if filename.endswith(".%s" % ext):
+                        return True
+                    # Look for possible executables
+                    if "" in extensions and "." not in filename and not filename.endswith("."):
                         return True
     return False
 
@@ -307,36 +310,57 @@ def _shared_files_well_managed(conanfile, folder):
 
 
 def _files_match_settings(conanfile, folder):
+    header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
     visual_extensions = ["lib", "dll", "exe"]
     mingw_extensions = ["a", "a.dll", "dll", "exe"]
-    linux_extensions = ["a", "so"]
-    macos_extensions = ["a", "dylib"]
+    # The "" extension is allowed to look for possible executables
+    linux_extensions = ["a", "so", ""]
+    macos_extensions = ["a", "dylib", ""]
+
+    has_header = _has_files_with_extensions(folder, header_extensions)
+    has_visual = _has_files_with_extensions(folder, visual_extensions)
+    has_mingw = _has_files_with_extensions(folder, mingw_extensions)
+    has_linux = _has_files_with_extensions(folder, linux_extensions)
+    has_macos = _has_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
+
+    if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
+        # empty package?
+        return False
+    if _is_recipe_header_only(conanfile):
+        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
-            if _has_files_with_extensions(folder, linux_extensions)\
-                    or _has_files_with_extensions(folder, macos_extensions):
-                return False
-            return _has_files_with_extensions(folder, visual_extensions)
-        else:
-            return _has_files_with_extensions(folder, mingw_extensions)
-    elif os == "Linux":
-        if _has_files_with_extensions(folder, visual_extensions):
-            return False
-        return _has_files_with_extensions(folder, linux_extensions)
-    elif os == "Macos":
-        if _has_files_with_extensions(folder, visual_extensions):
-            return False
-        return _has_files_with_extensions(folder, macos_extensions)
-    else:  # Not able to compare os setting
-        return True
+            return has_visual and not has_mingw and not has_linux and not has_macos
+        if conanfile.settings.get_safe("compiler") == "gcc":
+            return has_mingw and not has_visual and not has_linux and not has_macos
+    if os == "Linux":
+        return has_linux and not has_visual and not has_mingw and not has_macos
+    if os == "Macos":
+        return has_macos and not has_visual and not has_mingw and not has_linux
+    if os is None:
+        # Header only
+        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
+    return False
+
+
+def _is_recipe_header_only(conanfile):
+    without_settings = not bool(_get_settings(conanfile))
+    package_id_method = getattr(conanfile, "package_id")
+    header_only_id = "self.info.header_only()" in inspect.getsource(package_id_method)
+    return header_only_id or without_settings
+
+
+def _get_settings(conanfile):
+    settings = getattr(conanfile, "settings")
+    if isinstance(settings, Settings):
+        return None if not settings.values.fields else settings
+    else:
+        return settings
 
 
 def _get_os(conanfile):
-    settings = getattr(conanfile, "settings", None)
-    if settings:
-        for attrib in ["os", "os_build"]:
-            the_os = settings.get_safe(attrib)
-    else:
-        the_os = None
-    return the_os
+    settings = _get_settings(conanfile)
+    if not settings:
+        return None
+    return settings.get_safe("os") or settings.get_safe("os_build")
