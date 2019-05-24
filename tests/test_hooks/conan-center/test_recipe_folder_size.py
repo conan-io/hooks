@@ -1,6 +1,5 @@
 import os
 import textwrap
-import platform
 
 from conans import tools
 

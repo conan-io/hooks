@@ -49,7 +49,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
                            ("lib", "Darwin", "Package for Macos does not contain artifacts "
                                              "with these extensions: ['a', 'so', '']"),
                            ("exe", "Linux", "Package for Linux does not contain artifacts "
-                                             "with these extensions: ['a', 'dylib', '']")])
+                                            "with these extensions: ['a', 'dylib', '']")])
     def test_mismatching_configuration(self, extension, system_name, error_message):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
