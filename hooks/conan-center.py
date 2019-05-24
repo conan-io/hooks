@@ -57,6 +57,7 @@ def raise_if_error_output(func):
         ret = func(output, *args, **kwargs)
         output.raise_if_error()
         return ret
+
     return wrapper
 
 
@@ -67,6 +68,7 @@ def run_test(test_name, output):
         if not out.failed:
             out.success("OK")
         return ret
+
     return tmp
 
 
@@ -93,7 +95,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         build_method = getattr(conanfile, "build")
         # Check settings exist and build() is not the original one
-        if not settings and "This conanfile has no build step" not in inspect.getsource(build_method):
+        if not settings and "This conanfile has no build step" not in inspect.getsource(
+                build_method):
             out.warn("Recipe does not declare 'settings' and has a 'build()' step")
 
     @run_test("NO COPY SOURCE", output)
@@ -122,20 +125,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             remove_fpic_option = ['self.options.remove("fpic")',
                                   "self.options.remove('fpic')",
                                   'del self.options.fpic']
-            if ("def config_options(self):" in low or "def configure(self):" in low)\
+            if ("def config_options(self):" in low or "def configure(self):" in low) \
                     and any(r in low for r in remove_fpic_option):
                 out.success("OK. 'fPIC' option found and apparently well managed")
             else:
                 out.error("'fPIC' option not managed correctly. Please remove it for Windows "
                           "configurations: del self.options.fpic")
         else:
-                out.info("'fPIC' option not found")
+            out.info("'fPIC' option not found")
 
     @run_test("VERSION RANGES", output)
     def test(out):
         for num, line in enumerate(conanfile_content.splitlines()):
-                if all([char in line for char in ("@", "[", "]")]):
-                    out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
+            if all([char in line for char in ("@", "[", "]")]):
+                out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
 
     @run_test("RECIPE FOLDER SIZE", output)
     def test(out):
@@ -143,7 +146,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         total_size = 0
         for path, dirs, files in os.walk(dir_path):
-            dirs[:] = [d for d in dirs if d not in [".conan"]]  # Discard the generated .conan directory
+            dirs[:] = [d for d in dirs if
+                       d not in [".conan"]]  # Discard the generated .conan directory
             for files_it in files:
                 file_path = os.path.join(path, files_it)
                 total_size += os.path.getsize(file_path)
@@ -182,7 +186,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
-
     @run_test("LIBCXX", output)
     def test(out):
         if not _is_recipe_header_only(conanfile):
@@ -196,15 +199,15 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 conf2 = "del self.settings.compiler.libcxx"
                 return conf in low and conf2 in low
 
-            if not _is_removing_libcxx()\
+            if not _is_removing_libcxx() \
                     and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
                     and _get_files_with_extensions(conanfile.source_folder, c_extensions):
-                out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+                out.error(
+                    "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
 @raise_if_error_output
 def post_build(output, conanfile, **kwargs):
-
     @run_test("SHARED ARTIFACTS", output)
     def test(out):
         if not _shared_files_well_managed(conanfile, conanfile.build_folder):
@@ -213,7 +216,6 @@ def post_build(output, conanfile, **kwargs):
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
-
     @run_test("PACKAGE LICENSE", output)
     def test(out):
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
