@@ -14,7 +14,6 @@ def conan_command(output_stream):
     conan_api, cache, user_io = Conan.factory()
     user_io.out._stream = output_stream
     outputer = CommandOutputer(user_io, cache)
-    print(conan_version)
     if Version(conan_version) >= "1.16":
         cmd = Command(conan_api)
     else:

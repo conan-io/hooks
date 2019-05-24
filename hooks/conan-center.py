@@ -57,6 +57,7 @@ def raise_if_error_output(func):
         ret = func(output, *args, **kwargs)
         output.raise_if_error()
         return ret
+
     return wrapper
 
 
@@ -67,6 +68,7 @@ def run_test(test_name, output):
         if not out.failed:
             out.success("OK")
         return ret
+
     return tmp
 
 
@@ -93,7 +95,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         build_method = getattr(conanfile, "build")
         # Check settings exist and build() is not the original one
-        if not settings and "This conanfile has no build step" not in inspect.getsource(build_method):
+        if not settings and "This conanfile has no build step" not in inspect.getsource(
+                build_method):
             out.warn("Recipe does not declare 'settings' and has a 'build()' step")
 
     @run_test("NO COPY SOURCE", output)
@@ -122,20 +125,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             remove_fpic_option = ['self.options.remove("fpic")',
                                   "self.options.remove('fpic')",
                                   'del self.options.fpic']
-            if ("def config_options(self):" in low or "def configure(self):" in low)\
+            if ("def config_options(self):" in low or "def configure(self):" in low) \
                     and any(r in low for r in remove_fpic_option):
                 out.success("OK. 'fPIC' option found and apparently well managed")
             else:
                 out.error("'fPIC' option not managed correctly. Please remove it for Windows "
                           "configurations: del self.options.fpic")
         else:
-                out.info("'fPIC' option not found")
+            out.info("'fPIC' option not found")
 
     @run_test("VERSION RANGES", output)
     def test(out):
         for num, line in enumerate(conanfile_content.splitlines()):
-                if all([char in line for char in ("@", "[", "]")]):
-                    out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
+            if all([char in line for char in ("@", "[", "]")]):
+                out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
 
     @run_test("RECIPE FOLDER SIZE", output)
     def test(out):
@@ -143,10 +146,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         total_size = 0
         for path, dirs, files in os.walk(dir_path):
-            dirs[:] = [d for d in dirs if d not in [".conan"]]  # Discard the generated .conan directory
+            dirs[:] = [d for d in dirs if
+                       d not in [".conan"]]  # Discard the generated .conan directory
             for files_it in files:
                 file_path = os.path.join(path, files_it)
                 total_size += os.path.getsize(file_path)
+
         total_size_kb = total_size / 1024
         out.info("total_size_kb: %sKB" % total_size_kb)
         if total_size_kb > max_folder_size:
@@ -181,7 +186,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
-
     @run_test("LIBCXX", output)
     def test(out):
         if not _is_recipe_header_only(conanfile):
@@ -195,21 +199,15 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 conf2 = "del self.settings.compiler.libcxx"
                 return conf in low and conf2 in low
 
-            if not _is_removing_libcxx()\
-                    and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                    and _has_files_with_extensions(conanfile.source_folder, c_extensions):
-                out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+            if not _is_removing_libcxx() \
+                    and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
+                    and _get_files_with_extensions(conanfile.source_folder, c_extensions):
+                out.error(
+                    "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
 @raise_if_error_output
 def post_build(output, conanfile, **kwargs):
-
-    @run_test("MATCHING CONFIGURATION", output)
-    def test(out):
-        if not _files_match_settings(conanfile, conanfile.build_folder):
-            out.error("Built artifacts does not match the settings used: os=%s, compiler=%s"
-                      % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
-
     @run_test("SHARED ARTIFACTS", output)
     def test(out):
         if not _shared_files_well_managed(conanfile, conanfile.build_folder):
@@ -218,7 +216,6 @@ def post_build(output, conanfile, **kwargs):
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
-
     @run_test("PACKAGE LICENSE", output)
     def test(out):
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
@@ -250,7 +247,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("MATCHING CONFIGURATION", output)
     def test(out):
-        if not _files_match_settings(conanfile, conanfile.package_folder):
+        if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
                       % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
@@ -286,17 +283,18 @@ def _get_files_following_patterns(folder, patterns):
     return ret
 
 
-def _has_files_with_extensions(folder, extensions):
+def _get_files_with_extensions(folder, extensions):
+    files = []
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
             for filename in filenames:
                 for ext in [ext for ext in extensions if ext != ""]:
                     if filename.endswith(".%s" % ext):
-                        return True
+                        files.append(os.path.join(root, filename))
                     # Look for possible executables
-                    if "" in extensions and "." not in filename and not filename.endswith("."):
-                        return True
-    return False
+                    elif "" in extensions and "." not in filename and not filename.endswith("."):
+                        files.append(os.path.join(root, filename))
+    return files
 
 
 def _shared_files_well_managed(conanfile, folder):
@@ -304,12 +302,12 @@ def _shared_files_well_managed(conanfile, folder):
     shared_name = "shared"
     options_dict = {key: value for key, value in conanfile.options.values.as_list()}
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
-        if not _has_files_with_extensions(folder, shared_extensions):
+        if not _get_files_with_extensions(folder, shared_extensions):
             return False
     return True
 
 
-def _files_match_settings(conanfile, folder):
+def _files_match_settings(conanfile, folder, output):
     header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
     visual_extensions = ["lib", "dll", "exe"]
     mingw_extensions = ["a", "a.dll", "dll", "exe"]
@@ -317,30 +315,51 @@ def _files_match_settings(conanfile, folder):
     linux_extensions = ["a", "so", ""]
     macos_extensions = ["a", "dylib", ""]
 
-    has_header = _has_files_with_extensions(folder, header_extensions)
-    has_visual = _has_files_with_extensions(folder, visual_extensions)
-    has_mingw = _has_files_with_extensions(folder, mingw_extensions)
-    has_linux = _has_files_with_extensions(folder, linux_extensions)
-    has_macos = _has_files_with_extensions(folder, macos_extensions)
+    has_header = _get_files_with_extensions(folder, header_extensions)
+    has_visual = _get_files_with_extensions(folder, visual_extensions)
+    has_mingw = _get_files_with_extensions(folder, mingw_extensions)
+    has_linux = _get_files_with_extensions(folder, linux_extensions)
+    has_macos = _get_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
 
     if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
-        # empty package?
+        output.error("Empty package")
         return False
     if _is_recipe_header_only(conanfile):
-        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
+        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+            output.error("Package for Header Only does not contain artifacts with these extensions: "
+                         "%s" % header_extensions)
+            return False
+        else:
+            return True
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
-            return has_visual and not has_mingw
+            if not has_visual:
+                output.error("Package for Visual Studio does not contain artifacts with these "
+                             "extensions: %s" % visual_extensions)
+            return has_visual
         if conanfile.settings.get_safe("compiler") == "gcc":
-            return has_mingw and not has_visual
+            if not has_mingw:
+                output.error("Package for MinGW does not contain artifacts with these extensions: "
+                             "%s" % mingw_extensions)
+            return has_mingw
     if os == "Linux":
+        if not has_linux:
+            output.error("Package for Linux does not contain artifacts with these extensions: "
+                         "%s" % linux_extensions)
         return has_linux
     if os == "Macos":
+        if not has_macos:
+            output.error("Package for Macos does not contain artifacts with these extensions: "
+                         "%s" % macos_extensions)
         return has_macos
     if os is None:
-        # Header only
-        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
+        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+            output.error("Package for Header Only does not contain artifacts with these extensions: "
+                         "%s" % header_extensions)
+            return False
+        else:
+            return True
     return False
 
 
