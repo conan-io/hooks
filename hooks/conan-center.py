@@ -245,11 +245,11 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.info("If you are trying to package a tool put all the contents under the 'bin' "
                      "folder")
 
-    @run_test("MATCHING CONFIGURATION", output)
-    def test(out):
-        if not _files_match_settings(conanfile, conanfile.package_folder, out):
-            out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
-                      % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
+    # @run_test("MATCHING CONFIGURATION", output)
+    # def test(out):
+    #     if not _files_match_settings(conanfile, conanfile.package_folder, out):
+    #         out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
+    #                   % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
     @run_test("SHARED ARTIFACTS", output)
     def test(out):
