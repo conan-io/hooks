@@ -47,9 +47,9 @@ class MatchingConfigurationTests(ConanClientTestCase):
     @parameterized.expand([("so", "Windows", "Package for Visual Studio does not contain artifacts "
                                              "with these extensions: ['lib', 'dll', 'exe']"),
                            ("lib", "Darwin", "Package for Macos does not contain artifacts "
-                                             "with these extensions: ['a', 'so', '']"),
+                                             "with these extensions: ['a', 'dylib', '']"),
                            ("exe", "Linux", "Package for Linux does not contain artifacts "
-                                            "with these extensions: ['a', 'dylib', '']")])
+                                            "with these extensions: ['a', 'so', '']")])
     def test_mismatching_configuration(self, extension, system_name, error_message):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
