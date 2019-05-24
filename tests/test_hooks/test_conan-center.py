@@ -34,6 +34,9 @@ class ConanCenterTests(ConanClientTestCase):
             exports_sources = "header.h"
             settings = "os", "compiler", "arch", "build_type"
 
+            def package(self):
+                self.copy("*", dst="include")
+
             def package_id(self):
                 self.info.header_only()
         """)
@@ -81,6 +84,26 @@ class ConanCenterTests(ConanClientTestCase):
             self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
             self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
 
+    @parameterized.expand([("so", "Windows", "Package for Visual Studio does not contain artifacts "
+                                             "with these extensions: ['lib', 'dll', 'exe']"),
+                           ("lib", "Darwin", "Package for Macos does not contain artifacts "
+                                             "with these extensions: ['a', 'so', '']"),
+                           ("exe", "Linux", "Package for Linux does not contain artifacts "
+                                             "with these extensions: ['a', 'dylib', '']")])
+    def test_mismatching_configuration(self, extension, system_name, error_message):
+        cf = self.conanfile_match_conf.format(extension=extension,
+                                              settings="settings = 'os', 'compiler', 'arch', "
+                                                       "'build_type'")
+        tools.save('conanfile.py', content=cf)
+        tools.save('file.%s' % extension, content="")
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        if platform.system() == system_name:
+            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertIn("ERROR: [MATCHING CONFIGURATION] %s" % error_message, output)
+        else:
+            self.assertIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+
     def test_matching_configuration_header_only_package_id(self):
         cf = self.conanfile_match_conf.format(extension="h",
                                               settings="settings = 'os', 'compiler', 'arch', "
@@ -111,7 +134,7 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=cf)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
 
     def test_conanfile(self):
         tools.save('conanfile.py', content=self.conanfile)
@@ -123,7 +146,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)  # Empty package
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
@@ -158,7 +181,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
-        self.assertIn("[MATCHING CONFIGURATION] Packaged artifacts does not match", output)
+        self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
@@ -174,6 +197,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
         self.assertIn("ERROR: [MATCHING CONFIGURATION] Packaged artifacts does not match",
                       output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)

@@ -197,8 +197,8 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 return conf in low and conf2 in low
 
             if not _is_removing_libcxx()\
-                    and not _has_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                    and _has_files_with_extensions(conanfile.source_folder, c_extensions):
+                    and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
+                    and _get_files_with_extensions(conanfile.source_folder, c_extensions):
                 out.error("Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
@@ -245,7 +245,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("MATCHING CONFIGURATION", output)
     def test(out):
-        if not _files_match_settings(conanfile, conanfile.package_folder):
+        if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
                       % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
@@ -281,17 +281,18 @@ def _get_files_following_patterns(folder, patterns):
     return ret
 
 
-def _has_files_with_extensions(folder, extensions):
+def _get_files_with_extensions(folder, extensions):
+    files = []
     with tools.chdir(folder):
         for (root, _, filenames) in os.walk("."):
             for filename in filenames:
                 for ext in [ext for ext in extensions if ext != ""]:
                     if filename.endswith(".%s" % ext):
-                        return True
+                        files.append(os.path.join(root, filename))
                     # Look for possible executables
-                    if "" in extensions and "." not in filename and not filename.endswith("."):
-                        return True
-    return False
+                    elif "" in extensions and "." not in filename and not filename.endswith("."):
+                        files.append(os.path.join(root, filename))
+    return files
 
 
 def _shared_files_well_managed(conanfile, folder):
@@ -299,12 +300,12 @@ def _shared_files_well_managed(conanfile, folder):
     shared_name = "shared"
     options_dict = {key: value for key, value in conanfile.options.values.as_list()}
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
-        if not _has_files_with_extensions(folder, shared_extensions):
+        if not _get_files_with_extensions(folder, shared_extensions):
             return False
     return True
 
 
-def _files_match_settings(conanfile, folder):
+def _files_match_settings(conanfile, folder, output):
     header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
     visual_extensions = ["lib", "dll", "exe"]
     mingw_extensions = ["a", "a.dll", "dll", "exe"]
@@ -312,30 +313,51 @@ def _files_match_settings(conanfile, folder):
     linux_extensions = ["a", "so", ""]
     macos_extensions = ["a", "dylib", ""]
 
-    has_header = _has_files_with_extensions(folder, header_extensions)
-    has_visual = _has_files_with_extensions(folder, visual_extensions)
-    has_mingw = _has_files_with_extensions(folder, mingw_extensions)
-    has_linux = _has_files_with_extensions(folder, linux_extensions)
-    has_macos = _has_files_with_extensions(folder, macos_extensions)
+    has_header = _get_files_with_extensions(folder, header_extensions)
+    has_visual = _get_files_with_extensions(folder, visual_extensions)
+    has_mingw = _get_files_with_extensions(folder, mingw_extensions)
+    has_linux = _get_files_with_extensions(folder, linux_extensions)
+    has_macos = _get_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
 
     if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
-        # empty package?
+        output.error("Empty package")
         return False
     if _is_recipe_header_only(conanfile):
-        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
+        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+            output.error("Package for Header Only does not contain artifacts with these extensions: "
+                         "%s" % header_extensions)
+            return False
+        else:
+            return True
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
+            if not has_visual:
+                output.error("Package for Visual Studio does not contain artifacts with these "
+                             "extensions: %s" % visual_extensions)
             return has_visual
         if conanfile.settings.get_safe("compiler") == "gcc":
+            if not has_mingw:
+                output.error("Package for MinGW does not contain artifacts with these extensions: "
+                             "%s" % mingw_extensions)
             return has_mingw
     if os == "Linux":
+        if not has_linux:
+            output.error("Package for Linux does not contain artifacts with these extensions: "
+                         "%s" % linux_extensions)
         return has_linux
     if os == "Macos":
+        if not has_macos:
+            output.error("Package for Macos does not contain artifacts with these extensions: "
+                         "%s" % macos_extensions)
         return has_macos
     if os is None:
-        # Header only
-        return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
+        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+            output.error("Package for Header Only does not contain artifacts with these extensions: "
+                         "%s" % header_extensions)
+            return False
+        else:
+            return True
     return False
 
 
