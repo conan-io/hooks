@@ -66,20 +66,20 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertNotIn("[PACKAGE LICENSE] OK", output)
 
-    #@parameterized.expand([("lib", "Windows"), ("so", "Darwin"), ("so", "Linux")])
-    #def test_matching_configuration(self, extension, system_name):
-    #    cf = self.conanfile_match_conf.format(extension=extension,
-    #                                          settings="settings = 'os', 'compiler', 'arch', "
-    #                                                   "'build_type'")
-    #    tools.save('conanfile.py', content=cf)
-    #    tools.save('file.%s' % extension, content="")
-    #    output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-    #    if platform.system() == system_name:
-    #        self.assertIn("[MATCHING CONFIGURATION] OK", output)
-    #        self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
-    #    else:
-    #        self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-    #        self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+    @parameterized.expand([("lib", "Windows"), ("so", "Darwin"), ("so", "Linux")])
+    def test_matching_configuration(self, extension, system_name):
+        cf = self.conanfile_match_conf.format(extension=extension,
+                                              settings="settings = 'os', 'compiler', 'arch', "
+                                                       "'build_type'")
+        tools.save('conanfile.py', content=cf)
+        tools.save('file.%s' % extension, content="")
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        if platform.system() == system_name:
+            self.assertIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        else:
+            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
 
     def test_matching_configuration_header_only_package_id(self):
         cf = self.conanfile_match_conf.format(extension="h",
@@ -89,9 +89,9 @@ class ConanCenterTests(ConanClientTestCase):
     def package_id(self):
         self.info.header_only()
         """
-        tools.save('conanfile.py', content=cf)
+        tools.save('conanfile_other.py', content=cf)
         tools.save('file.h', content="")
-        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        output = self.conan(['create', 'conanfile_other.py', 'name/version@danimtb/test'])
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
 
@@ -158,7 +158,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
-        self.assertIn("[MATCHING CONFIGURATION] OK", output)
+        self.assertIn("[MATCHING CONFIGURATION] Packaged artifacts does not match", output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT] OK", output)
@@ -174,7 +174,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[FPIC MANAGEMENT] 'fPIC' option not found", output)
         self.assertIn("[VERSION RANGES] OK", output)
         self.assertIn("[LIBCXX] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION] Built artifacts does not match the settings",
+        self.assertIn("ERROR: [MATCHING CONFIGURATION] Packaged artifacts does not match",
                       output)
         self.assertIn("[SHARED ARTIFACTS] OK", output)
         self.assertIn("ERROR: [PACKAGE LICENSE] No 'licenses' folder found in package", output)
@@ -182,20 +182,26 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SHARED ARTIFACTS] OK", output)
 
     def test_regular_folder_size(self):
+        content = "".join(["k" for it in range(1024 * 255)])
         tools.save('conanfile.py', content=self.conanfile_installer)
+        tools.save('big_file', content=content)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("[RECIPE FOLDER SIZE] OK", output)
         self.assertNotIn("ERROR: [RECIPE FOLDER SIZE]", output)
 
     def test_larger_folder_size(self):
-        content = " ".join(["test_recipe_folder_larger_size" for it in range(1048576)])
+        content = "".join(["k" for it in range(1024 * 256)])
         tools.save('conanfile.py', content=self.conanfile_installer)
         tools.save('big_file', content=content)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)
 
     def test_custom_folder_size(self):
+        tools.save('conanfile.py', content=self.conanfile_installer)
+        content = " ".join(["test_recipe_folder_larger_size" for it in range(500)])
+        tools.save('big_file', content=content)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("[RECIPE FOLDER SIZE] OK", output)
         with tools.environment_append({"CONAN_MAX_RECIPE_FOLDER_SIZE_KB": "0"}):
-            tools.save('conanfile.py', content=self.conanfile_installer)
             output = self.conan(['export', '.', 'name/version@user/channel'])
             self.assertIn("ERROR: [RECIPE FOLDER SIZE] The size of your recipe folder", output)

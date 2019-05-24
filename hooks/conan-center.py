@@ -147,6 +147,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for files_it in files:
                 file_path = os.path.join(path, files_it)
                 total_size += os.path.getsize(file_path)
+
         total_size_kb = total_size / 1024
         out.info("total_size_kb: %sKB" % total_size_kb)
         if total_size_kb > max_folder_size:
@@ -203,12 +204,6 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_build(output, conanfile, **kwargs):
-
-    @run_test("MATCHING CONFIGURATION", output)
-    def test(out):
-        if not _files_match_settings(conanfile, conanfile.build_folder):
-            out.error("Built artifacts does not match the settings used: os=%s, compiler=%s"
-                      % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
     @run_test("SHARED ARTIFACTS", output)
     def test(out):
@@ -331,9 +326,9 @@ def _files_match_settings(conanfile, folder):
         return has_header and not has_visual and not has_mingw and not has_linux and not has_macos
     if os == "Windows":
         if conanfile.settings.get_safe("compiler") == "Visual Studio":
-            return has_visual and not has_mingw
+            return has_visual
         if conanfile.settings.get_safe("compiler") == "gcc":
-            return has_mingw and not has_visual
+            return has_mingw
     if os == "Linux":
         return has_linux
     if os == "Macos":
