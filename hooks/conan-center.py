@@ -203,7 +203,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                     and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
                     and _get_files_with_extensions(conanfile.source_folder, c_extensions):
                 out.error(
-                    "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+                        "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
 
 @raise_if_error_output
@@ -245,11 +245,11 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.info("If you are trying to package a tool put all the contents under the 'bin' "
                      "folder")
 
-    # @run_test("MATCHING CONFIGURATION", output)
-    # def test(out):
-    #     if not _files_match_settings(conanfile, conanfile.package_folder, out):
-    #         out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
-    #                   % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
+    @run_test("MATCHING CONFIGURATION", output)
+    def test(out):
+        if not _files_match_settings(conanfile, conanfile.package_folder, out):
+            out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
+                      % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
     @run_test("SHARED ARTIFACTS", output)
     def test(out):
@@ -292,7 +292,8 @@ def _get_files_with_extensions(folder, extensions):
                     if filename.endswith(".%s" % ext):
                         files.append(os.path.join(root, filename))
                     # Look for possible executables
-                    elif "" in extensions and "." not in filename and not filename.endswith("."):
+                    elif ("" in extensions and "." not in filename
+                          and not filename.endswith(".") and "license" not in filename.lower()):
                         files.append(os.path.join(root, filename))
     return files
 
@@ -326,7 +327,7 @@ def _files_match_settings(conanfile, folder, output):
         output.error("Empty package")
         return False
     if _is_recipe_header_only(conanfile):
-        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+        if not has_header and (has_visual or has_mingw or has_linux or has_macos):
             output.error("Package for Header Only does not contain artifacts with these extensions: "
                          "%s" % header_extensions)
             return False
@@ -338,11 +339,13 @@ def _files_match_settings(conanfile, folder, output):
                 output.error("Package for Visual Studio does not contain artifacts with these "
                              "extensions: %s" % visual_extensions)
             return has_visual
-        if conanfile.settings.get_safe("compiler") == "gcc":
+        elif conanfile.settings.get_safe("compiler") == "gcc":
             if not has_mingw:
                 output.error("Package for MinGW does not contain artifacts with these extensions: "
                              "%s" % mingw_extensions)
             return has_mingw
+        else:
+            return has_visual or has_mingw
     if os == "Linux":
         if not has_linux:
             output.error("Package for Linux does not contain artifacts with these extensions: "
@@ -354,7 +357,7 @@ def _files_match_settings(conanfile, folder, output):
                          "%s" % macos_extensions)
         return has_macos
     if os is None:
-        if not has_header or has_visual or has_mingw or has_linux or has_macos:
+        if not has_header and (has_visual or has_mingw or has_linux or has_macos):
             output.error("Package for Header Only does not contain artifacts with these extensions: "
                          "%s" % header_extensions)
             return False

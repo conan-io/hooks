@@ -16,7 +16,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
-            exports_sources = "file.{extension}"
+            exports_sources = "file.{extension}", "LICENSE"
             {settings}
 
             def package(self):
@@ -74,6 +74,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
         """
         tools.save('conanfile_other.py', content=cf)
         tools.save('file.h', content="")
+        tools.save('LICENSE', content="")
         output = self.conan(['create', 'conanfile_other.py', 'name/version@danimtb/test'])
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
@@ -83,6 +84,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
                                               settings="")
         tools.save('conanfile.py', content=cf)
         tools.save('file.h', content="")
+        tools.save('LICENSE', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[MATCHING CONFIGURATION] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
@@ -95,3 +97,17 @@ class MatchingConfigurationTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
+
+    @parameterized.expand([("exe", "Windows"), ("", "Darwin"), ("", "Linux")])
+    def test_matching_configuration_tool(self, extension, system_name):
+        cf = self.conanfile_match_conf.format(extension="exe",
+                                              settings="settings = 'os'")
+        tools.save('conanfile.py', content=cf)
+        tools.save('file.%s' % extension, content="")
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        if platform.system() == system_name:
+            self.assertIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        else:
+            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+            self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
