@@ -1,5 +1,6 @@
 import fnmatch
 import inspect
+import re
 import os
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
@@ -114,7 +115,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.warn("This recipe does not include an 'fPIC' option. Make sure you are using the "
                      "right casing")
         elif options and not settings and ("fPIC" in options or "shared" in options):
-
             out.error("This recipe has 'shared' or 'fPIC' options but does not declare any "
                       "settings")
 
@@ -136,8 +136,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("VERSION RANGES", output)
     def test(out):
-        for num, line in enumerate(conanfile_content.splitlines()):
-            if all([char in line for char in ("@", "[", "]")]):
+        # This regex takes advantage that a conan reference is always a string
+        vrange_match = re.compile(r'.*[\'"][a-zA-Z0-9_+.-]+\/\[.+\]@[a-zA-Z0-9_+.\/-]+[\'"].*')
+        for num, line in enumerate(conanfile_content.splitlines(), 1):
+            if vrange_match.match(line):
                 out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
 
     @run_test("RECIPE FOLDER SIZE", output)
@@ -204,14 +206,6 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                     and _get_files_with_extensions(conanfile.source_folder, c_extensions):
                 out.error(
                         "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
-
-
-@raise_if_error_output
-def post_build(output, conanfile, **kwargs):
-    @run_test("SHARED ARTIFACTS", output)
-    def test(out):
-        if not _shared_files_well_managed(conanfile, conanfile.build_folder):
-            out.error("Build with 'shared' option did not produce any shared artifact")
 
 
 @raise_if_error_output
