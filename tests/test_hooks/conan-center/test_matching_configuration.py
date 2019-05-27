@@ -57,7 +57,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
                 "wrong_extension": ".dylib"
             },
             "Darwin": {
-                "platform": "Linux",
+                "platform": "Macos",
                 "extensions": "['a', 'dylib', '']",
                 "wrong_extension": ".so"
             }
