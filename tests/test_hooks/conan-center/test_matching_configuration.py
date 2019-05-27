@@ -29,8 +29,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
                                                    'hooks', 'conan-center')})
         return kwargs
 
-    @parameterized.expand([("lib", "Windows"), ("so", "Darwin"), ("so", "Linux")])
-    def test_matching_configuration(self, extension, system_name):
+    @parameterized.expand([("Windows", "lib"), ("Darwin", "so"), ("Linux", "so")])
+    def test_matching_configuration(self, system_name, extension):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
@@ -44,13 +44,13 @@ class MatchingConfigurationTests(ConanClientTestCase):
             self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
             self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
 
-    @parameterized.expand([("so", "Windows", "Package for Visual Studio does not contain artifacts "
+    @parameterized.expand([("Windows", "so", "Package for Visual Studio does not contain artifacts "
                                              "with these extensions: ['lib', 'dll', 'exe']"),
-                           ("lib", "Darwin", "Package for Macos does not contain artifacts "
+                           ("Darwin", "lib", "Package for Macos does not contain artifacts "
                                              "with these extensions: ['a', 'dylib', '']"),
-                           ("exe", "Linux", "Package for Linux does not contain artifacts "
+                           ("Linux", "exe", "Package for Linux does not contain artifacts "
                                             "with these extensions: ['a', 'so', '']")])
-    def test_mismatching_configuration(self, extension, system_name, error_message):
+    def test_mismatching_configuration(self, system_name, extension, error_message):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
@@ -98,8 +98,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
         self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
         self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
 
-    @parameterized.expand([("exe", "Windows"), ("", "Darwin"), ("", "Linux")])
-    def test_matching_configuration_tool(self, extension, system_name):
+    @parameterized.expand([("Windows", "exe"), ("Darwin", ""), ("Linux", "")])
+    def test_matching_configuration_tool(self, system_name, extension):
         cf = self.conanfile_match_conf.format(extension="exe",
                                               settings="settings = 'os'")
         tools.save('conanfile.py', content=cf)
