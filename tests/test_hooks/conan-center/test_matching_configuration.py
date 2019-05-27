@@ -106,9 +106,18 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('file%s' % extension, content="")
         print("platform.system(): ", platform.system())
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        if platform.system() == system_name:
-            self.assertIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
-        else:
-            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+        system = platform.system()
+        if system in ["Darwin", "Linux"]:
+            if system_name in ["Darwin", "Linux"]:
+                self.assertIn("[MATCHING CONFIGURATION] OK", output)
+                self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+            else:
+                self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+                self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+        elif system == "Windows":
+            if system_name == "Windows":
+                self.assertIn("[MATCHING CONFIGURATION] OK", output)
+                self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+            else:
+                self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+                self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
