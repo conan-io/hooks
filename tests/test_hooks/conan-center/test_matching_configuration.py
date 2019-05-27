@@ -29,7 +29,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
                                                    'hooks', 'conan-center')})
         return kwargs
 
-    @parameterized.expand([("Windows", ".lib"), ("Darwin", ".so"), ("Linux", ".so")])
+    @parameterized.expand([("Windows", ".lib"), ("Darwin", ".dylib"), ("Linux", ".so")])
     def test_matching_configuration(self, system_name, extension):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
@@ -57,12 +57,12 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('conanfile.py', content=cf)
         tools.save('file%s' % extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        if platform.system() == system_name:
-            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertIn("ERROR: [MATCHING CONFIGURATION] %s" % error_message, output)
-        else:
+        if platform.system() != system_name:
             self.assertIn("[MATCHING CONFIGURATION] OK", output)
             self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        else:
+            self.assertIn("ERROR: [MATCHING CONFIGURATION] %s" % error_message, output)
+            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
 
     def test_matching_configuration_header_only_package_id(self):
         cf = self.conanfile_match_conf.format(extension=".h",
