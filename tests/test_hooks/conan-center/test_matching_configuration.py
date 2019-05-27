@@ -54,7 +54,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
             "Linux": {
                 "platform": "Linux",
                 "extensions": "['a', 'so', '']",
-                "wrong_extension": ".so"
+                "wrong_extension": ".dylib"
             },
             "Darwin": {
                 "platform": "Linux",
