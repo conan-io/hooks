@@ -207,14 +207,6 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
 
 @raise_if_error_output
-def post_build(output, conanfile, **kwargs):
-    @run_test("SHARED ARTIFACTS", output)
-    def test(out):
-        if not _shared_files_well_managed(conanfile, conanfile.build_folder):
-            out.error("Build with 'shared' option did not produce any shared artifact")
-
-
-@raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("PACKAGE LICENSE", output)
     def test(out):
