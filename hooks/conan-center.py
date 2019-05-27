@@ -321,11 +321,6 @@ def _files_match_settings(conanfile, folder, output):
     has_mingw = _get_files_with_extensions(folder, mingw_extensions)
     has_linux = _get_files_with_extensions(folder, linux_extensions)
     has_macos = _get_files_with_extensions(folder, macos_extensions)
-    print("has_header: ", has_header)
-    print("has_visual: ", has_visual)
-    print("has_mingw: ", has_mingw)
-    print("has_linux: ", has_linux)
-    print("has_macos: ", has_macos)
     os = _get_os(conanfile)
 
     if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
