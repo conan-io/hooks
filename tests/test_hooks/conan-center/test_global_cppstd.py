@@ -23,14 +23,14 @@ class TestGlobalCPPSTD(ConanClientTestCase):
     def test_forbidden_usage(self):
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [GLOBAL CPPSTD DEPRECATED] The `cppstd` setting is deprecated, "
-                      "use the compiler.cppstd instead", output)
+        self.assertIn("ERROR: [GLOBAL CPPSTD DEPRECATED] The 'cppstd' setting is deprecated. "
+                      "Use the 'compiler.cppstd' subsetting instead", output)
 
     def test_forbidden_usage_multi_settings(self):
         tools.save('conanfile.py', content=self.conanfile.replace('"cppstd"', '"cppstd", "os"'))
         output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [GLOBAL CPPSTD DEPRECATED] The `cppstd` setting is deprecated, "
-                      "use the compiler.cppstd instead", output)
+        self.assertIn("ERROR: [GLOBAL CPPSTD DEPRECATED] The 'cppstd' setting is deprecated. "
+                      "Use the 'compiler.cppstd' subsetting instead", output)
 
     def test_ok_usage(self):
         tools.save('conanfile.py', content=self.conanfile.replace("cppstd", "os"))
