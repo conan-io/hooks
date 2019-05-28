@@ -265,6 +265,13 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "be located using generators and the declared `cpp_info` information")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
+    @run_test("PDB FILES NOT ALLOWED", output)
+    def test(out):
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
+        if bad_files:
+            out.error("The conan-center repository doesn't allow PDB files")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
+
 
 def _get_files_following_patterns(folder, patterns):
     ret = []
