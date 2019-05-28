@@ -80,7 +80,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("GLOBAL CPPSTD DEPRECATED", output)
     def test(out):
-        if "cppstd" in settings:
+        if settings and "cppstd" in settings:
             out.error("The `cppstd` setting is deprecated, use the compiler.cppstd instead")
 
     @run_test("REFERENCE LOWERCASE", output)
