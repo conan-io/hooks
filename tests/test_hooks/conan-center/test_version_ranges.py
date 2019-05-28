@@ -70,5 +70,5 @@ class VersionRanges(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
-        self.assertIn("Possible use of version ranges", output)
+        self.assertNotIn("Possible use of version ranges", output)
 
