@@ -278,6 +278,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("The conan-center repository doesn't allow PDB files")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
+    @run_test("LIBTOOL FILES PRESENCE", output)
+    def test(out):
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.la"])
+        if bad_files:
+            out.error("Libtool files found (*.la). Do not package *.la files "
+                      "but library files (.a) ")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
+
 
 def _get_files_following_patterns(folder, patterns):
     ret = []
