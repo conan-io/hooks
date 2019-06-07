@@ -1,13 +1,16 @@
 import os
 import textwrap
+import unittest
 
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from conans import __version__ as conan_version
+from conans.client.tools.version import Version
 
 
+@unittest.skipUnless(Version(conan_version) >= "1.16", "SVN not available")
 class ConanData(ConanClientTestCase):
-
 
     def _get_environ(self, **kwargs):
         kwargs = super(ConanData, self)._get_environ(**kwargs)
