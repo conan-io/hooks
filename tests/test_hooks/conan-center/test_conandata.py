@@ -1,11 +1,14 @@
 import os
 import textwrap
-from unittest import SkipTest
+import unittest
 
 from conans import tools
+
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from conans import __version__ as conan_version
 
 
+@unittest.skipUnless(conan_version >= "1.16.0", "Conan > 1.16.0 needed")
 class ConanData(ConanClientTestCase):
 
     def _get_environ(self, **kwargs):
@@ -28,14 +31,6 @@ class ConanData(ConanClientTestCase):
                       "sources to be downloaded.", output)
 
     def test_no_missing_conandata_but_not_used(self):
-
-        # This is done here because at module level in some cases there is no conan available yet
-        from conans import __version__ as conan_version
-        from conans.client.tools.version import Version
-
-        if Version(conan_version) < "1.16":
-            raise SkipTest("1.16 needed")
-
         conanfile = textwrap.dedent("""\
                 import os
                 from conans import ConanFile, tools
@@ -51,15 +46,6 @@ class ConanData(ConanClientTestCase):
         self.assertIn("[IMMUTABLE SOURCES] Use 'tools.get(**self.conan_data[\"sources\"]", output)
 
     def test_correct_usage(self):
-
-        # This is done here because at module level in some cases there is no conan available yet
-        from conans import __version__ as conan_version
-        from conans.client.tools.version import Version
-
-        if Version(conan_version) < "1.16":
-            raise SkipTest("1.16 needed")
-
-
         conanfile = textwrap.dedent("""\
                        import os
                        from conans import ConanFile, tools
