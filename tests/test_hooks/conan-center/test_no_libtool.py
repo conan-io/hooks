@@ -32,4 +32,3 @@ class NoLibToolTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [LIBTOOL FILES PRESENCE]", output)
         self.assertIn("bad.la", output)
-        self.assertNotIn("bad.lab", output)
