@@ -187,15 +187,17 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                 for invalid in invalid_content:
                     if invalid in conanfile_content:
                         fixed_sources = False
+                        break
             else:
                 fixed_sources = True
                 for valid in needed_content:
                     if valid not in conanfile_content:
                         fixed_sources = False
+                        break
 
             if not fixed_sources:
-                out.error("Use the 'conandata.yml' file to describe where to get the source"
-                          " code. e.j: tools.get(**self.conan_data[\"sources\"][\"all\"]). {}"
+                out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
+                          "in the source() method to get the sources. {}"
                           "".format(read_more))
 
 

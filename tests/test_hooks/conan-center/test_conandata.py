@@ -1,13 +1,15 @@
 import os
 import textwrap
+import unittest
 
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from conans import __version__ as conan_version
 
 
+@unittest.skipUnless(conan_version >= "1.16.0", "Conan > 1.16.0 needed")
 class ConanData(ConanClientTestCase):
-
 
     def _get_environ(self, **kwargs):
         kwargs = super(ConanData, self)._get_environ(**kwargs)
@@ -41,8 +43,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         tools.save('conandata.yml', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("[IMMUTABLE SOURCES] Use the \'conandata.yml\' file to describe "
-                      "where to get the source code", output)
+        self.assertIn("[IMMUTABLE SOURCES] Use 'tools.get(**self.conan_data[\"sources\"]", output)
 
     def test_correct_usage(self):
         conanfile = textwrap.dedent("""\
