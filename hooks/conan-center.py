@@ -174,7 +174,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     @run_test("IMMUTABLE SOURCES", output)
     def test(out):
         if "def source(self):" in conanfile_content:
-            valid_content = [".zip", ".tar", ".tgz", ".tbz2", ".txz"]
+            valid_content = ["tools.get(**self.conan_data"]
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
@@ -188,8 +188,8 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                         fixed_sources = True
 
             if not fixed_sources:
-                out.error("Source files does not come from and immutable place. Checkout to a "
-                          "commit/tag or download a compressed source file")
+                out.error("Use the 'conanmetadata.yml' file to describe where to get the source"
+                          " code. Read more at: XXXXXXX (PENDING)")
 
 
 @raise_if_error_output
@@ -276,6 +276,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
         if bad_files:
             out.error("The conan-center repository doesn't allow PDB files")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+    @run_test("LIBTOOL FILES PRESENCE", output)
+    def test(out):
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.la"])
+        if bad_files:
+            out.error("Libtool files found (*.la). Do not package *.la files "
+                      "but library files (.a) ")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
 
