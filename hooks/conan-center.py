@@ -177,7 +177,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
-                      "to be downloaded. {}".format(read_more))
+                      "to be downloaded. {}: '{}' not found.".format(read_more, conandata_source))
 
         if "def source(self):" in conanfile_content:
             needed_content = ['tools.get(**self.conan_data["sources"]']
@@ -187,11 +187,13 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                 for invalid in invalid_content:
                     if invalid in conanfile_content:
                         fixed_sources = False
+                        break
             else:
                 fixed_sources = True
                 for valid in needed_content:
                     if valid not in conanfile_content:
                         fixed_sources = False
+                        break
 
             if not fixed_sources:
                 out.error("Use the 'conandata.yml' file to describe where to get the source"
