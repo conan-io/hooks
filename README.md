@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/conan-io/hooks.svg?branch=master)](https://travis-ci.org/conan-io/hooks)
-[![Build status](https://ci.appveyor.com/api/projects/status/s0k4n197ko1iyoml/branch/master?svg=true)](https://ci.appveyor.com/project/ConanCIintegration/hooks/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/54a25v53i3ldu8ro/branch/master?svg=true)](https://ci.appveyor.com/project/ConanOrgCI/hooks/branch/master)
 
 
 # Conan Hooks
