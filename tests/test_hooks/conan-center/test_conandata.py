@@ -1,15 +1,11 @@
 import os
 import textwrap
-import unittest
+from unittest import SkipTest
 
 from conans import tools
-
 from tests.utils.test_cases.conan_client import ConanClientTestCase
-from conans import __version__ as conan_version
-from conans.client.tools.version import Version
 
 
-@unittest.skipUnless(Version(conan_version) >= "1.16", "SVN not available")
 class ConanData(ConanClientTestCase):
 
     def _get_environ(self, **kwargs):
@@ -32,6 +28,14 @@ class ConanData(ConanClientTestCase):
                       "sources to be downloaded.", output)
 
     def test_no_missing_conandata_but_not_used(self):
+
+        # This is done here because at module level in some cases there is no conan available yet
+        from conans import __version__ as conan_version
+        from conans.client.tools.version import Version
+
+        if Version(conan_version) < "1.16":
+            raise SkipTest("1.16 needed")
+
         conanfile = textwrap.dedent("""\
                 import os
                 from conans import ConanFile, tools
@@ -44,8 +48,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         tools.save('conandata.yml', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("[IMMUTABLE SOURCES] Use the \'conandata.yml\' file to describe "
-                      "where to get the source code", output)
+        self.assertIn("[IMMUTABLE SOURCES] Use 'tools.get(**self.conan_data[\"sources\"]", output)
 
     def test_correct_usage(self):
         conanfile = textwrap.dedent("""\
