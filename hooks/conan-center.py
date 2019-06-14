@@ -161,7 +161,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 total_size += os.path.getsize(file_path)
 
         total_size_kb = total_size / 1024
-        out.success("total_size_kb: %sKB" % total_size_kb)
+        out.success("Total recipe size: %sKB" % total_size_kb)
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({}KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
