@@ -318,11 +318,12 @@ def post_package_info(output, conanfile, reference, **kwargs):
 
         for filename in bad_files:
             for bdir in build_dirs:
+                bdir = "./{}".format(bdir)
                 # https://github.com/conan-io/conan/issues/5401
-                if bdir == "":
+                if bdir == "./":
                     if os.path.dirname(filename) == ".":
                         break
-                elif os.path.commonpath([bdir, filename]) == bdir:
+                elif os.path.commonprefix([bdir, filename]) == bdir:
                     break
             else:
                 files_missplaced.append(filename)
