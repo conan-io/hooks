@@ -52,17 +52,17 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS]", output)
 
         conanfile2 = textwrap.dedent("""\
-            import os
-            from conans import ConanFile, tools
-
-            class AConan(ConanFile):
-
-                def package(self):
-                    tools.save(os.path.join(self.package_folder, "{}", "file.cmake"), 
-                               "foo")
-                def package_info(self):
-                    self.cpp_info.builddirs = ["some_build_dir"]
-            """)
+                import os
+                from conans import ConanFile, tools
+    
+                class AConan(ConanFile):
+    
+                    def package(self):
+                        tools.save(os.path.join(self.package_folder, "{}", "file.cmake"), 
+                                   "foo")
+                    def package_info(self):
+                        self.cpp_info.builddirs = ["some_build_dir"]
+                """)
 
         tools.save('conanfile.py', content=conanfile2.format("some_build_dir"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
