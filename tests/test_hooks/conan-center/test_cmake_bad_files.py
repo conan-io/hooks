@@ -10,7 +10,7 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 @unittest.skipUnless(conan_version >= "1.16.0", "Conan > 1.16.0 needed")
 class ConanCMakeBadFiles(ConanClientTestCase):
 
-    conanfile = textwrap.dedent("""\
+    conan_file = textwrap.dedent("""\
                 import os
                 from conans import ConanFile, tools
 
@@ -28,26 +28,26 @@ class ConanCMakeBadFiles(ConanClientTestCase):
 
     def test_find_and_config_files(self):
 
-        tools.save('conanfile.py', content=self.conanfile.format("", "WhateverConfig.cmake"))
+        tools.save('conanfile.py', content=self.conan_file.format("", "WhateverConfig.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES] Found files:\n./WhateverConfig.cmake",
                       output)
 
     def test_find_and_find_files(self):
 
-        tools.save('conanfile.py', content=self.conanfile.format("", "FindXXX.cmake"))
+        tools.save('conanfile.py', content=self.conan_file.format("", "FindXXX.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES] Found files:\n./FindXXX.cmake",
                       output)
 
     def test_find_files_outside_dir(self):
 
-        tools.save('conanfile.py', content=self.conanfile.format("folder", "file.cmake"))
+        tools.save('conanfile.py', content=self.conan_file.format("folder", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS] Found files:\n"
                       "./folder/file.cmake\n", output)
 
-        tools.save('conanfile.py', content=self.conanfile.format("", "file.cmake"))
+        tools.save('conanfile.py', content=self.conan_file.format("", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS]", output)
 
