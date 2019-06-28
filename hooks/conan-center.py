@@ -62,9 +62,13 @@ def raise_if_error_output(func):
     return wrapper
 
 
-def run_test(test_name, output):
+def kb_url(kb_id):
+    return "https://github.com/conan-io/conan_index/wiki/Hook-Error-Knowledge-Base#{}".format(kb_id)
+
+
+def run_test(test_name, kb_id, output):
     def tmp(func):
-        out = _HooksOutputErrorCollector(output, test_name)
+        out = _HooksOutputErrorCollector(output, "{} ({})".format(test_name, kb_url(kb_id)))
         ret = func(out)
         if not out.failed:
             out.success("OK")
@@ -78,27 +82,27 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
     settings = _get_settings(conanfile)
 
-    @run_test("GLOBAL CPPSTD DEPRECATED", output)
+    @run_test("DEPRECATED GLOBAL CPPSTD", "KB001", output)
     def test(out):
         if settings and "cppstd" in settings:
             out.error("The 'cppstd' setting is deprecated. Use the 'compiler.cppstd' "
                       "subsetting instead")
 
-    @run_test("REFERENCE LOWERCASE", output)
+    @run_test("REFERENCE LOWERCASE", "KB002",output)
     def test(out):
         if reference.name != reference.name.lower():
             out.error("The library name has to be lowercase")
         if reference.version != reference.version.lower():
             out.error("The library version has to be lowercase")
 
-    @run_test("RECIPE METADATA", output)
+    @run_test("RECIPE METADATA", "KB003", output)
     def test(out):
         for field in ["url", "license", "description"]:
             field_value = getattr(conanfile, field, None)
             if not field_value:
                 out.error("Conanfile doesn't have '%s' attribute. " % field)
 
-    @run_test("HEADER ONLY", output)
+    @run_test("HEADER ONLY", "KB004", output)
     def test(out):
         build_method = getattr(conanfile, "build")
         # Check settings exist and build() is not the original one
@@ -106,14 +110,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 build_method):
             out.warn("Recipe does not declare 'settings' and has a 'build()' step")
 
-    @run_test("NO COPY SOURCE", output)
+    @run_test("NO COPY SOURCE", "KB005", output)
     def test(out):
         no_copy_source = getattr(conanfile, "no_copy_source", None)
         if not settings and not no_copy_source:
             out.warn("This recipe seems to be for a header only library as it does not declare "
                      "'settings'. Please include 'no_copy_source' to avoid unnecessary copy steps")
 
-    @run_test("FPIC OPTION", output)
+    @run_test("FPIC OPTION", "KB006", output)
     def test(out):
         options = getattr(conanfile, "options", None)
         installer = settings is not None and "os_build" in settings and "arch_build" in settings
@@ -124,7 +128,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("This recipe has 'shared' or 'fPIC' options but does not declare any "
                       "settings")
 
-    @run_test("FPIC MANAGEMENT", output)
+    @run_test("FPIC MANAGEMENT", "KB006", output)
     def test(out):
         low = conanfile_content.lower()
         if '"fpic"' in low:
@@ -140,7 +144,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         else:
             out.info("'fPIC' option not found")
 
-    @run_test("VERSION RANGES", output)
+    @run_test("VERSION RANGES", "KB007", output)
     def test(out):
         # This regex takes advantage that a conan reference is always a string
         vrange_match = re.compile(r'.*[\'"][a-zA-Z0-9_+.-]+\/\[.+\]@[a-zA-Z0-9_+.\/-]+[\'"].*')
@@ -148,7 +152,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if vrange_match.match(line):
                 out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
 
-    @run_test("RECIPE FOLDER SIZE", output)
+    @run_test("RECIPE FOLDER SIZE", "KB008", output)
     def test(out):
         max_folder_size = int(os.getenv("CONAN_MAX_RECIPE_FOLDER_SIZE_KB", 256))
         dir_path = os.path.dirname(conanfile_path)
@@ -176,7 +180,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     conandata_source = os.path.join(os.path.dirname(conanfile_path), "conandata.yml")
     conanfile_content = tools.load(conanfile_path)
 
-    @run_test("IMMUTABLE SOURCES", output)
+    @run_test("IMMUTABLE SOURCES", "KB009", output)
     def test(out):
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
@@ -206,7 +210,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
-    @run_test("LIBCXX", output)
+    @run_test("LIBCXX", "KB010", output)
     def test(out):
         if not _is_recipe_header_only(conanfile):
             cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
@@ -228,7 +232,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
-    @run_test("PACKAGE LICENSE", output)
+    @run_test("PACKAGE LICENSE",  "KB011",output)
     def test(out):
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
@@ -243,7 +247,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "found at: %s\n"
                       "Files: %s" % (licenses_folder, ", ".join(licenses)))
 
-    @run_test("DEFAULT PACKAGE LAYOUT", output)
+    @run_test("DEFAULT PACKAGE LAYOUT",  "KB011", output)
     def test(out):
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
@@ -257,18 +261,18 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.info("If you are trying to package a tool put all the contents under the 'bin' "
                      "folder")
 
-    @run_test("MATCHING CONFIGURATION", output)
+    @run_test("MATCHING CONFIGURATION",  "KB012",output)
     def test(out):
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
                       % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
 
-    @run_test("SHARED ARTIFACTS", output)
+    @run_test("SHARED ARTIFACTS",  "KB013", output)
     def test(out):
         if not _shared_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared' option did not contains any shared artifact")
 
-    @run_test("CMAKE MODULES/PC-FILES", output)
+    @run_test("CMAKE MODULES/PC-FILES",  "KB014", output)
     def test(out):
         if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
             return
@@ -283,14 +287,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "be located using generators and the declared `cpp_info` information")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
-    @run_test("PDB FILES NOT ALLOWED", output)
+    @run_test("PDB FILES NOT ALLOWED", "KB015", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
         if bad_files:
             out.error("The conan-center repository doesn't allow PDB files")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
-    @run_test("LIBTOOL FILES PRESENCE", output)
+    @run_test("LIBTOOL FILES PRESENCE", "KB016", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.la"])
         if bad_files:
