@@ -156,7 +156,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         for path, dirs, files in os.walk(dir_path):
             dirs[:] = [d for d in dirs if
                        d not in [".conan"]]  # Discard the generated .conan directory
-            if os.path.relpath(path, dir_path).startswith("test_package/build"):
+            if os.path.relpath(path, dir_path).replace("\\", "/").startswith("test_package/build"):
                 # Discard any file in temp builds
                 continue
             for files_it in files:
