@@ -45,7 +45,7 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conan_file.format("folder", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS] Found files:\n"
-                      "./folder/file.cmake\n", output)
+                      "./folder/file.cmake\n", output.replace("\\", "/"))
 
         tools.save('conanfile.py', content=self.conan_file.format("", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
