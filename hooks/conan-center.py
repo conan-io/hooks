@@ -313,7 +313,6 @@ def post_package_info(output, conanfile, reference, **kwargs):
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
         build_dirs = conanfile.cpp_info.builddirs
-
         files_missplaced = []
 
         for filename in bad_files:
@@ -341,7 +340,7 @@ def _get_files_following_patterns(folder, patterns):
             for filename in filenames:
                 for pattern in patterns:
                     if fnmatch.fnmatch(filename, pattern):
-                        ret.append(os.path.join(root, filename))
+                        ret.append(os.path.join(root, filename).replace("\\", "/"))
     return ret
 
 
