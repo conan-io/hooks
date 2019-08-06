@@ -1,3 +1,4 @@
+PyHamcrest==1.9.0
 pytest>=3.6
 parameterized
 responses

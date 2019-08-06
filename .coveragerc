@@ -1,0 +1,15 @@
+[run]
+branch = True
+omit =
+  */__init__.py
+  .tox/*
+
+
+[report]
+show_missing = true
+fail_under = 83
+# due to errors while generating xml report: `NoSource: No source for code`
+ignore_errors = True
+
+[html]
+directory = build/coverage
