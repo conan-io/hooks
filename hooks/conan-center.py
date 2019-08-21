@@ -9,10 +9,13 @@ from conans import tools, Settings
 
 class _HooksOutputErrorCollector(object):
 
-    def __init__(self, output, test_name=None):
+    def __init__(self, output, test_name=None, kb_id=None):
         self._output = output
         self._error = False
         self._test_name = test_name or ""
+        self.kb_id = kb_id
+        if self.kb_id:
+            self.kb_url = kb_url(self.kb_id)
         self._error_level = int(os.getenv("CONAN_HOOK_ERROR_LEVEL", str(NOTSET)))
 
     def _get_message(self, message):
@@ -41,7 +44,8 @@ class _HooksOutputErrorCollector(object):
 
     def error(self, message):
         self._error = True
-        self._output.error(self._get_message(message))
+        url_str = '({})'.format(self.kb_url) if self.kb_id else ""
+        self._output.error(self._get_message(message) + " " + url_str)
 
     @property
     def failed(self):
@@ -63,12 +67,12 @@ def raise_if_error_output(func):
 
 
 def kb_url(kb_id):
-    return "https://github.com/conan-io/conan_index/wiki/Hook-Error-Knowledge-Base#{}".format(kb_id)
+    return "https://github.com/conan-io/conan_index/wiki/Error-Knowledge-Base#{}".format(kb_id)
 
 
 def run_test(test_name, kb_id, output):
     def tmp(func):
-        out = _HooksOutputErrorCollector(output, "{} ({})".format(test_name, kb_url(kb_id)))
+        out = _HooksOutputErrorCollector(output, test_name, kb_id)
         ret = func(out)
         if not out.failed:
             out.success("OK")
