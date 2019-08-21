@@ -160,7 +160,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         for path, dirs, files in os.walk(dir_path):
             dirs[:] = [d for d in dirs if
                        d not in [".conan"]]  # Discard the generated .conan directory
-            if os.path.relpath(path, dir_path).startswith("test_package/build"):
+            if os.path.relpath(path, dir_path).replace("\\", "/").startswith("test_package/build"):
                 # Discard any file in temp builds
                 continue
             for files_it in files:
@@ -232,7 +232,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
-    @run_test("PACKAGE LICENSE",  "KB011",output)
+    @run_test("PACKAGE LICENSE",  "KB011", output)
     def test(out):
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
@@ -272,35 +272,72 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if not _shared_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared' option did not contains any shared artifact")
 
-    @run_test("CMAKE MODULES/PC-FILES",  "KB014", output)
+    @run_test("PC-FILES",  "KB014", output)
     def test(out):
         if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
             return
-        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*Config.cmake",
-                                                                             "*Targets.cmake",
-                                                                             "Find*.cmake",
-                                                                             "*.pc",
-                                                                             "*config.cmake"])
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pc"])
         if bad_files:
-            out.error("The conan-center repository doesn't allow the packages to package CMake "
-                      "find modules or config files nor `pc` files either. The packages have to "
+            out.error("The conan-center repository doesn't allow the packages to contain `pc` "
+                      "files. The packages have to "
                       "be located using generators and the declared `cpp_info` information")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
-    @run_test("PDB FILES NOT ALLOWED", "KB015", output)
+    @run_test("CMAKE-MODULES-CONFIG-FILES", "KB015", output)
+    def test(out):
+        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+            return
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
+                                                                             "*Config.cmake",
+                                                                             "*-config.cmake"])
+        if bad_files:
+            out.error("The conan-center repository doesn't allow the packages to contain CMake "
+                      "find modules or config files. The packages have to "
+                      "be located using generators and the declared `cpp_info` information")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+    @run_test("PDB FILES NOT ALLOWED", "KB016", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
         if bad_files:
             out.error("The conan-center repository doesn't allow PDB files")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
-    @run_test("LIBTOOL FILES PRESENCE", "KB016", output)
+    @run_test("LIBTOOL FILES PRESENCE", "KB017", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.la"])
         if bad_files:
             out.error("Libtool files found (*.la). Do not package *.la files "
                       "but library files (.a) ")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+
+def post_package_info(output, conanfile, reference, **kwargs):
+
+    @run_test("CMAKE FILE NOT IN BUILD FOLDERS", "KB017", output)
+    def test(out):
+        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+            return
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
+        build_dirs = conanfile.cpp_info.builddirs
+        files_missplaced = []
+
+        for filename in bad_files:
+            for bdir in build_dirs:
+                bdir = "./{}".format(bdir)
+                # https://github.com/conan-io/conan/issues/5401
+                if bdir == "./":
+                    if os.path.dirname(filename) == ".":
+                        break
+                elif os.path.commonprefix([bdir, filename]) == bdir:
+                    break
+            else:
+                files_missplaced.append(filename)
+
+        if files_missplaced:
+            out.error("The *.cmake files have to be placed in a folder declared as "
+                      "`cpp_info.buildirs`. Currently folders declared: {}".format(build_dirs))
+            out.error("Found files:\n{}".format("\n".join(files_missplaced)))
 
 
 def _get_files_following_patterns(folder, patterns):
@@ -310,7 +347,7 @@ def _get_files_following_patterns(folder, patterns):
             for filename in filenames:
                 for pattern in patterns:
                     if fnmatch.fnmatch(filename, pattern):
-                        ret.append(os.path.join(root, filename))
+                        ret.append(os.path.join(root, filename).replace("\\", "/"))
     return ret
 
 
