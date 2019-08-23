@@ -18,29 +18,29 @@ environment:
         - PYVER: py37
           TOXENV: py37-conancurrent
 
-        # Conan 1.15.x
+        # Conan 1.18.x
         - PYVER: py27
-          TOXENV: py27-conan115
+          TOXENV: py27-conan118
         - PYVER: py36
-          TOXENV: py36-conan115
+          TOXENV: py36-conan118
         - PYVER: py37
-          TOXENV: py37-conan115
+          TOXENV: py37-conan118
 
-        # Conan 1.14.x
+        # Conan 1.17.x
         - PYVER: py27
-          TOXENV: py27-conan114
+          TOXENV: py27-conan117
         - PYVER: py36
-          TOXENV: py36-conan114
+          TOXENV: py36-conan117
         - PYVER: py37
-          TOXENV: py37-conan114
+          TOXENV: py37-conan117
 
-        # Conan 1.13.x
+        # Conan 1.16.x
         - PYVER: py27
-          TOXENV: py27-conan113
+          TOXENV: py27-conan116
         - PYVER: py36
-          TOXENV: py36-conan113
+          TOXENV: py36-conan116
         - PYVER: py37
-          TOXENV: py37-conan113
+          TOXENV: py37-conan116
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
