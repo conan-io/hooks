@@ -20,16 +20,21 @@ jobs:
     - stage: Conan Current - Linux
       python: 2.7
       env: TOXENV=py27-conancurrent
+    - python: 3.6
+      env: TOXENV=py36-conancurrent
     - python: 3.7
       env: TOXENV=py37-conancurrent
       dist: xenial
       sudo: true
 
-      env: TOXENV=py36-conan115
+    - stage: Conan 1.18 - Linux
+      python: 3.7
+      env: TOXENV=py37-conan118
       dist: xenial
       sudo: true
 
-    - python: 3.7
+    - stage: Conan 1.17 - Linuxp
+      python: 3.7
       env: TOXENV=py37-conan117
       dist: xenial
       sudo: true
