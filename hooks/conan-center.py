@@ -40,7 +40,8 @@ class _HooksOutputErrorCollector(object):
 
     def _get_message(self, message):
         if self._test_name:
-            return "[{}] {}".format(self._test_name, message)
+            name = "{} ({})".format(self._test_name, self.kb_id) if self.kb_id else self._test_name
+            return "[{}] {}".format(name, message)
         else:
             return message
 
