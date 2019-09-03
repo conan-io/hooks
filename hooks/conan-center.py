@@ -202,7 +202,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                       "to be downloaded. {}".format(read_more))
 
         if "def source(self):" in conanfile_content:
-            needed_content = ['tools.get(**self.conan_data["sources"]']
+            needed_content = ['**self.conan_data["sources"]']
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
