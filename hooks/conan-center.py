@@ -88,7 +88,7 @@ def raise_if_error_output(func):
 
 
 def kb_url(kb_id):
-    return "https://github.com/conan-io/conan_index/wiki/Error-Knowledge-Base#{}".format(kb_id)
+    return "https://github.com/conan-io/conan-center-index/wiki/Error-Knowledge-Base#{}".format(kb_id)
 
 
 def run_test(kb_id, output):
