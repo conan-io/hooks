@@ -38,11 +38,11 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('file%s' % extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         if platform.system() == system_name:
-            self.assertIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+            self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+            self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
         else:
-            self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-            self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+            self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+            self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
 
     def test_mismatching_configuration(self):
         info = {
@@ -71,10 +71,10 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('file%s' % wrong_extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
 
-        self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+        self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
         error_message = ("Package for %s does not contain artifacts with these extensions: %s" %
                          (info[system]["platform"], info[system]["extensions"]))
-        self.assertIn("ERROR: [MATCHING CONFIGURATION] %s" % error_message, output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] %s" % error_message, output)
 
     def test_matching_configuration_header_only_package_id(self):
         cf = self.conanfile_match_conf.format(extension=".h",
@@ -88,8 +88,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('file.h', content="")
         tools.save('LICENSE', content="")
         output = self.conan(['create', 'conanfile_other.py', 'name/version@danimtb/test'])
-        self.assertIn("[MATCHING CONFIGURATION] OK", output)
-        self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+        self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
 
     def test_matching_configuration_header_only(self):
         cf = self.conanfile_match_conf.format(extension=".h",
@@ -98,8 +98,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
         tools.save('file.h', content="")
         tools.save('LICENSE', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        self.assertIn("[MATCHING CONFIGURATION] OK", output)
-        self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+        self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+        self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
 
     def test_matching_configuration_empty(self):
         cf = self.conanfile_match_conf.format(extension="",
@@ -107,8 +107,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
                                                        "'build_type'")
         tools.save('conanfile.py', content=cf)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION] Empty package", output)
+        self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Empty package", output)
 
     @parameterized.expand([("Windows", ".exe"), ("Darwin", ""), ("Linux", "")])
     def test_matching_configuration_tool(self, system_name, extension):
@@ -120,15 +120,15 @@ class MatchingConfigurationTests(ConanClientTestCase):
         system = platform.system()
         if system in ["Darwin", "Linux"]:
             if system_name in ["Darwin", "Linux"]:
-                self.assertIn("[MATCHING CONFIGURATION] OK", output)
-                self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+                self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+                self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
             else:
-                self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
-                self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
+                self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+                self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
         elif system == "Windows":
             if system_name == "Windows":
-                self.assertIn("[MATCHING CONFIGURATION] OK", output)
-                self.assertNotIn("ERROR: [MATCHING CONFIGURATION]", output)
+                self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+                self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
             else:
-                self.assertIn("ERROR: [MATCHING CONFIGURATION]", output)
-                self.assertNotIn("[MATCHING CONFIGURATION] OK", output)
+                self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
+                self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)

@@ -29,10 +29,10 @@ class NoPDBsTests(ConanClientTestCase):
     def test_pdb_not_allowed(self):
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [PDB FILES NOT ALLOWED]", output)
+        self.assertIn("ERROR: [PDB FILES NOT ALLOWED (KB-H017)]", output)
 
     def test_no_pdb_is_ok(self):
         tools.save('conanfile.py', content=self.conanfile.replace("bad.pdb", "bad.txt"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertNotIn("ERROR: [PDB FILES NOT ALLOWED]", output)
-        self.assertIn("[PDB FILES NOT ALLOWED] OK", output)
+        self.assertNotIn("ERROR: [PDB FILES NOT ALLOWED (KB-H017)]", output)
+        self.assertIn("[PDB FILES NOT ALLOWED (KB-H017)] OK", output)

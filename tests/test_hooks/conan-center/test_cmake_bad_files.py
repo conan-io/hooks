@@ -30,26 +30,26 @@ class ConanCMakeBadFiles(ConanClientTestCase):
 
         tools.save('conanfile.py', content=self.conan_file.format("", "WhateverConfig.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES] Found files:\n./WhateverConfig.cmake",
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./WhateverConfig.cmake",
                       output)
 
     def test_find_and_find_files(self):
 
         tools.save('conanfile.py', content=self.conan_file.format("", "FindXXX.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES] Found files:\n./FindXXX.cmake",
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./FindXXX.cmake",
                       output)
 
     def test_find_files_outside_dir(self):
 
         tools.save('conanfile.py', content=self.conan_file.format("folder", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS] Found files:\n"
+        self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)] Found files:\n"
                       "./folder/file.cmake", output.replace("\\", "/"))
 
         tools.save('conanfile.py', content=self.conan_file.format("", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS]", output)
+        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
 
         conanfile2 = textwrap.dedent("""\
                 import os
@@ -66,8 +66,8 @@ class ConanCMakeBadFiles(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile2.format("some_build_dir"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS]", output)
+        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
 
         tools.save('conanfile.py', content=conanfile2.format("some_build_dir/subdir"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS]", output)
+        self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)

@@ -27,7 +27,7 @@ class ConanData(ConanClientTestCase):
             """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("[IMMUTABLE SOURCES] Create a file 'conandata.yml' file with the "
+        self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Create a file 'conandata.yml' file with the "
                       "sources to be downloaded.", output)
 
     def test_no_missing_conandata_but_not_used(self):
@@ -43,7 +43,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         tools.save('conandata.yml', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("[IMMUTABLE SOURCES] Use 'tools.get(**self.conan_data[\"sources\"]", output)
+        self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Use 'tools.get(**self.conan_data[\"sources\"]", output)
 
     def test_correct_usage(self):
         conanfile = textwrap.dedent("""\
@@ -64,6 +64,6 @@ class ConanData(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
-        self.assertIn("[IMMUTABLE SOURCES] OK", output)
+        self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
         self.assertIn("Invalid URL 'fakeurl': No schema supplied", output)
 
