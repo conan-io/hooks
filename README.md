@@ -27,7 +27,7 @@ To install all hooks from Conan repository in Github:
 If you are using Conan >=1.14 you can specify the source and destination folder to avoid copying
 undesired files to your local cache:
 
-``$ conan config install https://github.com/conan-io/hooks -sf hooks -tf hooks ``
+``$ conan config install https://github.com/conan-io/hooks.git -sf hooks -tf hooks ``
 
 Conan config install does not activate any hook.
 
