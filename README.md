@@ -54,9 +54,9 @@ These are the hooks currently available in this repository
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
 in [Conan Center](https://bintray.com/conan/conan-center).
 
-It is mostly intended for users who want to contribute packages to Conan Center. With this hook 
-they will test some of the requirements in the guidelines, as this hook will check for recipe 
-metadata, binary matching... during the ``conan create`` step and will output the result of each 
+It is mostly intended for users who want to contribute packages to Conan Center. With this hook
+they will test some of the requirements in the guidelines, as this hook will check for recipe
+metadata, binary matching... during the ``conan create`` step and will output the result of each
 check as ``OK``, ``WARNING`` or ``ERROR``:
 
 ```
@@ -78,8 +78,8 @@ If you want the hook to fail the execution, if an error is reported, you can adj
 variable ``CONAN_HOOK_ERROR_LEVEL``:
    - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
    - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
-   
-   
+
+
 
 ### [Attribute checker](hooks/attribute_checker.py)
 
@@ -126,6 +126,12 @@ The following attributes are updated:
 - topics
 
 It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
+
+### [Recipe Typo checker](hooks/recipe_typo_checker.py)
+
+This Conan hook checks the Conanfile for potential typos.
+
+The hook is automatically called when *export* command is executed.
 
 ### [SPDX checker](hooks/spdx_checker.py)
 
