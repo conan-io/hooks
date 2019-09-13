@@ -131,7 +131,7 @@ It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
 
 This Conan hook checks the Conanfile for potential typos.
 
-The hook is automatically called when *export* command is executed.
+The hook is automatically called before *export* command is executed.
 
 ### [SPDX checker](hooks/spdx_checker.py)
 
