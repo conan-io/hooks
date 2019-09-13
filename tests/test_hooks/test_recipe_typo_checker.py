@@ -13,8 +13,8 @@ class RecipeTypoCheckerTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
-            name = "basic"
-            version = "0.1"
+            name = "name"
+            version = "version"
             def package_info(self):
                 self.cpp_info.defines = ["ACONAN"]
         """)
@@ -22,8 +22,8 @@ class RecipeTypoCheckerTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
-            name = "basic"
-            version = "0.1"
+            name = "name"
+            version = "version"
 
             export_sources = "OH_NO"
 
@@ -50,12 +50,15 @@ class RecipeTypoCheckerTests(ConanClientTestCase):
     def test_conanfile_with_typos(self):
         tools.save('conanfile.py', content=self.conanfile_with_typos)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
-        recipe_typo_checker_output = textwrap.dedent("""\
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN: The 'export_sources' member looks like a typo. Similar to:
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN:     exports_sources
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN: The 'require' member looks like a typo. Similar to:
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN:     requires
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN: The 'requirement' member looks like a typo. Similar to:
-            [HOOK - recipe_typo_checker.py] pre_export(): WARN:     requirements
-            """)
-        self.assertIn(recipe_typo_checker_output, output)
+        self.assertIn(
+            "pre_export(): WARN: The 'export_sources' member looks like a typo. Similar to:", output)
+        self.assertIn(
+            "pre_export(): WARN:     exports_sources", output)
+        self.assertIn(
+            "pre_export(): WARN: The 'require' member looks like a typo. Similar to:", output)
+        self.assertIn(
+            "pre_export(): WARN:     requires", output)
+        self.assertIn(
+            "pre_export(): WARN: The 'requirement' member looks like a typo. Similar to:", output)
+        self.assertIn(
+            "pre_export(): WARN:     requirements", output)
