@@ -278,6 +278,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
+        if conanfile.name in ["ms-gsl"]:
+            return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
                       % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
