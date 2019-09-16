@@ -13,7 +13,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                          "build_requirements", "python_requires", "keep_imports",
                          "imports", "build_id", "deploy", "scm"])
 
-    for member in get_members(conanfile):
+    for member in dir(conanfile):
         if member in base_members:
             continue
 
