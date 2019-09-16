@@ -127,6 +127,12 @@ The following attributes are updated:
 
 It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
 
+### [Settings Checker](hooks/settings_checker.py)
+
+This Conan hook checks for mixing of settings in the Conanfile.
+
+The hook is automatically called before *export* command is executed.
+
 ### [SPDX checker](hooks/spdx_checker.py)
 
 This Conan hook validates that conanfile's [license](https://docs.conan.io/en/latest/reference/conanfile/attributes.html?highlight=license#license) attribute specifies valid license identifier(s) from the [SPDX license list](https://spdx.org/licenses/).
