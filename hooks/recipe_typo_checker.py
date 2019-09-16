@@ -5,15 +5,20 @@ from conans import ConanFile
 
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
-    def get_members(conanfile):
+    def get_base_members(conanfile):
         return [m[0] for m in inspect.getmembers(conanfile) if not m[0].startswith('_')]
 
-    base_members = get_members(ConanFile)
+    base_members = get_base_members(ConanFile)
     base_members.extend(["requires", "build_requires", "requirements",
                          "build_requirements", "python_requires", "keep_imports",
                          "imports", "build_id", "deploy", "scm"])
 
-    for member in dir(conanfile):
+    def get_members(conanfile):
+        # We use a different function on the conanfile because members
+        # `user` and `channel` throw an Exception on access when they're empty
+        return [m for m in dir(conanfile) if not m.startswith('_')]
+
+    for member in get_members(conanfile):
         if member in base_members:
             continue
 
