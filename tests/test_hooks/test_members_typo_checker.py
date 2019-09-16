@@ -8,7 +8,7 @@ from conans import tools
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
-class RecipeTypoCheckerTests(ConanClientTestCase):
+class MembersTypoCheckerTests(ConanClientTestCase):
     conanfile_basic = textwrap.dedent("""\
         from conans import ConanFile
 
@@ -37,9 +37,9 @@ class RecipeTypoCheckerTests(ConanClientTestCase):
         """)
 
     def _get_environ(self, **kwargs):
-        kwargs = super(RecipeTypoCheckerTests, self)._get_environ(**kwargs)
+        kwargs = super(MembersTypoCheckerTests, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(
-            __file__), '..', '..', 'hooks', 'recipe_typo_checker')})
+            __file__), '..', '..', 'hooks', 'members_typo_checker')})
         return kwargs
 
     def test_conanfile_basic(self):

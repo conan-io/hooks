@@ -127,9 +127,9 @@ The following attributes are updated:
 
 It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
 
-### [Recipe Typo checker](hooks/recipe_typo_checker.py)
+### [Members Typo checker](hooks/members_typo_checker.py)
 
-This Conan hook checks the Conanfile for potential typos.
+This Conan hook checks Conanfile's members for potential typos.
 
 The hook is automatically called before *export* command is executed.
 
