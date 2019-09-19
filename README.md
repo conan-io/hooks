@@ -129,9 +129,24 @@ It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
 
 ### [Members Typo checker](hooks/members_typo_checker.py)
 
-This Conan hook checks Conanfile's members for potential typos.
+This `pre_export()` hook checks `ConanFile`'s members for potential typos, for example:
 
-The hook is automatically called before *export* command is executed.
+```py
+from conans import ConanFile
+
+class ConanRecipe(ConanFile):
+    name = "name"
+    version = "version"
+
+    export_sources = "OH_NO"
+```
+
+Will produce the next warning:
+
+```bash
+pre_export(): WARN: The 'export_sources' member looks like a typo. Similar to:
+pre_export(): WARN:     exports_sources
+```
 
 ### [SPDX checker](hooks/spdx_checker.py)
 
