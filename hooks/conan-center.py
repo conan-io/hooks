@@ -24,7 +24,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H017": "PDB FILES NOT ALLOWED",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
-             "KB-H020": "PC-FILES"}
+             "KB-H020": "PC-FILES",
+             "KB-H021": "MS RUNTIME FILES"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -328,6 +329,12 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "but library files (.a) ")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
+    @run_test("KB-H021", output)
+    def test(out):
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
+        if bad_files:
+            out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
 
 def post_package_info(output, conanfile, reference, **kwargs):
 
