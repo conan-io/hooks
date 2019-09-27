@@ -5,6 +5,8 @@ import os
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 from conans import tools, Settings
+from conans.client import conan_api
+from conans.errors import ConanInvalidConfiguration
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
@@ -155,8 +157,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     and any(r in low for r in remove_fpic_option):
                 out.success("OK. 'fPIC' option found and apparently well managed")
             else:
-                out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                          "configurations: del self.options.fpic")
+                conan_instance, _, _ = conan_api.Conan.factory()
+                try:
+                    conan_instance.info(conanfile_path, settings=["os=Windows"])
+                    out.error("'fPIC' option not managed correctly. Please remove it for Windows "
+                            "configurations: del self.options.fpic")
+                except ConanInvalidConfiguration:
+                    out.success("'fPIC' has not been removed, but this recipe is not supported by "
+                                "Windows.")
+                except:
+                    out.error("'fPIC' option not managed correctly. Please remove it for Windows "
+                            "configurations: del self.options.fpic")
         else:
             out.info("'fPIC' option not found")
 
