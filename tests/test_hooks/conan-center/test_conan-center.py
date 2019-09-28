@@ -2,6 +2,8 @@
 
 import os
 import textwrap
+import platform
+import unittest
 
 from conans import tools
 
@@ -134,6 +136,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
 
+    @unittest.skipIf(platform.system() != "Linux", "Only linux")
     def test_conanfile_linux_only(self):
         tools.save('conanfile.py', content=self.conanfile_linux_only)
         output = self.conan(['create', '.', 'linuxonly/version@conan/test'])
