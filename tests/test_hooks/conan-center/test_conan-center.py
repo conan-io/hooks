@@ -140,11 +140,6 @@ class ConanCenterTests(ConanClientTestCase):
     def test_conanfile_linux_only(self):
         tools.save('conanfile.py', content=self.conanfile_linux_only)
         output = self.conan(['create', '.', 'linuxonly/version@conan/test'])
-        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
-        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' has not been removed, but this recipe is "
-                      "not supported by Windows.", output)
-        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Empty package", output)
-        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Packaged artifacts does not match",
-                      output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' has not been removed, but this recipe is"
+                      " not supported by Windows.", output)
