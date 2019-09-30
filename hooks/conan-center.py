@@ -25,7 +25,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES"}
+             "KB-H021": "MS RUNTIME FILES",
+             "KB-H024": "TEST PACKAGE - RUN ENVIRONMENT"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -188,6 +189,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H024", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        if not os.path.exists(test_package_path):
+            out.warn("There is no `test_package` for this recipe")
+            return
+
+        test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
+        if "RunEnvironment" in test_package_conanfile:
+            out.error("`RunEnvironment is deprecated. "
+                      "Use `self.run(command, run_environment=True)` instead")
 
 
 @raise_if_error_output

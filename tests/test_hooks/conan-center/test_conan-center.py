@@ -67,6 +67,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("WARN: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+                      "`test_package` for this recipe", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -83,6 +85,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("WARN: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+                      "`test_package` for this recipe", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -98,6 +102,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("WARN: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+                      "`test_package` for this recipe", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -114,3 +120,38 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("WARN: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+                      "`test_package` for this recipe", output)
+
+    def test_run_environment_test_package(self):
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, RunEnvironment, tools
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def test(self):
+                env_build = RunEnvironment(self)
+                with tools.environment_append(env_build.vars):
+                    self.run("echo bar")
+        """)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] `RunEnvironment is "
+                      "deprecated. Use `self.run(command, run_environment=True)` instead", output)
+
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] OK", output)
