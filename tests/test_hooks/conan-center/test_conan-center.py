@@ -16,6 +16,9 @@ class ConanCenterTests(ConanClientTestCase):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
+            author = "unknown"
+            topics = ("foo", "bar", "qux")
+            homepage = "homepage.com"
             exports_sources = "header.h"
             {placeholder}
 
@@ -29,6 +32,9 @@ class ConanCenterTests(ConanClientTestCase):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
+            author = "unknown"
+            topics = ("foo", "bar", "qux")
+            homepage = "homepage.com"
             exports_sources = "header.h"
             settings = "os", "compiler", "arch", "build_type"
 

@@ -125,7 +125,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H003", output)
     def test(out):
-        for field in ["url", "license", "description"]:
+        for field in ["url", "license", "description", "topics", "homepage", "author"]:
             field_value = getattr(conanfile, field, None)
             if not field_value:
                 out.error("Conanfile doesn't have '%s' attribute. " % field)
