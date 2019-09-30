@@ -25,7 +25,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES"}
+             "KB-H021": "MS RUNTIME FILES",
+             "KB-H025": "META LINES"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -188,6 +189,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H025", output)
+    def test(out):
+        if "# -*- coding: utf-8 -*-" in conanfile_content:
+            out.error("PEP 263 (encoding) is not allowed in the conanfile. Remove `coding: utf-8`")
+        if "#!/usr/bin/env python" in conanfile_content or \
+           "#!/usr/local/bin/python" in conanfile_content or \
+           "#!/usr/bin/python" in conanfile_content:
+            out.error("Shebang detected in your recipe. Remove the Python version from the recipe")
+        if "# vim:" in conanfile_content:
+            out.error("vim editor configuration detected in your recipe. Remove it from the recipe")
 
 
 @raise_if_error_output

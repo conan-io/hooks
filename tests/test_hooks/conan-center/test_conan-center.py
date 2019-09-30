@@ -67,6 +67,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -83,6 +84,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -98,6 +100,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -114,3 +117,29 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
+
+    def test_shebang(self):
+        conanfile = textwrap.dedent("""\
+        #!/usr/bin/env python
+        # -*- coding: utf-8 -*-
+        # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [META LINES (KB-H025)] PEP 263 (encoding) is not allowed in the " \
+                      "conanfile. Remove `coding: utf-8`", output)
+        self.assertIn("ERROR: [META LINES (KB-H025)] vim editor configuration detected in your " \
+                      "recipe. Remove it from the recipe", output)
+        self.assertIn("ERROR: [META LINES (KB-H025)] Shebang detected in your recipe. Remove the " \
+                      "Python version from the recipe", output)
