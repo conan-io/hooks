@@ -25,7 +25,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES"}
+             "KB-H021": "MS RUNTIME FILES",
+             "KB-H026": "VERSION ATTRIBUTE",}
 
 
 class _HooksOutputErrorCollector(object):
@@ -188,6 +189,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H026", output)
+    def test(out):
+        dir_path = os.path.basename(os.path.dirname(conanfile_path))
+        version = getattr(conanfile, "version", None)
+        if dir_path.lower() == "all" and version:
+            out.error("The recipe folder `all` is generic, but your recipe contains the " \
+                      "attribute version. Remove the attribute `version` from the recipe")
 
 
 @raise_if_error_output
