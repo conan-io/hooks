@@ -114,3 +114,57 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+
+    def test_conanfile_cppstd(self):
+        content = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+            settings = "os", "compiler", "arch", "build_type"
+
+            def configure(self):
+                {configure}
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+
+        tools.save('conanfile.py', content=content.format(
+                   configure="del self.settings.compiler.libcxx"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+
+        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+        self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
+        self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES (KB-H008)] OK", output)
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Empty package", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Packaged artifacts does not match", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
+        self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("ERROR: [CPPSTD MANAGEMENT (KB-H022)] Both 'compiler.libcxx' and " \
+                      "'compiler.cppstd' should be removed for C projects", output)
+
+        tools.save('conanfile.py', content=content.format(configure="""
+        del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd"""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+
+        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+        self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
+        self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES (KB-H008)] OK", output)
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Empty package", output)
+        self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Packaged artifacts does not match", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
+        self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
