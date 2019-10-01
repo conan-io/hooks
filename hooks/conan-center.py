@@ -199,6 +199,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if not os.path.exists(test_package_path):
             out.error("There is no `test_package` for this recipe")
             return
+        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+            out.error("There is no `conanfile.py` in `test_package` folder")
+            return
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
         if "RunEnvironment" in test_package_conanfile:
