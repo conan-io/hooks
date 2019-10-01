@@ -38,6 +38,17 @@ class ConanCenterTests(ConanClientTestCase):
             def package_id(self):
                 self.info.header_only()
         """)
+    conanfile_fpic = textwrap.dedent("""\
+            from conans import ConanFile
+
+            class Fpic(ConanFile):
+                url = "fake_url.com"
+                license = "fake_license"
+                description = "whatever"
+                settings = "os", "arch", "compiler", "build_type"
+                options = {'fPIC': [True, False]}
+                default_options = {'fPIC': True}
+            """)
     conanfile_header_only = conanfile_base.format(placeholder='')
     conanfile_installer = conanfile_base.format(placeholder='settings = "os_build"')
     conanfile = conanfile_base.format(placeholder='settings = "os"')
@@ -133,3 +144,10 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
+
+    def test_conanfile_fpic(self):
+        tools.save('conanfile.py', content=self.conanfile_fpic)
+        output = self.conan(['create', '.', 'fpic/version@conan/test'])
+        self.assertIn("FPIC OPTION (KB-H006)] OK", output)
+        self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed correctly.", output)
