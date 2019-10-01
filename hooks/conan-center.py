@@ -26,7 +26,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
-             "KB-H027": "CCI URL"}
+             "KB-H027": "CONAN CENTER INDEX URL"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -192,8 +192,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H027", output)
     def test(out):
-        url = getattr(conanfile, "url", None)
-        if url and "https://github.com/conan-io/conan-center-index" not in url:
+        url = getattr(conanfile, "url", "")
+        if not url.startswith("https://github.com/conan-io/conan-center-index"):
             out.error("The attribute `url` should point to CCI address: " \
                       "https://github.com/conan-io/conan-center-index")
 

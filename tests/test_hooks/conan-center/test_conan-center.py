@@ -67,8 +67,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [CCI URL (KB-H027)] The attribute `url` should point to CCI " \
-                      "address: https://github.com/conan-io/conan-center-index", output)
+        self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute `url` should " \
+                      "point to CCI address: https://github.com/conan-io/conan-center-index", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -132,4 +132,4 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        self.assertIn("[CCI URL (KB-H027)] OK", output)
+        self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
