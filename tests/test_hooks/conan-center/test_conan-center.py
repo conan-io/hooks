@@ -120,3 +120,21 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+
+    def test_missing_attributes(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            homepage = "homepage.com"
+            exports_sources = "header.h"
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.", output)
+        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.", output)
+        self.assertIn("WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute.", output)
+        self.assertNotIn("[RECIPE METADATA (KB-H003)] OK", output)
