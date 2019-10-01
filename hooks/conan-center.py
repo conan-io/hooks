@@ -25,7 +25,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES"}
+             "KB-H021": "MS RUNTIME FILES",
+             "KB-H028": "CMAKE MINIMUM VERSION"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -190,6 +191,25 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H028", output)
+    def test(out):
+        def _find_cmake_minimum(folder):
+            for (root, _, filenames) in os.walk(folder):
+                for filename in filenames:
+                    if filename.lower().startswith("cmake") and \
+                    (filename.endswith(".txt") or filename.endswith(".cmake")):
+                        cmake_path = os.path.join(root, filename)
+                        cmake_content = tools.load(cmake_path).lower()
+                        if not "cmake_minimum_required(version" in cmake_content:
+                            out.error("The CMake file '%s' must contain a minimum version " \
+                                      "declared" % filename)
+
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        _find_cmake_minimum(dir_path)
+        if os.path.exists(test_package_path):
+            _find_cmake_minimum(test_package_path)
 
 
 @raise_if_error_output

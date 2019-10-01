@@ -78,6 +78,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -94,6 +95,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -109,6 +111,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -125,6 +128,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
 
     def test_conanfile_fpic(self):
         tools.save('conanfile.py', content=self.conanfile_fpic)
@@ -132,3 +137,35 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("FPIC OPTION (KB-H006)] OK", output)
         self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
         self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed correctly.", output)
+
+    def test_cmake_minimum_required(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "CMakeLists.txt"
+
+            def package(self):
+                self.copy("CMakeLists.txt", dst="res")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content="project(foo CXX)")
+        output = self.conan(['create', '.', 'cmake/version@user/test'])
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file 'CMakeLists.txt' " \
+                      "must contain a minimum version declared", output)
+
+        tools.save('CMakeLists.txt', content="cmake_minimum_required(VERSION 2.8.11)")
+        output = self.conan(['create', '.', 'cmake/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
+        tools.save('test_package/CMakeLists.txt', content="project(foo CXX)")
+        output = self.conan(['create', '.', 'cmake/version@user/test'])
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file 'CMakeLists.txt' " \
+                      "must contain a minimum version declared", output)
+
+        tools.save('test_package/CMakeLists.txt', content="cmake_minimum_required(VERSION 2.8.11)")
+        output = self.conan(['create', '.', 'cmake/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
