@@ -65,7 +65,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertNotIn("[PACKAGE LICENSE (KB-H012)] OK", output)
 
-The RunEnvironment is no longer needed, at least explicitly in conanfile.py. It has been integrated into the self.run(..., run_environment=True)    def test_conanfile(self):
+    def test_conanfile(self):
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
