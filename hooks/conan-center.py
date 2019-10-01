@@ -195,13 +195,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         test_package_path = os.path.join(dir_path, "test_package")
         if not os.path.exists(test_package_path):
-            out.warn("There is no `test_package` for this recipe")
+            out.error("There is no `test_package` for this recipe")
             return
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
         if "RunEnvironment" in test_package_conanfile:
-            out.error("`RunEnvironment is deprecated. "
-                      "Use `self.run(command, run_environment=True)` instead")
+            out.error("The `RunEnvironment` is no longer needed. " \
+                      "It has been integrated into the self.run(..., run_environment=True)")
 
 
 @raise_if_error_output
