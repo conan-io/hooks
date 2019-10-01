@@ -2,8 +2,6 @@
 
 import os
 import textwrap
-import platform
-import unittest
 
 from conans import tools
 
