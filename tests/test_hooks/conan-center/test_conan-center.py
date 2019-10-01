@@ -124,7 +124,8 @@ class ConanCenterTests(ConanClientTestCase):
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
         # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
-        from conans import ConanFile
+        from conans import ConanFile, tools
+        import os
 
         class AConan(ConanFile):
             url = "fake_url.com"
@@ -133,6 +134,8 @@ class ConanCenterTests(ConanClientTestCase):
             exports_sources = "header.h"
 
             def package(self):
+                tools.save(os.path.join(self.package_folder, "__init__.py"),
+                           content="#!/usr/bin/env python")
                 self.copy("*", dst="include")
         """)
         tools.save('conanfile.py', content=conanfile)
@@ -141,5 +144,5 @@ class ConanCenterTests(ConanClientTestCase):
                       "conanfile. Remove `coding: utf-8`", output)
         self.assertIn("ERROR: [META LINES (KB-H025)] vim editor configuration detected in your " \
                       "recipe. Remove it from the recipe", output)
-        self.assertIn("ERROR: [META LINES (KB-H025)] Shebang detected in your recipe. Remove the " \
-                      "Python version from the recipe", output)
+        self.assertIn("ERROR: [META LINES (KB-H025)] Shebang (#!) detected in your recipe. " \
+                      "Remove it from the recipe", output)

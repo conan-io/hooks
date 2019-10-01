@@ -192,14 +192,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H025", output)
     def test(out):
-        if "# -*- coding: utf-8 -*-" in conanfile_content:
-            out.error("PEP 263 (encoding) is not allowed in the conanfile. Remove `coding: utf-8`")
-        if "#!/usr/bin/env python" in conanfile_content or \
-           "#!/usr/local/bin/python" in conanfile_content or \
-           "#!/usr/bin/python" in conanfile_content:
-            out.error("Shebang detected in your recipe. Remove the Python version from the recipe")
-        if "# vim:" in conanfile_content:
-            out.error("vim editor configuration detected in your recipe. Remove it from the recipe")
+        lines = conanfile_content.split('\n')
+        lines_range = 5 if len(lines) > 5 else len(lines)
+        for index in range(0,lines_range):
+            if "# -*- coding:" in lines[index] or \
+               "# coding=" in lines[index]:
+                out.error("PEP 263 (encoding) is not allowed in the conanfile. Remove `coding: utf-8`")
+            if "#!" in lines[index]:
+                out.error("Shebang (#!) detected in your recipe. Remove it from the recipe")
+            if "# vim:" in lines[index]:
+                out.error("vim editor configuration detected in your recipe. Remove it from the recipe")
 
 
 @raise_if_error_output
