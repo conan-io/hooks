@@ -231,7 +231,6 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H007", output)
     def test(out):
-        conanfile_content = tools.load(conanfile_path)
         low = conanfile_content.lower()
         options = getattr(conanfile, "options")
         options = options if options is not None else []  # options = None by default
@@ -245,7 +244,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                           "self.settings.os != 'linux'"]
             if ("def config_options(self):" in low or "def configure(self):" in low) \
                     and any(r in low for r in remove_fpic_option):
-                out.success("OK. 'fPIC' option found and apparently well managed")
+                out.success("OK. 'fPIC' option found and apparently well managed")            
             elif "def configure(self):" in low and \
                  "raise conaninvalidconfiguration" in low and \
                  any(r in low for r in os_compare):
@@ -372,7 +371,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
 
         if files_missplaced:
             out.error("The *.cmake files have to be placed in a folder declared as "
-                      "`cpp_info.buildirs`. Currently folders declared: {}".format(build_dirs))
+                      "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
             out.error("Found files:\n{}".format("\n".join(files_missplaced)))
 
 
