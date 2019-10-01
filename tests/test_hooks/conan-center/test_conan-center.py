@@ -40,25 +40,7 @@ class ConanCenterTests(ConanClientTestCase):
             def package_id(self):
                 self.info.header_only()
         """)
-    conanfile_linux_only = textwrap.dedent("""\
-        from conans import ConanFile
-        from conans.errors import ConanInvalidConfiguration
 
-        class LinuxOnly(ConanFile):
-            url = "fake_url.com"
-            license = "fake_license"
-            description = "whatever"
-            settings = "os", "arch", "compiler", "build_type"
-            options = {"fPIC": [True, False], "shared": [True, False]}
-            default_options = {"fPIC": True, "shared": False}
-
-            def configure(self):
-                if self.settings.os == "Windows":
-                    raise ConanInvalidConfiguration("Linux only!")
-
-            def package(self):
-                self.copy("*", dst="include")
-        """)
     conanfile_header_only = conanfile_base.format(placeholder='')
     conanfile_installer = conanfile_base.format(placeholder='settings = "os_build"')
     conanfile = conanfile_base.format(placeholder='settings = "os"')
@@ -136,10 +118,28 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
 
-    @unittest.skipIf(platform.system() != "Linux", "Only linux")
     def test_conanfile_linux_only(self):
-        tools.save('conanfile.py', content=self.conanfile_linux_only)
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        from conans.errors import ConanInvalidConfiguration
+
+        class LinuxOnly(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            settings = "os", "arch", "compiler", "build_type"
+            options = {"fPIC": [True, False], "shared": [True, False]}
+            default_options = {"fPIC": True, "shared": False}
+
+            def configure(self):
+                if self.settings.os == "Windows":
+                    raise ConanInvalidConfiguration("Linux only!")
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+        tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'linuxonly/version@conan/test'])
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
-        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' has not been removed, but this recipe is"
-                      " not supported by Windows.", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently this " \
+                      "recipe is not supported for Windows", output)
