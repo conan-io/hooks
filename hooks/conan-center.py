@@ -200,7 +200,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if "# -*- coding:" in lines[index] or \
                    "# coding=" in lines[index]:
                     out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
-                              "Remove `coding: utf-8` from line {}".format(line_number))
+                              "Remove `coding: utf-8` from the line {}".format(line_number))
                 if "#!" in lines[index]:
                     out.error("Shebang (#!) detected in your recipe. " \
                               "Remove it from the line {}".format(line_number))
