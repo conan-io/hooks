@@ -134,7 +134,6 @@ class ConanCenterTests(ConanClientTestCase):
         conanfile = textwrap.dedent("""\
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
-        # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
         from conans import ConanFile, tools
         import os
 
@@ -148,15 +147,17 @@ class ConanCenterTests(ConanClientTestCase):
                 tools.save(os.path.join(self.package_folder, "__init__.py"),
                            content="#!/usr/bin/env python")
                 self.copy("*", dst="include")
+
+        # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [META LINES (KB-H025)] PEP 263 (encoding) is not allowed in the " \
-                      "conanfile. Remove `coding: utf-8`", output)
+                      "conanfile. Remove `coding: utf-8` from line 2", output)
         self.assertIn("ERROR: [META LINES (KB-H025)] vim editor configuration detected in your " \
-                      "recipe. Remove it from the recipe", output)
+                      "recipe. Remove it from the line 17", output)
         self.assertIn("ERROR: [META LINES (KB-H025)] Shebang (#!) detected in your recipe. " \
-                      "Remove it from the recipe", output)
+                      "Remove it from the line 1", output)
 
     def test_conanfile_fpic(self):
         tools.save('conanfile.py', content=self.conanfile_fpic)

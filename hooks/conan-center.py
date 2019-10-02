@@ -194,16 +194,26 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H025", output)
     def test(out):
+        def _search_for_metaline(from_line, to_line, lines):
+            for index in range(from_line,to_line):
+                line_number = index + 1
+                if "# -*- coding:" in lines[index] or \
+                   "# coding=" in lines[index]:
+                    out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
+                              "Remove `coding: utf-8` from line {}".format(line_number))
+                if "#!" in lines[index]:
+                    out.error("Shebang (#!) detected in your recipe. " \
+                              "Remove it from the line {}".format(line_number))
+                if "# vim:" in lines[index]:
+                    out.error("vim editor configuration detected in your recipe. " \
+                              "Remove it from the line {}".format(line_number))
+
         lines = conanfile_content.splitlines()
-        lines_range = 5 if len(lines) > 5 else len(lines)
-        for index in range(0,lines_range):
-            if "# -*- coding:" in lines[index] or \
-               "# coding=" in lines[index]:
-                out.error("PEP 263 (encoding) is not allowed in the conanfile. Remove `coding: utf-8`")
-            if "#!" in lines[index]:
-                out.error("Shebang (#!) detected in your recipe. Remove it from the recipe")
-            if "# vim:" in lines[index]:
-                out.error("vim editor configuration detected in your recipe. Remove it from the recipe")
+        first_lines_range = 5 if len(lines) > 5 else len(lines)
+        _search_for_metaline(0, first_lines_range, lines)
+
+        last_lines_range = len(lines) -3 if len(lines) > 8 else len(lines)
+        _search_for_metaline(last_lines_range, len(lines), lines)
 
 
 @raise_if_error_output
