@@ -221,7 +221,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
-                          "in the source() method to get the sources."))
+                          "in the source() method to get the sources.")
 
 
 @raise_if_error_output
