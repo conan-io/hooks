@@ -194,7 +194,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H025", output)
     def test(out):
-        lines = conanfile_content.split('\n')
+        lines = conanfile_content.splitlines()
         lines_range = 5 if len(lines) > 5 else len(lines)
         for index in range(0,lines_range):
             if "# -*- coding:" in lines[index] or \
