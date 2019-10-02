@@ -194,7 +194,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
 @raise_if_error_output
 def pre_source(output, conanfile, conanfile_path, **kwargs):
-    read_more = "Read more at: XXXXXXX (PENDING)"
     conandata_source = os.path.join(os.path.dirname(conanfile_path), "conandata.yml")
     conanfile_content = tools.load(conanfile_path)
 
@@ -202,7 +201,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
-                      "to be downloaded. {}".format(read_more))
+                      "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
             needed_content = ['**self.conan_data["sources"]']
@@ -222,8 +221,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
-                          "in the source() method to get the sources. {}"
-                          "".format(read_more))
+                          "in the source() method to get the sources."))
 
 
 @raise_if_error_output
