@@ -204,7 +204,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         if not "cmake_minimum_required(version" in cmake_content:
                             file_path = os.path.join(os.path.relpath(root), filename)
                             out.error("The CMake file '%s' must contain a minimum version " \
-                                      "declared" % file_path)
+                                      "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
+                                      file_path)
 
         dir_path = os.path.dirname(conanfile_path)
         _find_cmake_minimum(dir_path)

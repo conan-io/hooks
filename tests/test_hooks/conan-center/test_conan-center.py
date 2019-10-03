@@ -155,7 +155,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content="project(foo CXX)")
         output = self.conan(['create', '.', 'cmake/version@user/test'])
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file './CMakeLists.txt' " \
-                      "must contain a minimum version declared", output)
+                      "must contain a minimum version declared " \
+                      "(e.g. cmake_minimum_required(VERSION 3.1.2))", output)
 
         tools.save('CMakeLists.txt', content="cmake_minimum_required(VERSION 2.8.11)")
         output = self.conan(['create', '.', 'cmake/version@user/test'])
@@ -164,7 +165,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('test_package/CMakeLists.txt', content="project(foo CXX)")
         output = self.conan(['create', '.', 'cmake/version@user/test'])
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file 'test_package/CMakeLists.txt' " \
-                      "must contain a minimum version declared", output)
+                      "must contain a minimum version declared " \
+                      "(e.g. cmake_minimum_required(VERSION 3.1.2))", output)
 
         tools.save('test_package/CMakeLists.txt', content="cmake_minimum_required(VERSION 2.8.11)")
         output = self.conan(['create', '.', 'cmake/version@user/test'])
