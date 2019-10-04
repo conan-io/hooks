@@ -229,34 +229,20 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 out.error(
                         "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
 
+
+@raise_if_error_output
+def pre_build(output, conanfile, **kwargs):
+
     @run_test("KB-H007", output)
     def test(out):
-        conanfile_content = tools.load(conanfile_path)
-        low = conanfile_content.lower()
-        options = getattr(conanfile, "options")
-        options = options if options is not None else []  # options = None by default
-        if "fPIC" in options:
-            remove_fpic_option = ["self.options.remove(\"fpic\")",
-                                  "self.options.remove('fpic')",
-                                  "del self.options.fpic"]
-            os_compare = ['self.settings.os == "windows"',
-                          "self.settings.os == 'windows'",
-                          'self.settings.os != "linux"'
-                          "self.settings.os != 'linux'"]
-            if ("def config_options(self):" in low or "def configure(self):" in low) \
-                    and any(r in low for r in remove_fpic_option):
-                out.success("OK. 'fPIC' option found and apparently well managed")
-            elif "def configure(self):" in low and \
-                 "raise conaninvalidconfiguration" in low and \
-                 any(r in low for r in os_compare):
-                out.success("OK. 'fPIC' option found and apparently this recipe is not " \
-                            "supported for Windows")
-            else:
-                out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                          "configurations: del self.options.fpic")
+        has_fpic = conanfile.options.get_safe("fPIC") or conanfile.options.get_safe("fpic")
+        if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
+            out.error("'fPIC' option not managed correctly. Please remove it for Windows "
+                        "configurations: del self.options.fpic")
+        elif has_fpic:
+            out.success("OK. 'fPIC' option found and apparently well managed")
         else:
             out.info("'fPIC' option not found")
-
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):

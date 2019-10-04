@@ -118,7 +118,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
 
-    def test_conanfile_linux_only(self):
+    def test_fpic_remove(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
         from conans.errors import ConanInvalidConfiguration
@@ -131,15 +131,18 @@ class ConanCenterTests(ConanClientTestCase):
             options = {"fPIC": [True, False], "shared": [True, False]}
             default_options = {"fPIC": True, "shared": False}
 
-            def configure(self):
-                if self.settings.os == "Windows":
-                    raise ConanInvalidConfiguration("Linux only!")
-
             def package(self):
                 self.copy("*", dst="include")
         """)
         tools.save('conanfile.py', content=conanfile)
-        output = self.conan(['create', '.', 'linuxonly/version@conan/test'])
+        output = self.conan(['create', '.', 'package/version@conan/test'])
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
-        self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently this " \
-                      "recipe is not supported for Windows", output)
+        if tools.os_info.is_windows:
+            self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
+                          "correctly. Please remove it for Windows " \
+                          "configurations: del self.options.fpic", output)
+        else:
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
+                        "well managed", output)
+
+
