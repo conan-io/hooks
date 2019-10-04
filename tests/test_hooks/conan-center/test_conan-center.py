@@ -2,8 +2,6 @@
 
 import os
 import textwrap
-import platform
-import unittest
 
 from conans import tools
 
@@ -40,7 +38,17 @@ class ConanCenterTests(ConanClientTestCase):
             def package_id(self):
                 self.info.header_only()
         """)
+    conanfile_fpic = textwrap.dedent("""\
+            from conans import ConanFile
 
+            class Fpic(ConanFile):
+                url = "fake_url.com"
+                license = "fake_license"
+                description = "whatever"
+                settings = "os", "arch", "compiler", "build_type"
+                options = {'fPIC': [True, False]}
+                default_options = {'fPIC': True}
+            """)
     conanfile_header_only = conanfile_base.format(placeholder='')
     conanfile_installer = conanfile_base.format(placeholder='settings = "os_build"')
     conanfile = conanfile_base.format(placeholder='settings = "os"')
@@ -144,5 +152,3 @@ class ConanCenterTests(ConanClientTestCase):
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
-
-

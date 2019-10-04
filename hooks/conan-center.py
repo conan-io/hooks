@@ -358,7 +358,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
 
         if files_missplaced:
             out.error("The *.cmake files have to be placed in a folder declared as "
-                      "`cpp_info.buildirs`. Currently folders declared: {}".format(build_dirs))
+                      "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
             out.error("Found files:\n{}".format("\n".join(files_missplaced)))
 
 
