@@ -162,6 +162,22 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
         self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
 
+    def test_missing_attributes(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            homepage = "homepage.com"
+            exports_sources = "header.h"
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.", output)
+        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.", output)
+        self.assertIn("WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute.", output)
+        self.assertNotIn("[RECIPE METADATA (KB-H003)] OK", output)
+
     def test_conanfile_fpic(self):
         tools.save('conanfile.py', content=self.conanfile_fpic)
         output = self.conan(['create', '.', 'fpic/version@conan/test'])
