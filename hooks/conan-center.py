@@ -25,7 +25,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H018": "LIBTOOL FILES PRESENCE",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES"}
+             "KB-H021": "MS RUNTIME FILES",
+             "KB-H022": "CPPSTD MANAGEMENT"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -228,24 +229,32 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
-    @run_test("KB-H011", output)
-    def test(out):
+
+    def _is_pure_c():
         if not _is_recipe_header_only(conanfile):
             cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
             c_extensions = ["c", "h"]
+            return not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) and \
+                   _get_files_with_extensions(conanfile.source_folder, c_extensions)
 
-            def _is_removing_libcxx():
-                conanfile_content = tools.load(conanfile_path)
-                low = conanfile_content.lower()
-                conf = "def configure(self):"
-                conf2 = "del self.settings.compiler.libcxx"
-                return conf in low and conf2 in low
+    @run_test("KB-H011", output)
+    def test(out):
+        if _is_pure_c():
+            conanfile_content = tools.load(conanfile_path)
+            low = conanfile_content.lower()
 
-            if not _is_removing_libcxx() \
-                    and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                    and _get_files_with_extensions(conanfile.source_folder, c_extensions):
-                out.error(
-                        "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+            if "del self.settings.compiler.libcxx" not in low:
+                out.error("Can't detect C++ source files but recipe does not remove " \
+                          "'self.settings.compiler.libcxx'")
+
+    @run_test("KB-H022", output)
+    def test(out):
+        if _is_pure_c():
+            conanfile_content = tools.load(conanfile_path)
+            low = conanfile_content.lower()
+            if "del self.settings.compiler.cppstd" not in low:
+                out.error("Can't detect C++ source files but recipe does not remove " \
+                            "'self.settings.compiler.cppstd'")
 
 
 @raise_if_error_output
