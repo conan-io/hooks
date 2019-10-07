@@ -183,5 +183,3 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("FPIC OPTION (KB-H006)] OK", output)
         self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
         self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed correctly.", output)
-
-
