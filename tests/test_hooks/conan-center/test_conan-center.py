@@ -168,6 +168,40 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] OK", output)
 
+    def test_conanfile_cppstd(self):
+        content = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h", "test.c"
+            settings = "os", "compiler", "arch", "build_type"
+
+            def configure(self):
+                {configure}
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+
+        tools.save('test.c', content="#define FOO 1")
+        tools.save('conanfile.py', content=content.format(
+                   configure="pass"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [LIBCXX MANAGEMENT (KB-H011)] Can't detect C++ source files but " \
+                      "recipe does not remove 'self.settings.compiler.libcxx'", output)
+        self.assertIn("ERROR: [CPPSTD MANAGEMENT (KB-H022)] Can't detect C++ source files but " \
+                      "recipe does not remove 'self.settings.compiler.cppstd'", output)
+
+        tools.save('conanfile.py', content=content.format(configure="""
+        del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd"""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
+
     def test_conanfile_fpic(self):
         tools.save('conanfile.py', content=self.conanfile_fpic)
         output = self.conan(['create', '.', 'fpic/version@conan/test'])
