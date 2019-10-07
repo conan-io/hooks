@@ -26,8 +26,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
-             "KB-H024": "TEST PACKAGE - RUN ENVIRONMENT",
-             "KB-H022": "CPPSTD MANAGEMENT"}
+             "KB-H022": "CPPSTD MANAGEMENT",
+             "KB-H024": "TEST PACKAGE FOLDER",
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -199,9 +200,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         test_package_path = os.path.join(dir_path, "test_package")
         if not os.path.exists(test_package_path):
             out.error("There is no `test_package` for this recipe")
-            return
-        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+        elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             out.error("There is no `conanfile.py` in `test_package` folder")
+
+    @run_test("KB-H029", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             return
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))

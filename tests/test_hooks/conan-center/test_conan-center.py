@@ -78,7 +78,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
                       "`test_package` for this recipe", output)
 
     def test_conanfile_header_only(self):
@@ -96,7 +96,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
                       "`test_package` for this recipe", output)
 
     def test_conanfile_header_only_with_settings(self):
@@ -113,7 +113,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
                       "`test_package` for this recipe", output)
 
     def test_conanfile_installer(self):
@@ -131,7 +131,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] There is no "
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
                       "`test_package` for this recipe", output)
 
     def test_run_environment_test_package(self):
@@ -149,7 +149,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('test_package/conanfile.py', content=conanfile_tp)
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] The `RunEnvironment` " \
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] The `RunEnvironment` " \
                       "is no longer needed. It has been integrated into the " \
                       "self.run(..., run_environment=True)", output)
 
@@ -166,7 +167,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('test_package/conanfile.py', content=conanfile_tp)
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
 
     def test_conanfile_cppstd(self):
         content = textwrap.dedent("""\
