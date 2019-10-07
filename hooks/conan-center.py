@@ -26,6 +26,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
+             "KB-H022": "CPPSTD MANAGEMENT",
              "KB-H027": "CONAN CENTER INDEX URL"}
 
 
@@ -202,7 +203,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
 @raise_if_error_output
 def pre_source(output, conanfile, conanfile_path, **kwargs):
-    read_more = "Read more at: XXXXXXX (PENDING)"
     conandata_source = os.path.join(os.path.dirname(conanfile_path), "conandata.yml")
     conanfile_content = tools.load(conanfile_path)
 
@@ -210,7 +210,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
-                      "to be downloaded. {}".format(read_more))
+                      "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
             needed_content = ['**self.conan_data["sources"]']
@@ -230,30 +230,37 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
-                          "in the source() method to get the sources. {}"
-                          "".format(read_more))
+                          "in the source() method to get the sources.")
 
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
-    @run_test("KB-H011", output)
-    def test(out):
+
+    def _is_pure_c():
         if not _is_recipe_header_only(conanfile):
             cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
             c_extensions = ["c", "h"]
+            return not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) and \
+                   _get_files_with_extensions(conanfile.source_folder, c_extensions)
 
-            def _is_removing_libcxx():
-                conanfile_content = tools.load(conanfile_path)
-                low = conanfile_content.lower()
-                conf = "def configure(self):"
-                conf2 = "del self.settings.compiler.libcxx"
-                return conf in low and conf2 in low
+    @run_test("KB-H011", output)
+    def test(out):
+        if _is_pure_c():
+            conanfile_content = tools.load(conanfile_path)
+            low = conanfile_content.lower()
 
-            if not _is_removing_libcxx() \
-                    and not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) \
-                    and _get_files_with_extensions(conanfile.source_folder, c_extensions):
-                out.error(
-                        "Can't detect C++ source files but recipe does not remove 'compiler.libcxx'")
+            if "del self.settings.compiler.libcxx" not in low:
+                out.error("Can't detect C++ source files but recipe does not remove " \
+                          "'self.settings.compiler.libcxx'")
+
+    @run_test("KB-H022", output)
+    def test(out):
+        if _is_pure_c():
+            conanfile_content = tools.load(conanfile_path)
+            low = conanfile_content.lower()
+            if "del self.settings.compiler.cppstd" not in low:
+                out.error("Can't detect C++ source files but recipe does not remove " \
+                            "'self.settings.compiler.cppstd'")
 
 
 @raise_if_error_output

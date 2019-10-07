@@ -128,16 +128,48 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
 
+    def test_conanfile_cppstd(self):
+        content = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h", "test.c"
+            settings = "os", "compiler", "arch", "build_type"
+
+            def configure(self):
+                {configure}
+
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+
+        tools.save('test.c', content="#define FOO 1")
+        tools.save('conanfile.py', content=content.format(
+                   configure="pass"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [LIBCXX MANAGEMENT (KB-H011)] Can't detect C++ source files but " \
+                      "recipe does not remove 'self.settings.compiler.libcxx'", output)
+        self.assertIn("ERROR: [CPPSTD MANAGEMENT (KB-H022)] Can't detect C++ source files but " \
+                      "recipe does not remove 'self.settings.compiler.cppstd'", output)
+
+        tools.save('conanfile.py', content=content.format(configure="""
+        del self.settings.compiler.libcxx
+        del self.settings.compiler.cppstd"""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
+
     def test_cci_url(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
-
         class AConan(ConanFile):
             url = "https://github.com/conan-io/conan-center-index"
             license = "fake_license"
             description = "whatever"
             exports_sources = "header.h"
-
             def package(self):
                 self.copy("*", dst="include")
         """)
@@ -151,3 +183,5 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("FPIC OPTION (KB-H006)] OK", output)
         self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
         self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed correctly.", output)
+
+
