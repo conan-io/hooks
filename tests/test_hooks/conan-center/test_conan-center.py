@@ -153,11 +153,11 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [META LINES (KB-H025)] PEP 263 (encoding) is not allowed in the " \
-                      "conanfile. Remove `coding: utf-8` from the line 2", output)
+                      "conanfile. Remove the line 2", output)
         self.assertIn("ERROR: [META LINES (KB-H025)] vim editor configuration detected in your " \
-                      "recipe. Remove it from the line 17", output)
+                      "recipe. Remove the line 17", output)
         self.assertIn("ERROR: [META LINES (KB-H025)] Shebang (#!) detected in your recipe. " \
-                      "Remove it from the line 1", output)
+                      "Remove the line 1", output)
 
     def test_conanfile_cppstd(self):
         content = textwrap.dedent("""\

@@ -201,13 +201,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if "# -*- coding:" in lines[index] or \
                    "# coding=" in lines[index]:
                     out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
-                              "Remove `coding: utf-8` from the line {}".format(line_number))
+                              "Remove the line {}".format(line_number))
                 if "#!" in lines[index]:
                     out.error("Shebang (#!) detected in your recipe. " \
-                              "Remove it from the line {}".format(line_number))
+                              "Remove the line {}".format(line_number))
                 if "# vim:" in lines[index]:
                     out.error("vim editor configuration detected in your recipe. " \
-                              "Remove it from the line {}".format(line_number))
+                              "Remove the line {}".format(line_number))
 
         lines = conanfile_content.splitlines()
         first_lines_range = 5 if len(lines) > 5 else len(lines)
