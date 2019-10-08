@@ -170,7 +170,11 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'package/version@conan/test'])
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
-        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        if platform.system() == "Windows":
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        else:
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently well "
+                          "managed", output)
         self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
 
     def test_fpic_remove_windows_configuration(self):
