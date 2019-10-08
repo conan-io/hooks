@@ -28,7 +28,11 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H021": "MS RUNTIME FILES",
              "KB-H022": "CPPSTD MANAGEMENT",
              "KB-H023": "EXPORT LICENSE",
-             "KB-H028": "CMAKE MINIMUM VERSION"}
+             "KB-H024": "TEST PACKAGE FOLDER",
+             "KB-H025": "META LINES",
+             "KB-H027": "CONAN CENTER INDEX URL",
+             "KB-H028": "CMAKE MINIMUM VERSION",
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -128,10 +132,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H003", output)
     def test(out):
-        for field in ["url", "license", "description"]:
-            field_value = getattr(conanfile, field, None)
-            if not field_value:
-                out.error("Conanfile doesn't have '%s' attribute. " % field)
+        def _message_attr(attributes, out_method):
+            for field in attributes:
+                field_value = getattr(conanfile, field, None)
+                if not field_value:
+                    out_method("Conanfile doesn't have '%s' attribute. " % field)
+
+        _message_attr(["url", "license", "description", "homepage"], out.error)
+        _message_attr(["topics"], out.warn)
 
     @run_test("KB-H005", output)
     def test(out):
@@ -146,24 +154,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if settings and options and not header_only and "fPIC" not in options and not installer:
             out.warn("This recipe does not include an 'fPIC' option. Make sure you are using the "
                      "right casing")
-
-    @run_test("KB-H007", output)
-    def test(out):
-        low = conanfile_content.lower()
-        options = getattr(conanfile, "options")
-        options = options if options is not None else []  # options = None by default
-        if "fPIC" in options:
-            remove_fpic_option = ["self.options.remove(\"fpic\")",
-                                  "self.options.remove('fpic')",
-                                  "del self.options.fpic"]
-            if ("def config_options(self):" in low or "def configure(self):" in low) \
-                    and any(r in low for r in remove_fpic_option):
-                out.success("OK. 'fPIC' option found and apparently well managed")
-            else:
-                out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                          "configurations: del self.options.fpic")
-        else:
-            out.info("'fPIC' option not found")
 
     @run_test("KB-H008", output)
     def test(out):
@@ -194,6 +184,59 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
 
+    @run_test("KB-H023", output)
+    def test(out):
+        for attr_it in ["exports", "exports_sources"]:
+            exports = getattr(conanfile, attr_it, None)
+            out.info("exports: {}".format(exports))
+            if exports is None:
+                continue
+            exports = [exports] if isinstance(exports, str) else exports
+            for exports_it in exports:
+                for license_it in ["copying", "license", "copyright"]:
+                    if license_it in exports_it.lower():
+                        out.error("This recipe is exporting a license file. "
+                                  "Remove %s from `%s`" % (exports_it, attr_it))
+
+    @run_test("KB-H024", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        if not os.path.exists(test_package_path):
+            out.error("There is no 'test_package' for this recipe")
+        elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+            out.error("There is no 'conanfile.py' in 'test_package' folder")
+
+    @run_test("KB-H025", output)
+    def test(out):
+        def _search_for_metaline(from_line, to_line, lines):
+            for index in range(from_line,to_line):
+                line_number = index + 1
+                if "# -*- coding:" in lines[index] or \
+                   "# coding=" in lines[index]:
+                    out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
+                              "Remove the line {}".format(line_number))
+                if "#!" in lines[index]:
+                    out.error("Shebang (#!) detected in your recipe. " \
+                              "Remove the line {}".format(line_number))
+                if "# vim:" in lines[index]:
+                    out.error("vim editor configuration detected in your recipe. " \
+                              "Remove the line {}".format(line_number))
+
+        lines = conanfile_content.splitlines()
+        first_lines_range = 5 if len(lines) > 5 else len(lines)
+        _search_for_metaline(0, first_lines_range, lines)
+
+        last_lines_range = len(lines) -3 if len(lines) > 8 else len(lines)
+        _search_for_metaline(last_lines_range, len(lines), lines)
+
+    @run_test("KB-H027", output)
+    def test(out):
+        url = getattr(conanfile, "url", None)
+        if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
+            out.error("The attribute 'url' should point to: " \
+                      "https://github.com/conan-io/conan-center-index")
+
     @run_test("KB-H028", output)
     def test(out):
         def _find_cmake_minimum(folder):
@@ -212,19 +255,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         _find_cmake_minimum(dir_path)
 
-    @run_test("KB-H023", output)
+    @run_test("KB-H029", output)
     def test(out):
-        for attr_it in ["exports", "exports_sources"]:
-            exports = getattr(conanfile, attr_it, None)
-            out.info("exports: {}".format(exports))
-            if exports is None:
-                continue
-            exports = [exports] if isinstance(exports, str) else exports
-            for exports_it in exports:
-                for license_it in ["copying", "license", "copyright"]:
-                    if license_it in exports_it.lower():
-                        out.error("This recipe is exporting a license file. "
-                                  "Remove %s from `%s`" % (exports_it, attr_it))
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+            return
+
+        test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
+        if "RunEnvironment" in test_package_conanfile:
+            out.error("The 'RunEnvironment()' build helper is no longer needed. "
+                      "It has been integrated into the self.run(..., run_environment=True)")
 
 
 @raise_if_error_output
@@ -276,7 +317,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             low = conanfile_content.lower()
 
             if "del self.settings.compiler.libcxx" not in low:
-                out.error("Can't detect C++ source files but recipe does not remove " \
+                out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
     @run_test("KB-H022", output)
@@ -285,9 +326,23 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
             if "del self.settings.compiler.cppstd" not in low:
-                out.error("Can't detect C++ source files but recipe does not remove " \
-                            "'self.settings.compiler.cppstd'")
+                out.error("Can't detect C++ source files but recipe does not remove "
+                          "'self.settings.compiler.cppstd'")
 
+
+@raise_if_error_output
+def pre_build(output, conanfile, **kwargs):
+
+    @run_test("KB-H007", output)
+    def test(out):
+        has_fpic = conanfile.options.get_safe("fPIC")
+        if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
+            out.error("'fPIC' option not managed correctly. Please remove it for Windows "
+                      "configurations: del self.options.fpic")
+        elif has_fpic:
+            out.success("OK. 'fPIC' option found and apparently well managed")
+        else:
+            out.info("'fPIC' option not found")
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
