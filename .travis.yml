@@ -7,10 +7,10 @@ jobs:
   include:
 
     - stage: Conan develop - Linux
-      name: Conan develop - Linux - Python 2.7
+      name: Python 2.7
       python: 2.7
       env: TOXENV=py27-conandev
-    - name: Conan develop - Linux - Python 3.7
+    - name: Python 3.7
       python: 3.7
       env: TOXENV=py37-conandev
       dist: xenial
@@ -18,38 +18,43 @@ jobs:
 
     # All Linux first, check versions
     - stage: Conan Current - Linux
+      name: Python 2.7
       python: 2.7
       env: TOXENV=py27-conancurrent
-    - python: 3.7
+    - name: Python 3.7
+      python: 3.7
       env: TOXENV=py37-conancurrent
       dist: xenial
       sudo: true
 
     - stage: Conan 1.18 - Linux
+      name: Python 2.7
       python: 3.7
       env: TOXENV=py37-conan118
       dist: xenial
       sudo: true
 
-    - stage: Conan 1.17 - Linuxp
+    - stage: Conan 1.17 - Linux
+      name: Python 2.7
       python: 3.7
       env: TOXENV=py37-conan117
       dist: xenial
       sudo: true
 
     # Macos is slow, only if everything has passed
-    - stage: Macos - all Conan versions
-      name: Conan develop - Mac - Python 3.7
+    - stage: Macos - All Conan versions
+      name: Conan develop - Python 3.7
       language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py37 TOXENV=py37-conandev
-
-    - language: generic
+    - name: Conan Current - Python 2.7
+      language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py27 TOXENV=py27-conancurrent
-    - language: generic
+    - name: Conan Current - Python 3.7
+      language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py37 TOXENV=py37-conancurrent
