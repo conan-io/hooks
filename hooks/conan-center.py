@@ -27,6 +27,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
              "KB-H022": "CPPSTD MANAGEMENT",
+             "KB-H023": "EXPORT LICENSE",
              "KB-H024": "TEST PACKAGE FOLDER",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
 
@@ -214,6 +215,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if "RunEnvironment" in test_package_conanfile:
             out.error("The `RunEnvironment` is no longer needed. " \
                       "It has been integrated into the self.run(..., run_environment=True)")
+
+    @run_test("KB-H023", output)
+    def test(out):
+        for attr_it in ["exports", "exports_sources"]:
+            exports = getattr(conanfile, attr_it, None)
+            out.info("exports: {}".format(exports))
+            if exports is None:
+                continue
+            exports = [exports] if isinstance(exports, str) else exports
+            for exports_it in exports:
+                for license_it in ["copying", "license", "copyright"]:
+                    if license_it in exports_it.lower():
+                        out.error("This recipe is exporting a license file. "
+                                  "Remove %s from `%s`" % (exports_it, attr_it))
 
 
 @raise_if_error_output
