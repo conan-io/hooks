@@ -213,7 +213,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
         if "RunEnvironment" in test_package_conanfile:
-            out.error("The `RunEnvironment` is no longer needed. " \
+            out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
     @run_test("KB-H023", output)
@@ -280,7 +280,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             low = conanfile_content.lower()
 
             if "del self.settings.compiler.libcxx" not in low:
-                out.error("Can't detect C++ source files but recipe does not remove " \
+                out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
     @run_test("KB-H022", output)
@@ -289,8 +289,8 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
             if "del self.settings.compiler.cppstd" not in low:
-                out.error("Can't detect C++ source files but recipe does not remove " \
-                            "'self.settings.compiler.cppstd'")
+                out.error("Can't detect C++ source files but recipe does not remove "
+                          "'self.settings.compiler.cppstd'")
 
 
 @raise_if_error_output

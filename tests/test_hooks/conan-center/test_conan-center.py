@@ -153,8 +153,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] The `RunEnvironment` " \
-                      "is no longer needed. It has been integrated into the " \
+        self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] The 'RunEnvironment()' "
+                      "build helper is no longer needed. It has been integrated into the "
                       "self.run(..., run_environment=True)", output)
 
         conanfile_tp = textwrap.dedent("""\
