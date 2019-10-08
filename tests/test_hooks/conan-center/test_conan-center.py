@@ -18,6 +18,8 @@ class ConanCenterTests(ConanClientTestCase):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
+            homepage = "homepage.com"
+            topics = ("fake_topic", "another_fake_topic")
             exports_sources = "header.h"
             {placeholder}
 
@@ -31,6 +33,7 @@ class ConanCenterTests(ConanClientTestCase):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
+            homepage = "homepage.com"
             exports_sources = "header.h"
             settings = "os", "compiler", "arch", "build_type"
 
@@ -80,8 +83,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute `url` should " \
-                      "point to CCI address: https://github.com/conan-io/conan-center-index", output)
+        self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
+                      "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_header_only(self):
@@ -261,6 +264,33 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
         self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
+
+    def test_missing_attributes(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            pass
+        """)
+        bad_recipe_output = [
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'homepage' attribute.",
+            "WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
+        ]
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        for msg in bad_recipe_output:
+            self.assertIn(msg, output)
+        self.assertNotIn("[RECIPE METADATA (KB-H003)] OK", output)
+
+        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        for msg in bad_recipe_output:
+            self.assertNotIn(msg, output)
+        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
 
     def test_cci_url(self):
         conanfile = textwrap.dedent("""\

@@ -128,10 +128,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H003", output)
     def test(out):
-        for field in ["url", "license", "description"]:
-            field_value = getattr(conanfile, field, None)
-            if not field_value:
-                out.error("Conanfile doesn't have '%s' attribute. " % field)
+        def _message_attr(attributes, out_method):
+            for field in attributes:
+                field_value = getattr(conanfile, field, None)
+                if not field_value:
+                    out_method("Conanfile doesn't have '%s' attribute. " % field)
+
+        _message_attr(["url", "license", "description", "homepage"], out.error)
+        _message_attr(["topics"], out.warn)
 
     @run_test("KB-H005", output)
     def test(out):
@@ -180,7 +184,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         url = getattr(conanfile, "url", None)
         if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
-            out.error("The attribute `url` should point to CCI address: " \
+            out.error("The attribute 'url' should point to: " \
                       "https://github.com/conan-io/conan-center-index")
 
     @run_test("KB-H023", output)
