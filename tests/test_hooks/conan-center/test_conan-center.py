@@ -387,3 +387,15 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
+
+    def test_cmake_minimum_verstion(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = """project(test)
+        """
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        path = os.path.join(".", "CMakeLists.txt")
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
+                      "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
+                      output)
