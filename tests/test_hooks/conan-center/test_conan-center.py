@@ -83,9 +83,10 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
 
@@ -104,9 +105,10 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -122,9 +124,10 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -141,8 +144,38 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
+
+    def test_shebang(self):
+        conanfile = textwrap.dedent("""\
+        #!/usr/bin/env python
+        # -*- coding: utf-8 -*-
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+
+            def package(self):
+                tools.save(os.path.join(self.package_folder, "__init__.py"),
+                           content="#!/usr/bin/env python")
+                self.copy("*", dst="include")
+
+        # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [META LINES (KB-H025)] PEP 263 (encoding) is not allowed in the " \
+                      "conanfile. Remove the line 2", output)
+        self.assertIn("ERROR: [META LINES (KB-H025)] vim editor configuration detected in your " \
+                      "recipe. Remove the line 17", output)
+        self.assertIn("ERROR: [META LINES (KB-H025)] Shebang (#!) detected in your recipe. " \
+                      "Remove the line 1", output)
 
     def test_run_environment_test_package(self):
         conanfile_tp = textwrap.dedent("""\
