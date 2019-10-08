@@ -83,6 +83,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
+                      "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_header_only(self):
@@ -289,3 +291,18 @@ class ConanCenterTests(ConanClientTestCase):
         for msg in bad_recipe_output:
             self.assertNotIn(msg, output)
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+
+    def test_cci_url(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            url = "https://github.com/conan-io/conan-center-index"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+            def package(self):
+                self.copy("*", dst="include")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)

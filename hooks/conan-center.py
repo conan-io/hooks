@@ -26,8 +26,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
+             "KB-H022": "CPPSTD MANAGEMENT",
              "KB-H023": "EXPORT LICENSE",
-             "KB-H022": "CPPSTD MANAGEMENT"}
+             "KB-H027": "CONAN CENTER INDEX URL"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -178,6 +179,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H027", output)
+    def test(out):
+        url = getattr(conanfile, "url", None)
+        if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
+            out.error("The attribute 'url' should point to: " \
+                      "https://github.com/conan-io/conan-center-index")
 
     @run_test("KB-H023", output)
     def test(out):
