@@ -26,6 +26,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
              "KB-H020": "PC-FILES",
              "KB-H021": "MS RUNTIME FILES",
+             "KB-H023": "EXPORT LICENSE",
              "KB-H022": "CPPSTD MANAGEMENT"}
 
 
@@ -191,6 +192,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if total_size_kb > max_folder_size:
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
+
+    @run_test("KB-H023", output)
+    def test(out):
+        for attr_it in ["exports", "exports_sources"]:
+            exports = getattr(conanfile, attr_it, None)
+            out.info("exports: {}".format(exports))
+            if exports is None:
+                continue
+            exports = [exports] if isinstance(exports, str) else exports
+            for exports_it in exports:
+                for license_it in ["copying", "license", "copyright"]:
+                    if license_it in exports_it.lower():
+                        out.error("This recipe is exporting a license file. "
+                                  "Remove %s from `%s`" % (exports_it, attr_it))
 
 
 @raise_if_error_output

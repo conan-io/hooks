@@ -78,6 +78,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -94,6 +95,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -109,6 +111,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -125,6 +128,26 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+
+    def test_exports_licenses(self):
+        tools.save('conanfile.py',
+                   content=self.conanfile_base.format(placeholder='exports = "LICENSE"'))
+        output = self.conan(['create', '.', 'name/version@name/test'])
+        self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
+                      " Remove LICENSE from `exports`", output)
+
+        tools.save('conanfile.py',
+                   content=self.conanfile_base.format(placeholder='exports_sources = "LICENSE"'))
+        output = self.conan(['create', '.', 'name/version@name/test'])
+        self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
+                      " Remove LICENSE from `exports_sources`", output)
+
+        tools.save('conanfile.py',
+                   content=self.conanfile_base.format(placeholder='exports = ["foobar", "COPYING.md"]'))
+        output = self.conan(['create', '.', 'name/version@name/test'])
+        self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
+                      " Remove COPYING.md from `exports`", output)
 
     def test_conanfile_cppstd(self):
         content = textwrap.dedent("""\
