@@ -245,7 +245,7 @@ def pre_build(output, conanfile, **kwargs):
         has_fpic = conanfile.options.get_safe("fPIC")
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
             out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                        "configurations: del self.options.fpic")
+                      "configurations: del self.options.fpic")
         elif has_fpic:
             out.success("OK. 'fPIC' option found and apparently well managed")
         else:
