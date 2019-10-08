@@ -1,9 +1,11 @@
 # coding=utf-8
 
 import os
+import platform
 import textwrap
 
 from conans import tools
+from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
@@ -149,20 +151,95 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
                       " Remove COPYING.md from `exports`", output)
 
+    def test_fpic_remove(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class LinuxOnly(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            settings = "os", "arch", "compiler", "build_type"
+            options = {"fPIC": [True, False], "shared": [True, False]}
+            default_options = {"fPIC": True, "shared": False}
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'package/version@conan/test'])
+        self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
+        if tools.os_info.is_windows:
+            self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
+                          "correctly. Please remove it for Windows " \
+                          "configurations: del self.options.fpic", output)
+        else:
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
+                        "well managed", output)
+
+    def test_fpic_remove_windows(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class Conan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            settings = "os", "arch", "compiler", "build_type"
+            options = {"fPIC": [True, False], "shared": [True, False]}
+            default_options = {"fPIC": True, "shared": False}
+
+            def config_options(self):
+                if self.settings.os == "Windows":
+                    del self.options.fPIC
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'package/version@conan/test'])
+        self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
+        if platform.system() == "Windows":
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        else:
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently well "
+                          "managed", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+    def test_fpic_remove_windows_configuration(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        from conans.errors import ConanInvalidConfiguration
+
+        class Conan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            settings = "os", "arch", "compiler", "build_type"
+            options = {"fPIC": [True, False], "shared": [True, False]}
+            default_options = {"fPIC": True, "shared": False}
+
+            def configure(self):
+                if self.settings.os == "Windows":
+                    raise ConanInvalidConfiguration("Windows not supported")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        if platform.system() == "Windows":
+            expected_return_code = ERROR_INVALID_CONFIGURATION
+        else:
+            expected_return_code = SUCCESS
+        output = self.conan(['create', '.', 'package/version@conan/test'], expected_return_code)
+        if platform.system() == "Windows":
+            self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+        else:
+            self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently well "
+                          "managed", output)
+
     def test_conanfile_cppstd(self):
         content = textwrap.dedent("""\
         from conans import ConanFile
-
         class AConan(ConanFile):
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
             exports_sources = "header.h", "test.c"
             settings = "os", "compiler", "arch", "build_type"
-
             def configure(self):
                 {configure}
-
             def package(self):
                 self.copy("*", dst="include")
         """)
@@ -182,10 +259,3 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
         self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
-
-    def test_conanfile_fpic(self):
-        tools.save('conanfile.py', content=self.conanfile_fpic)
-        output = self.conan(['create', '.', 'fpic/version@conan/test'])
-        self.assertIn("FPIC OPTION (KB-H006)] OK", output)
-        self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
-        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed correctly.", output)

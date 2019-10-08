@@ -146,24 +146,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.warn("This recipe does not include an 'fPIC' option. Make sure you are using the "
                      "right casing")
 
-    @run_test("KB-H007", output)
-    def test(out):
-        low = conanfile_content.lower()
-        options = getattr(conanfile, "options")
-        options = options if options is not None else []  # options = None by default
-        if "fPIC" in options:
-            remove_fpic_option = ["self.options.remove(\"fpic\")",
-                                  "self.options.remove('fpic')",
-                                  "del self.options.fpic"]
-            if ("def config_options(self):" in low or "def configure(self):" in low) \
-                    and any(r in low for r in remove_fpic_option):
-                out.success("OK. 'fPIC' option found and apparently well managed")
-            else:
-                out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                          "configurations: del self.options.fpic")
-        else:
-            out.info("'fPIC' option not found")
-
     @run_test("KB-H008", output)
     def test(out):
         # This regex takes advantage that a conan reference is always a string
@@ -269,6 +251,20 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 out.error("Can't detect C++ source files but recipe does not remove " \
                             "'self.settings.compiler.cppstd'")
 
+
+@raise_if_error_output
+def pre_build(output, conanfile, **kwargs):
+
+    @run_test("KB-H007", output)
+    def test(out):
+        has_fpic = conanfile.options.get_safe("fPIC")
+        if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
+            out.error("'fPIC' option not managed correctly. Please remove it for Windows "
+                      "configurations: del self.options.fpic")
+        elif has_fpic:
+            out.success("OK. 'fPIC' option found and apparently well managed")
+        else:
+            out.info("'fPIC' option not found")
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
