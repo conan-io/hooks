@@ -31,6 +31,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H024": "TEST PACKAGE FOLDER",
              "KB-H025": "META LINES",
              "KB-H027": "CONAN CENTER INDEX URL",
+             "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
 
 
@@ -183,29 +184,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
                       " size ({}KB).".format(total_size_kb, max_folder_size))
 
-    @run_test("KB-H025", output)
-    def test(out):
-        def _search_for_metaline(from_line, to_line, lines):
-            for index in range(from_line,to_line):
-                line_number = index + 1
-                if "# -*- coding:" in lines[index] or \
-                   "# coding=" in lines[index]:
-                    out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
-                              "Remove the line {}".format(line_number))
-                if "#!" in lines[index]:
-                    out.error("Shebang (#!) detected in your recipe. " \
-                              "Remove the line {}".format(line_number))
-                if "# vim:" in lines[index]:
-                    out.error("vim editor configuration detected in your recipe. " \
-                              "Remove the line {}".format(line_number))
-
-        lines = conanfile_content.splitlines()
-        first_lines_range = 5 if len(lines) > 5 else len(lines)
-        _search_for_metaline(0, first_lines_range, lines)
-
-        last_lines_range = len(lines) -3 if len(lines) > 8 else len(lines)
-        _search_for_metaline(last_lines_range, len(lines), lines)
-
     @run_test("KB-H023", output)
     def test(out):
         for attr_it in ["exports", "exports_sources"]:
@@ -229,12 +207,53 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             out.error("There is no 'conanfile.py' in 'test_package' folder")
 
+    @run_test("KB-H025", output)
+    def test(out):
+        def _search_for_metaline(from_line, to_line, lines):
+            for index in range(from_line,to_line):
+                line_number = index + 1
+                if "# -*- coding:" in lines[index] or \
+                   "# coding=" in lines[index]:
+                    out.error("PEP 263 (encoding) is not allowed in the conanfile. " \
+                              "Remove the line {}".format(line_number))
+                if "#!" in lines[index]:
+                    out.error("Shebang (#!) detected in your recipe. " \
+                              "Remove the line {}".format(line_number))
+                if "# vim:" in lines[index]:
+                    out.error("vim editor configuration detected in your recipe. " \
+                              "Remove the line {}".format(line_number))
+
+        lines = conanfile_content.splitlines()
+        first_lines_range = 5 if len(lines) > 5 else len(lines)
+        _search_for_metaline(0, first_lines_range, lines)
+
+        last_lines_range = len(lines) -3 if len(lines) > 8 else len(lines)
+        _search_for_metaline(last_lines_range, len(lines), lines)
+
     @run_test("KB-H027", output)
     def test(out):
         url = getattr(conanfile, "url", None)
         if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
             out.error("The attribute 'url' should point to: " \
                       "https://github.com/conan-io/conan-center-index")
+
+    @run_test("KB-H028", output)
+    def test(out):
+        def _find_cmake_minimum(folder):
+            for (root, _, filenames) in os.walk(folder):
+                for filename in filenames:
+                    if filename.lower().startswith("cmake") and \
+                    (filename.endswith(".txt") or filename.endswith(".cmake")):
+                        cmake_path = os.path.join(root, filename)
+                        cmake_content = tools.load(cmake_path).lower()
+                        if not "cmake_minimum_required(version" in cmake_content:
+                            file_path = os.path.join(os.path.relpath(root), filename)
+                            out.error("The CMake file '%s' must contain a minimum version " \
+                                      "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
+                                      file_path)
+
+        dir_path = os.path.dirname(conanfile_path)
+        _find_cmake_minimum(dir_path)
 
     @run_test("KB-H029", output)
     def test(out):

@@ -83,12 +83,13 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-        self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -109,6 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -128,6 +130,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -147,6 +150,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_shebang(self):
         conanfile = textwrap.dedent("""\
@@ -383,3 +387,15 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
+
+    def test_cmake_minimum_verstion(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = """project(test)
+        """
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        path = os.path.join(".", "CMakeLists.txt")
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
+                      "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
+                      output)
