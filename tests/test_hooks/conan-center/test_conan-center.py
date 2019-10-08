@@ -19,6 +19,7 @@ class ConanCenterTests(ConanClientTestCase):
             license = "fake_license"
             description = "whatever"
             homepage = "homepage.com"
+            topics = ("fake_topic", "another_fake_topic")
             exports_sources = "header.h"
             {placeholder}
 
@@ -265,15 +266,26 @@ class ConanCenterTests(ConanClientTestCase):
     def test_missing_attributes(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
+
         class AConan(ConanFile):
-            homepage = "homepage.com"
-            exports_sources = "header.h"
-            def package(self):
-                self.copy("*", dst="include")
+            pass
         """)
+        bad_recipe_output = [
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'homepage' attribute.",
+            "WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
+        ]
+
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.", output)
-        self.assertIn("ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.", output)
-        self.assertIn("WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute.", output)
+        for msg in bad_recipe_output:
+            self.assertIn(msg, output)
         self.assertNotIn("[RECIPE METADATA (KB-H003)] OK", output)
+
+        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        for msg in bad_recipe_output:
+            self.assertNotIn(msg, output)
+        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
