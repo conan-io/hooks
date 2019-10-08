@@ -17,14 +17,10 @@ environment:
           TOXENV: py37-conancurrent
 
         # Conan 1.18.x
-        - PYVER: py27
-          TOXENV: py27-conan118
         - PYVER: py37
           TOXENV: py37-conan118
 
         # Conan 1.17.x
-        - PYVER: py27
-          TOXENV: py27-conan117
         - PYVER: py37
           TOXENV: py37-conan117
 

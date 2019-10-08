@@ -7,14 +7,14 @@ jobs:
   include:
 
     - stage: Conan develop - Linux
-      name: Conan develop - Linux - Python 3.7
+      name: Conan develop - Linux - Python 2.7
+      python: 2.7
+      env: TOXENV=py27-conandev
+    - name: Conan develop - Linux - Python 3.7
       python: 3.7
       env: TOXENV=py37-conandev
       dist: xenial
       sudo: true
-    - name: Conan develop - Linux - Python 2.7
-      python: 2.7
-      env: TOXENV=py27-conandev
 
     # All Linux first, check versions
     - stage: Conan Current - Linux
