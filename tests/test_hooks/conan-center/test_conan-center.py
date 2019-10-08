@@ -83,14 +83,11 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
-<<<<<<< HEAD
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
                       "`test_package` for this recipe", output)
-=======
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
->>>>>>> master
-        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
