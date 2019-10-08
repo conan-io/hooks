@@ -225,9 +225,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         test_package_path = os.path.join(dir_path, "test_package")
         if not os.path.exists(test_package_path):
-            out.error("There is no `test_package` for this recipe")
+            out.error("There is no 'test_package' for this recipe")
         elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
-            out.error("There is no `conanfile.py` in `test_package` folder")
+            out.error("There is no 'conanfile.py' in 'test_package' folder")
 
     @run_test("KB-H027", output)
     def test(out):

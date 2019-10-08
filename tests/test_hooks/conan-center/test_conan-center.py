@@ -85,8 +85,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
 
@@ -106,8 +106,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
@@ -125,8 +125,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no "
-                      "`test_package` for this recipe", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_conanfile_installer(self):
@@ -144,6 +144,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
 
     def test_shebang(self):
