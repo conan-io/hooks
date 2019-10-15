@@ -283,6 +283,8 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
         if os.path.exists(conandata_path):
             conandata = tools.load(conandata_path)
             conandata_yml = yaml.safe_load(conandata)
+            if not conandata_yml:
+                return
             info = {}
             for field in conandata_yml:
                 if version not in conandata_yml[field]:

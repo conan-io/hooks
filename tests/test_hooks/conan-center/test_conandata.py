@@ -1,6 +1,7 @@
 import os
 import textwrap
 import unittest
+import yaml
 
 from conans import tools
 
@@ -10,6 +11,15 @@ from conans import __version__ as conan_version
 
 @unittest.skipUnless(conan_version >= "1.16.0", "Conan > 1.16.0 needed")
 class ConanData(ConanClientTestCase):
+    conanfile = textwrap.dedent("""\
+        import os
+        from conans import ConanFile, tools
+
+        class AConan(ConanFile):
+
+            def source(self):
+                pass
+        """)
 
     def _get_environ(self, **kwargs):
         kwargs = super(ConanData, self)._get_environ(**kwargs)
@@ -18,29 +28,13 @@ class ConanData(ConanClientTestCase):
         return kwargs
 
     def test_missing_conandata(self):
-        conanfile = textwrap.dedent("""\
-            import os
-            from conans import ConanFile, tools
-
-            class AConan(ConanFile):
-                pass
-            """)
-        tools.save('conanfile.py', content=conanfile)
+        tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Create a file 'conandata.yml' file with the "
                       "sources to be downloaded.", output)
 
     def test_no_missing_conandata_but_not_used(self):
-        conanfile = textwrap.dedent("""\
-                import os
-                from conans import ConanFile, tools
-
-                class AConan(ConanFile):
-                    
-                    def source(self):
-                        pass
-                """)
-        tools.save('conanfile.py', content=conanfile)
+        tools.save('conanfile.py', content=self.conanfile)
         tools.save('conandata.yml', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Use 'tools.get(**self.conan_data[\"sources\"]", output)
@@ -65,10 +59,9 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
-        self.assertIn("Invalid URL 'fakeurl': No schema supplied", output)
 
     def test_reduce_conandata(self):
-        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=""))
+        tools.save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
               "1.69.0":

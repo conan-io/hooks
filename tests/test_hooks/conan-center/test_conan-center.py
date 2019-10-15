@@ -1,9 +1,6 @@
-# coding=utf-8
-
 import os
 import platform
 import textwrap
-import yaml
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
