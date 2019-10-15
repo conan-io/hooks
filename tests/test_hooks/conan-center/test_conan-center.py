@@ -3,9 +3,11 @@
 import os
 import platform
 import textwrap
+import yaml
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
+from conans.util.env_reader import get_env
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
@@ -399,3 +401,48 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_reduce_conandata(self):
+        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=""))
+        conandata = textwrap.dedent("""
+            sources:
+              "1.69.0":
+                url: "url1.69.0"
+                sha256: "sha1.69.0"
+                other: "more_data"
+              "1.70.0":
+                url: "url1.70.0"
+                sha256: "sha1.70.0"
+            patches:
+              "1.70.0":
+                patches: "1.70.0.patch"
+              "1.71.0":
+                patches: "1.71.0.patch"
+            random_field: "random"
+            field_introduced_in_the_future:
+              "1.71.0":
+                something: "else"
+            """)
+        tools.save('conandata.yml', content=conandata)
+        for version in ["1.69.0", "1.70.0", "1.71.0"]:
+            self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
+            output = self.conan(['get', 'name/%s@jgsogo/test' % version, 'conandata.yml'])
+            conandata = yaml.safe_load(output)
+
+            self.assertNotIn("random_field", conandata)
+
+            if version in ["1.69.0", "1.70.0"]:
+                self.assertEqual("url%s" % version, conandata["sources"][version]["url"])
+                self.assertEqual("sha%s" % version, conandata["sources"][version]["sha256"])
+                self.assertNotIn("field_introduced_in_the_future", conandata)
+            if version in ["1.70.0", "1.71.0"]:
+                self.assertIn("%s.patch" % version, conandata["patches"][version]["patches"])
+            if version == "1.69.0":
+                self.assertEqual("more_data", conandata["sources"][version]["other"])
+                self.assertNotIn("patches", conandata)
+            if version == "1.70.0":
+                self.assertNotIn("other", conandata["sources"][version])
+            if version == "1.71.0":
+                self.assertNotIn("sources", conandata)
+                self.assertIn("else",
+                              conandata["field_introduced_in_the_future"][version]["something"])

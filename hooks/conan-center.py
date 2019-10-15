@@ -2,6 +2,9 @@ import fnmatch
 import inspect
 import re
 import os
+from collections import defaultdict
+
+import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 from conans import tools, Settings
@@ -32,7 +35,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H025": "META LINES",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
-             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
+             "KB-H030": "REDUCE CONANDATA.YML"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -266,6 +270,29 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if "RunEnvironment" in test_package_conanfile:
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
+
+
+@raise_if_error_output
+def post_export(output, conanfile, conanfile_path, reference, **kwargs):
+    export_path = os.path.dirname(conanfile_path)
+
+    @run_test("KB-H030", output)
+    def test(out):
+        conandata_path = os.path.join(export_path, "conandata.yml")
+        version = conanfile.version
+        if os.path.exists(conandata_path):
+            conandata = tools.load(conandata_path)
+            conandata_yml = yaml.safe_load(conandata)
+            info = {}
+            for field in conandata_yml:
+                if version not in conandata_yml[field]:
+                    continue
+                info[field] = {}
+                info[field][version] = conandata_yml[field][version]
+            new_conandata_yml = yaml.safe_dump(info)
+            tools.save(conandata_path, new_conandata_yml)
+        else:
+
 
 
 @raise_if_error_output
