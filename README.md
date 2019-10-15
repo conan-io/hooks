@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/conan-io/hooks.svg?branch=master)](https://travis-ci.org/conan-io/hooks)
-[![Build status](https://ci.appveyor.com/api/projects/status/s0k4n197ko1iyoml/branch/master?svg=true)](https://ci.appveyor.com/project/ConanCIintegration/hooks/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/54a25v53i3ldu8ro/branch/master?svg=true)](https://ci.appveyor.com/project/ConanOrgCI/hooks/branch/master)
 
 
 # Conan Hooks
@@ -22,7 +22,12 @@ Only copying hook files will not activate them.
 
 To install all hooks from Conan repository in Github:
 
-``$ conan config install https://github.com/conan-io/hooks``
+``$ conan config install https://github.com/conan-io/hooks.git``
+
+If you are using Conan >=1.14 you can specify the source and destination folder to avoid copying
+undesired files to your local cache:
+
+``$ conan config install https://github.com/conan-io/hooks.git -sf hooks -tf hooks ``
 
 Conan config install does not activate any hook.
 
@@ -44,14 +49,14 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 
 These are the hooks currently available in this repository
 
-### [Conan Center reviewer](hooks/conan-center_reviewer.py)
+### [Conan Center](hooks/conan-center.py)
 
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
 in [Conan Center](https://bintray.com/conan/conan-center).
 
-It is mostly intended for users who want to contribute packages to Conan Center. With this hook 
-they will test some of the requirements in the guidelines, as this hook will check for recipe 
-metadata, binary matching... during the ``conan create`` step and will output the result of each 
+It is mostly intended for users who want to contribute packages to Conan Center. With this hook
+they will test some of the requirements in the guidelines, as this hook will check for recipe
+metadata, binary matching... during the ``conan create`` step and will output the result of each
 check as ``OK``, ``WARNING`` or ``ERROR``:
 
 ```
@@ -68,6 +73,13 @@ check as ``OK``, ``WARNING`` or ``ERROR``:
 [HOOK - conan-center_reviewer.py] post_package(): [MATCHING CONFIGURATION] OK
 [HOOK - conan-center_reviewer.py] post_package(): [SHARED ARTIFACTS] OK
 ```
+
+If you want the hook to fail the execution, if an error is reported, you can adjust the environment
+variable ``CONAN_HOOK_ERROR_LEVEL``:
+   - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
+   - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
+
+
 
 ### [Attribute checker](hooks/attribute_checker.py)
 
@@ -114,6 +126,27 @@ The following attributes are updated:
 - topics
 
 It's necessary to pass GitHub token by environment variable: *GITHUB_TOKEN*.
+
+### [Members Typo checker](hooks/members_typo_checker.py)
+
+This `pre_export()` hook checks `ConanFile`'s members for potential typos, for example:
+
+```py
+from conans import ConanFile
+
+class ConanRecipe(ConanFile):
+    name = "name"
+    version = "version"
+
+    export_sources = "OH_NO"
+```
+
+Will produce the next warning:
+
+```bash
+pre_export(): WARN: The 'export_sources' member looks like a typo. Similar to:
+pre_export(): WARN:     exports_sources
+```
 
 ### [SPDX checker](hooks/spdx_checker.py)
 

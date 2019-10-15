@@ -25,7 +25,6 @@ environment variable 'CONAN_HOOK_METADATA_FILENAME'
 
 import json
 import os
-import sys
 
 import semver
 
@@ -37,7 +36,7 @@ _CONAN_HOOK_METADATA_FILENAME_ENV_VAR = 'CONAN_HOOK_METADATA_FILENAME'
 CONAN_HOOK_METADATA_FILENAME = 'metadata.json'
 
 
-def _try_repo_data(path, repo_class):
+def _try_repo_data(path, repo_class, output):
     repo = repo_class(path)
     try:
         kwargs = {}
@@ -50,7 +49,7 @@ def _try_repo_data(path, repo_class):
     except ConanException:
         pass
     except Exception as e:
-        sys.stderr.write("Unhandled error using '{}': {}".format(repo_class, e))
+        output.warn("Unhandled error using '{}': {}".format(repo_class, e))
 
 
 def pre_export(output, conanfile, conanfile_path, *args, **kwargs):
@@ -68,7 +67,7 @@ def pre_export(output, conanfile, conanfile_path, *args, **kwargs):
 
     # Look for the repo
     path = os.path.dirname(conanfile_path)
-    scm_data = _try_repo_data(path, Git) or _try_repo_data(path, SVN)
+    scm_data = _try_repo_data(path, Git, output) or _try_repo_data(path, SVN, output)
     if not scm_data:
         output.warn("Cannot identify a repository system in "
                     "directory '{}' (tried SVN and Git)".format(path))

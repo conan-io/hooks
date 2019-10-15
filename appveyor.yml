@@ -10,34 +10,24 @@ environment:
         - PYVER: py37
           TOXENV: py37-conandev
 
-        # Conan 1.12.x
+        # Conan current version
         - PYVER: py27
-          TOXENV: py27-conan112
-        - PYVER: py36
-          TOXENV: py36-conan112
+          TOXENV: py27-conancurrent
         - PYVER: py37
-          TOXENV: py37-conan112
+          TOXENV: py37-conancurrent
 
-        # Conan 1.11.x
-        - PYVER: py27
-          TOXENV: py27-conan111
-        - PYVER: py36
-          TOXENV: py36-conan111
+        # Conan 1.18.x
         - PYVER: py37
-          TOXENV: py37-conan111
+          TOXENV: py37-conan118
 
-        # Conan 1.10.x
-        - PYVER: py27
-          TOXENV: py27-conan110
-        - PYVER: py36
-          TOXENV: py36-conan110
+        # Conan 1.17.x
         - PYVER: py37
-          TOXENV: py37-conan110
+          TOXENV: py37-conan117
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
   - python -m pip install --upgrade pip
-  - pip install tox tox-venv
+  - pip install tox==3.7.0 tox-venv==0.3.1
 
 test_script:
   - tox
