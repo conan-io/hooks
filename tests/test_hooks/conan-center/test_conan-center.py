@@ -7,7 +7,6 @@ import yaml
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
-from conans.util.env_reader import get_env
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 

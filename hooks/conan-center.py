@@ -291,8 +291,6 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
                 info[field][version] = conandata_yml[field][version]
             new_conandata_yml = yaml.safe_dump(info)
             tools.save(conandata_path, new_conandata_yml)
-        else:
-
 
 
 @raise_if_error_output
