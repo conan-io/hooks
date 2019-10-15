@@ -46,13 +46,12 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     del kwargs
     try:
-        username, password = _get_credentials(remote)
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
         output.info("Reading package info from Bintray.")
         remote_info = _get_package_info_from_bintray(package_url=package_url)
         output.info("Inspecting recipe info.")
         recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
-        supported_licenses = _get_oss_licenses(username, password)
+        supported_licenses = _get_oss_licenses()
         updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info,
                                             supported_licenses=supported_licenses)
         if updated_info:
@@ -258,15 +257,13 @@ def _is_stable_branch(branch):
     return False
 
 
-def _get_oss_licenses(username, password):
+def _get_oss_licenses():
     """ Retrieve all supported OSS licenses on Bintray
         Both BSD-2-Clause and BSD-3-Clause are incorrect
-    :param username: Bintray user name
-    :param password: Bintray API Key
     :return: List with licenses short names
     """
     oss_url = _get_bintray_api_url() + "/licenses/oss_licenses"
-    response = requests.get(url=oss_url, auth=HTTPBasicAuth(username, password))
+    response = requests.get(url=oss_url)
     if not response.ok:
         raise HTTPError("Could not request OSS licenses ({}): {}".format(
             response.status_code, response.text))
