@@ -46,6 +46,7 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
     """
     del kwargs
     try:
+        _get_credentials(remote)
         package_url = _get_bintray_package_url(remote=remote, reference=reference)
         output.info("Reading package info from Bintray.")
         remote_info = _get_package_info_from_bintray(package_url=package_url)
