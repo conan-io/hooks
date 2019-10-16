@@ -53,11 +53,16 @@ def post_upload_recipe(output, conanfile_path, reference, remote, **kwargs):
         output.info("Inspecting recipe info.")
         recipe_info = _get_package_info_from_recipe(conanfile_path=conanfile_path)
         supported_licenses = _get_oss_licenses()
-        updated_info = _update_package_info(recipe_info=recipe_info, remote_info=remote_info,
-                                            supported_licenses=supported_licenses)
+        updated_info, diff_licenses = _update_package_info(recipe_info=recipe_info,
+                                                           remote_info=remote_info,
+                                                           supported_licenses=supported_licenses)
+        if diff_licenses:
+            output.warn("Some of your licenses are not supported by Bintray: '{}'." \
+                           "Please, request for a new OSS license support.".format(
+                           ', '.join(diff_licenses)))
         if updated_info:
-            output.info("Bintray is outdated. Updating Bintray package info: {}.".format(" ".join(
-                sorted(updated_info.keys()))))
+            output.info("Bintray is outdated. Updating Bintray package info: '{}'.".format(
+                        "', '".join(sorted(updated_info.keys()))))
             _patch_bintray_package_info(
                 package_url=package_url, package_info=updated_info, remote=remote)
             output.info("Bintray package information has been updated with success.")
@@ -142,10 +147,12 @@ def _update_package_info(recipe_info, remote_info, supported_licenses):
                 "BSD %d-Clause" % version if it.lower() == ("bsd-%d-clause" % version) else it
                 for it in licenses
             ]
-        licenses = [it for it in licenses if it in supported_licenses]
+        filtered_licenses = [it for it in licenses if it in supported_licenses]
 
-        if sorted(remote_info['licenses']) != sorted(licenses):
-            updated_info['licenses'] = licenses
+        if sorted(remote_info['licenses']) != sorted(filtered_licenses):
+            updated_info['licenses'] = filtered_licenses
+
+        diff_licenses = list(set(licenses) - set(filtered_licenses))
 
     url = recipe_info['url']
     if url:
@@ -172,7 +179,7 @@ def _update_package_info(recipe_info, remote_info, supported_licenses):
     if homepage and remote_info['website_url'] != homepage:
         updated_info['website_url'] = homepage
 
-    return updated_info
+    return updated_info, diff_licenses
 
 
 def _patch_bintray_package_info(package_url, package_info, remote):
@@ -266,8 +273,10 @@ def _get_oss_licenses():
     oss_url = _get_bintray_api_url() + "/licenses/oss_licenses"
     response = requests.get(url=oss_url)
     if not response.ok:
-        raise HTTPError("Could not request OSS licenses ({}): {}".format(
-            response.status_code, response.text))
+        raise HTTPError("Could not request OSS licenses. " \
+                        "This hook requires access to OSS license list in Bintray (URL), " \
+                        "you may deactivate the hook if the situation persists. " \
+                        "Error ({}): {}".format(response.status_code, response.text))
     return [license["name"] for license in response.json()]
 
 
