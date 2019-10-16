@@ -67,40 +67,93 @@ class ConanData(ConanClientTestCase):
               "1.69.0":
                 url: "url1.69.0"
                 sha256: "sha1.69.0"
-                other: "more_data"
               "1.70.0":
                 url: "url1.70.0"
                 sha256: "sha1.70.0"
             patches:
               "1.70.0":
-                patches: "1.70.0.patch"
+                - patch_file: "001-1.70.0.patch"
+                  base_path: "source_subfolder/1.70.0"
+                - url: "https://fake_url.com/custom.patch"
+                  sha256: "sha_custom"
+                  base_path: "source_subfolder"
               "1.71.0":
-                patches: "1.71.0.patch"
-            random_field: "random"
-            field_introduced_in_the_future:
-              "1.71.0":
-                something: "else"
+                - patch_file: "001-1.71.0.patch"
+                  base_path: "source_subfolder/1.71.0"
             """)
         tools.save('conandata.yml', content=conandata)
         for version in ["1.69.0", "1.70.0", "1.71.0"]:
-            self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
+            export_output = self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
+            self.assertNotIn("ERROR: [REDUCE CONANDATA.YML (KB-H030)]", export_output)
             output = self.conan(['get', 'name/%s@jgsogo/test' % version, 'conandata.yml'])
             conandata = yaml.safe_load(output)
-
-            self.assertNotIn("random_field", conandata)
 
             if version in ["1.69.0", "1.70.0"]:
                 self.assertEqual("url%s" % version, conandata["sources"][version]["url"])
                 self.assertEqual("sha%s" % version, conandata["sources"][version]["sha256"])
                 self.assertNotIn("field_introduced_in_the_future", conandata)
             if version in ["1.70.0", "1.71.0"]:
-                self.assertIn("%s.patch" % version, conandata["patches"][version]["patches"])
+                self.assertIn("001-%s.patch" % version,
+                              conandata["patches"][version][0]["patch_file"])
+                self.assertIn("source_subfolder/%s" % version,
+                              conandata["patches"][version][0]["base_path"])
             if version == "1.69.0":
-                self.assertEqual("more_data", conandata["sources"][version]["other"])
                 self.assertNotIn("patches", conandata)
             if version == "1.70.0":
                 self.assertNotIn("other", conandata["sources"][version])
+                self.assertIn("https://fake_url.com/custom.patch",
+                              conandata["patches"][version][1]["url"])
+                self.assertIn("sha_custom", conandata["patches"][version][1]["sha256"])
+                self.assertIn("source_subfolder", conandata["patches"][version][0]["base_path"])
             if version == "1.71.0":
                 self.assertNotIn("sources", conandata)
-                self.assertIn("else",
-                              conandata["field_introduced_in_the_future"][version]["something"])
+
+    def test_wrong_conandata_format(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata_sources = textwrap.dedent("""
+            sources:
+              "1.70.0":
+                url: "url1.69.0"
+                sha256: "sha1.69.0"
+                other: "more_data"
+            """)
+        conandata_patches = textwrap.dedent("""
+            patches:
+              "1.70.0":
+                patches: "1.70.0.patch"
+            """)
+        conandata_random = textwrap.dedent("""
+            random_field: "random"
+                    """)
+        conandata_patches_specific = textwrap.dedent("""
+            patches:
+              "1.70.0":
+                - patch_file: "001-1.70.0.patch"
+                  base_path: "source_subfolder/1.70.0"
+                  other_field: "whatever"
+                - url: "https://fake_url.com/custom.patch"
+                  checksum: "sha_custom"
+                  base_path: "source_subfolder"
+            """)
+        for conandata in [conandata_random, conandata_sources, conandata_patches,
+                          conandata_patches_specific]:
+            print(conandata)
+            tools.save('conandata.yml', content=conandata)
+            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+            self.assertIn("ERROR: [REDUCE CONANDATA.YML (KB-H030)]", output)
+
+            if conandata == conandata_random:
+                self.assertIn("First level entries ['random_field'] not allowed. Use only first "
+                              "level entries ['sources', 'patches'] in conandata.yml", output)
+            if conandata == conandata_sources:
+                self.assertNotIn("First level entries", output)
+                self.assertIn("Additional entry ['other'] not allowed in 'sources':'1.70.0' of "
+                              "conandata.yml", output)
+            if conandata == conandata_patches:
+                self.assertNotIn("First level entries", output)
+                self.assertIn("Additional entries ['patches'] not allowed in 'patches':'1.70.0' "
+                              "of conandata.yml", output)
+            if conandata == conandata_patches_specific:
+                self.assertNotIn("First level entries", output)
+                self.assertIn("dditional entries ['other_field'] not allowed in 'patches':'1.70.0' "
+                              "of conandata.yml", output)

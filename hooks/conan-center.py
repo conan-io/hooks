@@ -280,17 +280,49 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_path, "conandata.yml")
         version = conanfile.version
+        allowed_first_level = ["sources", "patches"]
+        allowed_sources = ["url", "sha256"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+
+        def _not_allowed_entries(info, allowed_entries):
+            not_allowed = []
+            fields = info if isinstance(info, list) else [info]
+            for field in fields:
+                if isinstance(field, dict):
+                    return _not_allowed_entries(list(field.keys()), allowed_entries)
+                else:
+                    if field not in allowed_entries:
+                        not_allowed.append(field)
+            return not_allowed
+
         if os.path.exists(conandata_path):
             conandata = tools.load(conandata_path)
             conandata_yml = yaml.safe_load(conandata)
             if not conandata_yml:
                 return
+            entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
+            if entries:
+                out.error("First level entries %s not allowed. Use only first level entries %s in "
+                          "conandata.yml" % (entries, allowed_first_level))
             info = {}
-            for field in conandata_yml:
-                if version not in conandata_yml[field]:
+            for entry in conandata_yml:
+                if version not in conandata_yml[entry]:
                     continue
-                info[field] = {}
-                info[field][version] = conandata_yml[field][version]
+                for element in conandata_yml[entry][version]:
+                    if entry == "patches":
+                        entries = _not_allowed_entries(element, allowed_patches)
+                        if entries:
+                            out.error("Additional entries %s not allowed in 'patches':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+                    if entry == "sources":
+                        entries = _not_allowed_entries(element, allowed_sources)
+                        if entries:
+                            out.error("Additional entry %s not allowed in 'sources':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+                info[entry] = {}
+                info[entry][version] = conandata_yml[entry][version]
             new_conandata_yml = yaml.safe_dump(info)
             tools.save(conandata_path, new_conandata_yml)
 
