@@ -36,7 +36,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
-             "KB-H030": "REDUCE CONANDATA.YML"}
+             "KB-H030": "CHECK & REDUCE CONANDATA.YML"}
 
 
 class _HooksOutputErrorCollector(object):
