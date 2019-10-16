@@ -4,7 +4,6 @@
 
 # Conan Hooks
 
-![logo](images/logo.png)
 
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
