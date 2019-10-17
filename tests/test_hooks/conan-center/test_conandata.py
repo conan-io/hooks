@@ -84,7 +84,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         for version in ["1.69.0", "1.70.0", "1.71.0"]:
             export_output = self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
-            self.assertNotIn("ERROR: [CHECK & REDUCE CONANDATA.YML (KB-H030)]", export_output)
+            self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
             output = self.conan(['get', 'name/%s@jgsogo/test' % version, 'conandata.yml'])
             conandata = yaml.safe_load(output)
 
@@ -140,7 +140,7 @@ class ConanData(ConanClientTestCase):
             print(conandata)
             tools.save('conandata.yml', content=conandata)
             output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-            self.assertIn("ERROR: [CHECK & REDUCE CONANDATA.YML (KB-H030)]", output)
+            self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
 
             if conandata == conandata_random:
                 self.assertIn("First level entries ['random_field'] not allowed. Use only first "
