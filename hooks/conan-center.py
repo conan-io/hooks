@@ -305,7 +305,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
         # INFO: _HooksOutputErrorCollector->ScopedOutput->StringIO to str
         out_stream = str(output._output._stream.getvalue())
         if "Linter warnings" in out_stream:
-            out.error("This recipe is not clear according Conan Linter")
+            out.error("Linter warnings detected. Check the warnings in the output and fix them in the recipe")
 
 
 @raise_if_error_output
