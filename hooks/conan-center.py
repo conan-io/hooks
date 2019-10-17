@@ -32,7 +32,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H025": "META LINES",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
-             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
+             "KB-H031": "SYSTEM REQUIREMENTS"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -266,6 +267,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if "RunEnvironment" in test_package_conanfile:
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
+
+    @run_test("KB-H031", output)
+    def test(out):
+        if "def system_requirements" in conanfile_content:
+            out.error("The method 'system_requirements' is not allowed in the recipe.")
 
 
 @raise_if_error_output
