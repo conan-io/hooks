@@ -77,6 +77,9 @@ class _HooksOutputErrorCollector(object):
         url_str = '({})'.format(self.kb_url) if self.kb_id else ""
         self._output.error(self._get_message(message) + " " + url_str)
 
+    def __str__(self):
+        return self._output._stream.getvalue()
+
     @property
     def failed(self):
         return self._error
@@ -302,10 +305,9 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H026", output)
     def test(out):
-        # INFO: _HooksOutputErrorCollector->ScopedOutput->StringIO to str
-        out_stream = str(output._output._stream.getvalue())
-        if "Linter warnings" in out_stream:
-            out.error("Linter warnings detected. Check the warnings in the output and fix them in the recipe")
+        if "Linter warnings" in str(output):
+            out.error("Linter warnings detected. Check the warnings in the output and fix them " \
+                      "in the recipe")
 
 
 @raise_if_error_output

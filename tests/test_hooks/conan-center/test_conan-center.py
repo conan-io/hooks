@@ -414,5 +414,7 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        self.assertIn("ERROR: [LINTER WARNINGS (KB-H026)] This recipe is not clear according " \
-                      "Conan Linter", output)
+        self.assertIn("ERROR: [LINTER WARNINGS (KB-H026)] Linter warnings detected." \
+                      " Check the warnings in the output and fix them in the recipe", output)
+        self.assertIn("Linter warnings", output)
+        self.assertIn("WARN: Linter. Line 1: Unused tools imported from conans", output)
