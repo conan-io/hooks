@@ -30,6 +30,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H023": "EXPORT LICENSE",
              "KB-H024": "TEST PACKAGE FOLDER",
              "KB-H025": "META LINES",
+             "KB-H026": "LINTER WARNINGS",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
@@ -298,6 +299,13 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
                           "in the source() method to get the sources.")
+
+    @run_test("KB-H026", output)
+    def test(out):
+        # INFO: _HooksOutputErrorCollector->ScopedOutput->StringIO to str
+        out_stream = str(output._output._stream.getvalue())
+        if "Linter warnings" in out_stream:
+            out.error("This recipe is not clear according Conan Linter")
 
 
 @raise_if_error_output

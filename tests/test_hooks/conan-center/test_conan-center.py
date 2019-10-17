@@ -87,6 +87,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
@@ -110,6 +111,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
@@ -130,6 +132,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_conanfile_installer(self):
@@ -388,7 +391,7 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
 
-    def test_cmake_minimum_verstion(self):
+    def test_cmake_minimum_version(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
         cmake = """project(test)
         """
@@ -399,3 +402,17 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_linter_warnings(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools, CMake
+        import os
+        import platform
+
+        class AConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("ERROR: [LINTER WARNINGS (KB-H026)] This recipe is not clear according " \
+                      "Conan Linter", output)
