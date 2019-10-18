@@ -399,3 +399,27 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_apple_frameworks(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            url = "https://github.com/conan-io/conan-center-index"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+            def package(self):
+                self.copy("*", dst="include")
+            def cpp_info(self):
+                self.cpp_info.""")
+
+        inv_conanfile = conanfile + 'shared_link_flags.append("-framework CoreAudio")'
+        tools.save('conanfile.py', content=inv_conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [APPLE FRAMEWORK (KB-H032)] Apple Frameworks should be packaged " \
+                      "using 'self.cpp_info.frameworks'", output)
+
+        val_conanfile = conanfile + 'frameworks.append("CoreAudio")'
+        tools.save('conanfile.py', content=val_conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[APPLE FRAMEWORK (KB-H032)] OK", output)

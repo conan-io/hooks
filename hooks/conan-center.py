@@ -32,7 +32,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H025": "META LINES",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
-             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
+             "KB-H032": "APPLE FRAMEWORK"
+        }
 
 
 class _HooksOutputErrorCollector(object):
@@ -266,6 +268,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if "RunEnvironment" in test_package_conanfile:
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
+
+    @run_test("KB-H032", output)
+    def test(out):
+        if "cpp_info.shared_link_flags" in conanfile_content and "-framework" in conanfile_content:
+            out.error("Apple Frameworks should be packaged using 'self.cpp_info.frameworks'")
 
 
 @raise_if_error_output
