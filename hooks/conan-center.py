@@ -270,8 +270,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H031", output)
     def test(out):
-        if "def system_requirements" in conanfile_content:
-            out.error("The method 'system_requirements' is not allowed in the recipe.")
+        if "def system_requirements" in conanfile_content and \
+           "SystemPackageTool" in conanfile_content:
+            import re
+            match = re.search(r'(\S+)\s?=\s?SystemPackageTool', conanfile_content)
+            if ("SystemPackageTool().install" in conanfile_content) or \
+               (match and "{}.install".format(match.group(1)) in conanfile_content):
+                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
 
 
 @raise_if_error_output

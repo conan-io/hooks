@@ -416,4 +416,16 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H031)] The method 'system_requirements' is not allowed in the recipe.", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H031)] OK", output)
+
+        conanfile += "        installer.install([])"
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H031)] The method " \
+                      "'SystemPackageTool.install' is not allowed in the recipe.", output)
+
+        conanfile = conanfile.replace("installer.install([])", "SystemPackageTool().install([])")
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H031)] The method " \
+                      "'SystemPackageTool.install' is not allowed in the recipe.", output)
