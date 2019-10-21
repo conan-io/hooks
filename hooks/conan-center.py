@@ -263,8 +263,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H029", output)
     def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        test_package_path = os.path.join(dir_path, "test_package")
+        test_package_path = os.path.join(export_folder_path, "test_package")
         if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             return
 
