@@ -189,5 +189,5 @@ class ConanData(ConanClientTestCase):
                               "of conandata.yml", output)
             if conandata == conandata_patches_specific:
                 self.assertNotIn("First level entries", output)
-                self.assertIn("dditional entries ['other_field'] not allowed in 'patches':'1.70.0' "
+                self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                               "of conandata.yml", output)
