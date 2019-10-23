@@ -2,6 +2,9 @@ import fnmatch
 import inspect
 import re
 import os
+from collections import defaultdict
+
+import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 from conans import tools, Settings
@@ -33,8 +36,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
-             "KB-H032": "APPLE FRAMEWORK"
-        }
+             "KB-H030": "CONANDATA.YML FORMAT",
+             "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H033": "APPLE FRAMEWORK"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -115,6 +119,7 @@ def run_test(kb_id, output):
 @raise_if_error_output
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
+    export_folder_path = os.path.dirname(conanfile_path)
     settings = _get_settings(conanfile)
     header_only = _is_recipe_header_only(conanfile)
     installer = settings is not None and "os_build" in settings and "arch_build" in settings
@@ -259,8 +264,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H029", output)
     def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        test_package_path = os.path.join(dir_path, "test_package")
+        test_package_path = os.path.join(export_folder_path, "test_package")
         if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             return
 
@@ -269,10 +273,80 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
-    @run_test("KB-H032", output)
+    @run_test("KB-H033", output)
     def test(out):
         if "cpp_info.shared_link_flags" in conanfile_content and "-framework" in conanfile_content:
             out.error("Apple Frameworks should be packaged using 'self.cpp_info.frameworks'")
+
+    @run_test("KB-H030", output)
+    def test(out):
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        version = conanfile.version
+        allowed_first_level = ["sources", "patches"]
+        allowed_sources = ["url", "sha256"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+
+        def _not_allowed_entries(info, allowed_entries):
+            not_allowed = []
+            fields = info if isinstance(info, list) else [info]
+            for field in fields:
+                if isinstance(field, dict):
+                    return _not_allowed_entries(list(field.keys()), allowed_entries)
+                else:
+                    if field not in allowed_entries:
+                        not_allowed.append(field)
+            return not_allowed
+
+        if os.path.exists(conandata_path):
+            conandata = tools.load(conandata_path)
+            conandata_yml = yaml.safe_load(conandata)
+            if not conandata_yml:
+                return
+            entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
+            if entries:
+                out.error("First level entries %s not allowed. Use only first level entries %s in "
+                          "conandata.yml" % (entries, allowed_first_level))
+
+            for entry in conandata_yml:
+                if version not in conandata_yml[entry]:
+                    continue
+                for element in conandata_yml[entry][version]:
+                    if entry == "patches":
+                        entries = _not_allowed_entries(element, allowed_patches)
+                        if entries:
+                            out.error("Additional entries %s not allowed in 'patches':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+                    if entry == "sources":
+                        entries = _not_allowed_entries(element, allowed_sources)
+                        if entries:
+                            out.error("Additional entry %s not allowed in 'sources':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+
+
+@raise_if_error_output
+def post_export(output, conanfile, conanfile_path, reference, **kwargs):
+    export_folder_path = os.path.dirname(conanfile_path)
+
+    @run_test("KB-H031", output)
+    def test(out):
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        version = conanfile.version
+
+        if os.path.exists(conandata_path):
+            conandata = tools.load(conandata_path)
+            conandata_yml = yaml.safe_load(conandata)
+            if not conandata_yml:
+                return
+            info = {}
+            for entry in conandata_yml:
+                if version not in conandata_yml[entry]:
+                    continue
+                info[entry] = {}
+                info[entry][version] = conandata_yml[entry][version]
+            new_conandata_yml = yaml.safe_dump(info)
+            tools.save(conandata_path, new_conandata_yml)
 
 
 @raise_if_error_output
