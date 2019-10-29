@@ -386,7 +386,7 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
 
-    def test_cmake_minimum_verstion(self):
+    def test_cmake_minimum_version(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
         cmake = """project(test)
         """
@@ -396,4 +396,22 @@ class ConanCenterTests(ConanClientTestCase):
         path = os.path.join(".", "CMakeLists.txt")
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
+                      output)
+
+    def test_peel_conandata(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save("conandata.yml", content=textwrap.dedent("""
+        sources:
+          1.3.0:
+            sha256: 3dce6601b495f5b3d45b59f7d2492a340ee7e84b5beca17e48f862502bd5603f,
+            url: 'http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz'
+          1.3.2:q
+            sha256: 324234234234,
+            url: 'http://www.tortall.net/projects/yasm/releases/yasm-1.3.2.tar.gz'
+        """))
+        output = self.conan(['export', '.', 'name/1.3.0@'])
+        self.assertIn('New conandata.yml contents: sources:\n  1.3.0:\n    '
+                      'sha256: 3dce6601b495f5b3d45b59f7d2492a340ee7e84b5beca17e48f862502bd5603f,'
+                      '\n    url: '
+                      'http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz\n\n[',
                       output)
