@@ -88,7 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[SYSTEM REQUIREMENTS (KB-H031)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -110,7 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[SYSTEM REQUIREMENTS (KB-H031)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -131,7 +131,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[SYSTEM REQUIREMENTS (KB-H031)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -414,16 +414,16 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("[SYSTEM REQUIREMENTS (KB-H031)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
         conanfile += "        installer.install([])"
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H031)] The method " \
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
 
         conanfile = conanfile.replace("installer.install([])", "SystemPackageTool().install([])")
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H031)] The method " \
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
