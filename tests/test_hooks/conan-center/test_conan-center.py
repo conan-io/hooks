@@ -215,6 +215,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("[TEST PACKAGE - IMPORTS (KB-H034)] OK", output)
 
     def test_exports_licenses(self):
         tools.save('conanfile.py',
@@ -397,3 +398,26 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_imports_not_allowed(self):
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def imports(self):
+                self.copy("*.dll", "", "bin")
+                self.copy("*.dylib", "", "lib")
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE - IMPORTS (KB-H034)] The method `imports` is not " \
+                      "allowed in test_package/conanfile.py", output)
