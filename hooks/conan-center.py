@@ -578,10 +578,10 @@ def _shared_files_well_managed(conanfile, folder):
 
 def _files_match_settings(conanfile, folder, output):
     header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
-    visual_extensions = ["lib", "dll", "exe"]
-    mingw_extensions = ["a", "a.dll", "dll", "exe"]
+    visual_extensions = ["lib", "dll", "exe", "bat"]
+    mingw_extensions = ["a", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
-    linux_extensions = ["a", "so", ""]
+    linux_extensions = ["a", "so", "sh", ""]
     macos_extensions = ["a", "dylib", ""]
 
     has_header = _get_files_with_extensions(folder, header_extensions)
