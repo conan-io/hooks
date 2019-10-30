@@ -416,10 +416,10 @@ class ConanCenterTests(ConanClientTestCase):
         inv_conanfile = conanfile + 'shared_link_flags.append("-framework CoreAudio")'
         tools.save('conanfile.py', content=inv_conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [APPLE FRAMEWORK (KB-H032)] Apple Frameworks should be packaged " \
+        self.assertIn("ERROR: [APPLE FRAMEWORK (KB-H033)] Apple Frameworks should be packaged " \
                       "using 'self.cpp_info.frameworks'", output)
 
         val_conanfile = conanfile + 'frameworks.append("CoreAudio")'
         tools.save('conanfile.py', content=val_conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("[APPLE FRAMEWORK (KB-H032)] OK", output)
+        self.assertIn("[APPLE FRAMEWORK (KB-H033)] OK", output)
