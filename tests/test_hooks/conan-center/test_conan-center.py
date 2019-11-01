@@ -418,11 +418,21 @@ class ConanCenterTests(ConanClientTestCase):
             def barbarian(self):
                 self.output.info("Conan")
 
-            def my_own_method(self):
+            def __my_own_method(self):
                 self.output.info("foobar")
+
+            def __my_private_method(self):
+                self.output.info("foobar")
+
+            def __abs__(self):
+                return self.version
+
+            def _baz(self):
+                self.output.info("qux")
+
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [CUSTOM METHODS (KB-H036)] Custom methods must be declared as " \
-                      "protected. The follow methods are invalid: 'barbarian', " \
-                      "'my_own_method'", output)
+        self.assertIn("ERROR: [CUSTOM METHODS (KB-H036)] Custom methods must be declared as "
+                      "protected. The follow methods are invalid: '__my_own_method', "
+                      "'__my_private_method', 'barbarian'", output)

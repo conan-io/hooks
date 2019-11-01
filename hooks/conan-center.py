@@ -325,6 +325,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         def get_methods(conanfile):
             methods = []
             for member in dir(conanfile):
+
                 try:
                     if callable(getattr(conanfile, member)):
                         methods.append(str(member))
@@ -335,10 +336,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         mock = ConanFile(conanfile.output, None)
         valid_attrs = get_methods(mock)
         current_attrs = get_methods(conanfile)
-        invalid_attrs = []
+        invalid_attrs = re.findall(r"def (__.*[^_])\s?\(", conanfile_content, re.MULTILINE)
         for attr in current_attrs:
             if not attr.startswith("_") and attr not in valid_attrs:
                 invalid_attrs.append(attr)
+
         if invalid_attrs:
             out.error("Custom methods must be declared as protected. " \
                       "The follow methods are invalid: '{}'".format("', '".join(invalid_attrs)))
