@@ -88,7 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[CUSTOM ATTRIBUTES (KB-H034)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -110,7 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[CUSTOM ATTRIBUTES (KB-H034)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -131,7 +131,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[CUSTOM ATTRIBUTES (KB-H034)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -424,6 +424,6 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [CUSTOM ATTRIBUTES (KB-H034)] Custom attributes must be declared " \
+        self.assertIn("ERROR: [CUSTOM ATTRIBUTES (KB-H035)] Custom attributes must be declared " \
                       "as protected. The follow attributes are invalid: 'foobar', " \
                       "'package_subfolder'", output)

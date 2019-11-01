@@ -38,7 +38,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
-             "KB-H034": "CUSTOM ATTRIBUTES",
+             "KB-H035": "CUSTOM ATTRIBUTES",
             }
 
 
@@ -320,7 +320,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                                       "conandata.yml" % (entries, version))
                             return
 
-    @run_test("KB-H034", output)
+    @run_test("KB-H035", output)
     def test(out):
         mock = ConanFile(conanfile.output, None)
         valid_attrs = [attr for attr in dir(mock) if not callable(attr)] + ['conan_data', 'python_requires']
