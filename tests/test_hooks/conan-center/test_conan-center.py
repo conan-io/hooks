@@ -88,6 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM METHODS (KB-H036)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -109,6 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM METHODS (KB-H036)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -129,6 +131,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM METHODS (KB-H036)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -149,6 +152,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM METHODS (KB-H036)] OK", output)
 
     def test_shebang(self):
         conanfile = textwrap.dedent("""\
@@ -397,3 +401,28 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_invalid_recipe_methods(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            homepage = "homepage.com"
+            topics = ("fake_topic", "another_fake_topic")
+
+            def configure(self):
+                self.output.info("ok")
+
+            def barbarian(self):
+                self.output.info("Conan")
+
+            def my_own_method(self):
+                self.output.info("foobar")
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CUSTOM METHODS (KB-H036)] Custom methods must be declared as " \
+                      "protected. The follow methods are invalid: 'barbarian', " \
+                      "'my_own_method'", output)

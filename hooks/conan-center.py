@@ -7,7 +7,7 @@ from collections import defaultdict
 import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
-from conans import tools, Settings
+from conans import tools, Settings, ConanFile
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
@@ -37,7 +37,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
-             "KB-H031": "CONANDATA.YML REDUCE"}
+             "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H036": "CUSTOM METHODS",
+        }
 
 
 class _HooksOutputErrorCollector(object):
@@ -317,6 +319,29 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                             out.error("Additional entry %s not allowed in 'sources':'%s' of "
                                       "conandata.yml" % (entries, version))
                             return
+
+    @run_test("KB-H036", output)
+    def test(out):
+        def get_methods(conanfile):
+            methods = []
+            for member in dir(conanfile):
+                try:
+                    if callable(getattr(conanfile, member)):
+                        methods.append(str(member))
+                except:
+                    methods.append(str(member))
+            return methods
+
+        mock = ConanFile(conanfile.output, None)
+        valid_attrs = get_methods(mock)
+        current_attrs = get_methods(conanfile)
+        invalid_attrs = []
+        for attr in current_attrs:
+            if not attr.startswith("_") and attr not in valid_attrs:
+                invalid_attrs.append(attr)
+        if invalid_attrs:
+            out.error("Custom methods must be declared as protected. " \
+                      "The follow methods are invalid: '{}'".format("', '".join(invalid_attrs)))
 
 
 @raise_if_error_output
