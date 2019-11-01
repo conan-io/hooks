@@ -325,7 +325,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         mock = ConanFile(conanfile.output, None)
         valid_attrs = [attr for attr in dir(mock) if not callable(attr)] + ['conan_data', 'python_requires']
         current_attrs = [attr for attr in dir(conanfile) if not callable(attr)]
-        invalid_attrs = []
+        invalid_attrs = re.findall(r"(__.*)\s?=", conanfile_content, re.MULTILINE)
         for attr in current_attrs:
             if not attr.startswith("_") and attr not in valid_attrs:
                 invalid_attrs.append(attr)

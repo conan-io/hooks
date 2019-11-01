@@ -416,14 +416,23 @@ class ConanCenterTests(ConanClientTestCase):
             default_options = {"foo": False, "bar": True}
             _source_subfolder = "source_subfolder"
             _build_subfolder = "build_subfolder"
+            __my_private = "secret"
+            __attribute__ = "foobar"
+            __qux= "baz"
             foobar = "package"
             package_subfolder = "package"
 
             def package(self):
                 self.copy("*", dst="include")
+
+            def _foobar(self):
+                pass
+
+            def __private(self):
+                pass
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [CUSTOM ATTRIBUTES (KB-H035)] Custom attributes must be declared " \
-                      "as protected. The follow attributes are invalid: 'foobar', " \
-                      "'package_subfolder'", output)
+        self.assertIn("ERROR: [CUSTOM ATTRIBUTES (KB-H035)] Custom attributes must be declared as "
+                      "protected. The follow attributes are invalid: '__my_private ', "
+                      "'__attribute__ ', '__qux', 'foobar', 'package_subfolder'", output)
