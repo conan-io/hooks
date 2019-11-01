@@ -7,7 +7,7 @@ from collections import defaultdict
 import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
-from conans import tools, Settings
+from conans import tools, Settings, ConanFile
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
@@ -37,7 +37,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
-             "KB-H031": "CONANDATA.YML REDUCE"}
+             "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H034": "CUSTOM ATTRIBUTES",
+            }
 
 
 class _HooksOutputErrorCollector(object):
@@ -317,6 +319,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                             out.error("Additional entry %s not allowed in 'sources':'%s' of "
                                       "conandata.yml" % (entries, version))
                             return
+
+    @run_test("KB-H034", output)
+    def test(out):
+        mock = ConanFile(conanfile.output, None)
+        valid_attrs = [attr for attr in dir(mock) if not callable(attr)] + ['conan_data', 'python_requires']
+        current_attrs = [attr for attr in dir(conanfile) if not callable(attr)]
+        invalid_attrs = []
+        for attr in current_attrs:
+            if not attr.startswith("_") and attr not in valid_attrs:
+                invalid_attrs.append(attr)
+        if invalid_attrs:
+            out.error("Custom attributes must be declared as protected. " \
+                      "The follow attributes are invalid: '{}'".format("', '".join(invalid_attrs)))
 
 
 @raise_if_error_output
