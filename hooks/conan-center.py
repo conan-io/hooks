@@ -38,7 +38,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
-             "KB-H033": "APPLE FRAMEWORK"}
+             "KB-H033": "APPLE FRAMEWORK",
+            }
 
 
 class _HooksOutputErrorCollector(object):
