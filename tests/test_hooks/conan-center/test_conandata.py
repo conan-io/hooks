@@ -133,6 +133,7 @@ class ConanData(ConanClientTestCase):
             export_output = self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
             self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
             output = self.conan(['get', 'name/%s@jgsogo/test' % version, 'conandata.yml'])
+            self.assertNotIn("{", output)
             conandata = yaml.safe_load(output)
 
             if version == "1.69.0":
