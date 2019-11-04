@@ -37,7 +37,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
-             "KB-H031": "CONANDATA.YML REDUCE"}
+             "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H037": "NO AUTHOR",
+            }
 
 
 class _HooksOutputErrorCollector(object):
@@ -318,6 +320,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                             out.error("Additional entry %s not allowed in 'sources':'%s' of "
                                       "conandata.yml" % (entries, version))
                             return
+
+    @run_test("KB-H037", output)
+    def test(out):
+        author = getattr(conanfile, "author", None)
+        if author:
+            if isinstance(author, str):
+                author = '"%s"' % author
+            out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
 
 
 @raise_if_error_output
