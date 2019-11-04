@@ -254,7 +254,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     (filename.endswith(".txt") or filename.endswith(".cmake")):
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
-                        if not "cmake_minimum_required(version" in cmake_content:
+                        if not "cmake_minimum_required(version" in cmake_content and \
+                           not "cmake_minimum_required (version" in cmake_content:
                             file_path = os.path.join(os.path.relpath(root), filename)
                             out.error("The CMake file '%s' must contain a minimum version " \
                                       "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
@@ -346,7 +347,9 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
                     continue
                 info[entry] = {}
                 info[entry][version] = conandata_yml[entry][version]
-            new_conandata_yml = yaml.safe_dump(info)
+            out.info("Saving conandata.yml: {}".format(info))
+            new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
+            out.info("New conandata.yml contents: {}".format(new_conandata_yml))
             tools.save(conandata_path, new_conandata_yml)
 
 
@@ -459,7 +462,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
-        if conanfile.name in ["ms-gsl"]:
+        # INFO: Whitelist for package names
+        if conanfile.name in ["ms-gsl", "cccl"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
