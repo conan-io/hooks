@@ -215,7 +215,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
-        self.assertIn("[TEST PACKAGE - IMPORTS (KB-H034)] OK", output)
+        self.assertIn("[NO IMPORTS() (KB-H034)] OK", output)
 
     def test_exports_licenses(self):
         tools.save('conanfile.py',
@@ -419,5 +419,5 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
-        self.assertIn("ERROR: [TEST PACKAGE - IMPORTS (KB-H034)] The method `imports` is not " \
+        self.assertIn("ERROR: [NO IMPORTS() (KB-H034)] The method `imports` is not " \
                       "allowed in test_package/conanfile.py", output)
