@@ -2,6 +2,9 @@ import fnmatch
 import inspect
 import re
 import os
+from collections import defaultdict
+
+import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 from conans import tools, Settings
@@ -33,7 +36,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H026": "LINTER WARNINGS",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
-             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT"}
+             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
+             "KB-H030": "CONANDATA.YML FORMAT",
+             "KB-H031": "CONANDATA.YML REDUCE"}
 
 
 class _HooksOutputErrorCollector(object):
@@ -117,6 +122,7 @@ def run_test(kb_id, output):
 @raise_if_error_output
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
+    export_folder_path = os.path.dirname(conanfile_path)
     settings = _get_settings(conanfile)
     header_only = _is_recipe_header_only(conanfile)
     installer = settings is not None and "os_build" in settings and "arch_build" in settings
@@ -250,7 +256,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     (filename.endswith(".txt") or filename.endswith(".cmake")):
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
-                        if not "cmake_minimum_required(version" in cmake_content:
+                        if not "cmake_minimum_required(version" in cmake_content and \
+                           not "cmake_minimum_required (version" in cmake_content:
                             file_path = os.path.join(os.path.relpath(root), filename)
                             out.error("The CMake file '%s' must contain a minimum version " \
                                       "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
@@ -261,8 +268,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H029", output)
     def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        test_package_path = os.path.join(dir_path, "test_package")
+        test_package_path = os.path.join(export_folder_path, "test_package")
         if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             return
 
@@ -270,6 +276,78 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if "RunEnvironment" in test_package_conanfile:
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
+
+    @run_test("KB-H030", output)
+    def test(out):
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        version = conanfile.version
+        allowed_first_level = ["sources", "patches"]
+        allowed_sources = ["url", "sha256"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+
+        def _not_allowed_entries(info, allowed_entries):
+            not_allowed = []
+            fields = info if isinstance(info, list) else [info]
+            for field in fields:
+                if isinstance(field, dict):
+                    return _not_allowed_entries(list(field.keys()), allowed_entries)
+                else:
+                    if field not in allowed_entries:
+                        not_allowed.append(field)
+            return not_allowed
+
+        if os.path.exists(conandata_path):
+            conandata = tools.load(conandata_path)
+            conandata_yml = yaml.safe_load(conandata)
+            if not conandata_yml:
+                return
+            entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
+            if entries:
+                out.error("First level entries %s not allowed. Use only first level entries %s in "
+                          "conandata.yml" % (entries, allowed_first_level))
+
+            for entry in conandata_yml:
+                if version not in conandata_yml[entry]:
+                    continue
+                for element in conandata_yml[entry][version]:
+                    if entry == "patches":
+                        entries = _not_allowed_entries(element, allowed_patches)
+                        if entries:
+                            out.error("Additional entries %s not allowed in 'patches':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+                    if entry == "sources":
+                        entries = _not_allowed_entries(element, allowed_sources)
+                        if entries:
+                            out.error("Additional entry %s not allowed in 'sources':'%s' of "
+                                      "conandata.yml" % (entries, version))
+                            return
+
+
+@raise_if_error_output
+def post_export(output, conanfile, conanfile_path, reference, **kwargs):
+    export_folder_path = os.path.dirname(conanfile_path)
+
+    @run_test("KB-H031", output)
+    def test(out):
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        version = conanfile.version
+
+        if os.path.exists(conandata_path):
+            conandata = tools.load(conandata_path)
+            conandata_yml = yaml.safe_load(conandata)
+            if not conandata_yml:
+                return
+            info = {}
+            for entry in conandata_yml:
+                if version not in conandata_yml[entry]:
+                    continue
+                info[entry] = {}
+                info[entry][version] = conandata_yml[entry][version]
+            out.info("Saving conandata.yml: {}".format(info))
+            new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
+            out.info("New conandata.yml contents: {}".format(new_conandata_yml))
+            tools.save(conandata_path, new_conandata_yml)
 
 
 @raise_if_error_output
@@ -387,7 +465,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
-        if conanfile.name in ["ms-gsl"]:
+        # INFO: Whitelist for package names
+        if conanfile.name in ["ms-gsl", "cccl"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"

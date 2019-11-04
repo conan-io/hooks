@@ -5,7 +5,11 @@ import shutil
 import tempfile
 import unittest
 import uuid
-from io import StringIO
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from conans.client.command import SUCCESS
 from tests.utils.conan_command import conan_command
