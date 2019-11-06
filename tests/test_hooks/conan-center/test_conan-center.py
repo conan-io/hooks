@@ -442,6 +442,7 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
     def test_system_requirements(self):
         conanfile = textwrap.dedent("""\
@@ -469,7 +470,6 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
-        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
