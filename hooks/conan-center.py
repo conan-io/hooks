@@ -37,7 +37,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
-             "KB-H031": "CONANDATA.YML REDUCE"}
+             "KB-H031": "CONANDATA.YML REDUCE",
+            }
 
 
 class _HooksOutputErrorCollector(object):
@@ -249,7 +250,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for (root, _, filenames) in os.walk(folder):
                 for filename in filenames:
                     if filename.lower().startswith("cmake") and \
-                    (filename.endswith(".txt") or filename.endswith(".cmake")):
+                       (filename.endswith(".txt") or filename.endswith(".cmake")) and \
+                       os.path.join("test_package", "build") not in root:
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
                         if not "cmake_minimum_required(version" in cmake_content and \
