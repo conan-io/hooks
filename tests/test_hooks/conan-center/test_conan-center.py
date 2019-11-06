@@ -440,6 +440,7 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
     def test_imports_not_allowed(self):
         conanfile_tp = textwrap.dedent("""\
@@ -462,8 +463,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("ERROR: [NO IMPORTS() (KB-H034)] The method `imports` is not " \
-                      "allowed in test_package/conanfile.py", output)
-        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
+                      "allowed in test_package/conanfile.py", output)        
 
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
