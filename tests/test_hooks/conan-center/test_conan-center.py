@@ -440,3 +440,25 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
+
+    def test_no_author(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            {}
+            def configure(self):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", ""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[NO AUTHOR (KB-H037)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "author = 'foobar'"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
+                      'Remove \'author = "foobar"\'', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "author = ('foo', 'bar')"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
+                      'Remove \'author = (\'foo\', \'bar\')', output)
