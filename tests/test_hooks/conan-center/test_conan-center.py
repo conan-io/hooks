@@ -401,6 +401,35 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
                       "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
+
+    def test_cmake_minimum_version_test_package(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools, CMake
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def build(self):
+                cmake = CMake(self)
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+        cmake = """cmake_minimum_required(VERSION 2.8.11)
+        project(test)
+        """
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        # validate residual cmake files in test_package/build
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
+
         cmake = textwrap.dedent("""CMAKE_MINIMUM_REQUIRED (VERSION 2.8.11)
         project(test)
         """)
@@ -414,6 +443,7 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
     def test_invalid_recipe_methods(self):
         conanfile = textwrap.dedent("""\
@@ -449,3 +479,25 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CUSTOM METHODS (KB-H036)] Custom methods must be declared as "
                       "protected. The follow methods are invalid: '__my_own_method', "
                       "'__my_private_method', 'barbarian'", output)
+
+    def test_no_author(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            {}
+            def configure(self):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", ""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[NO AUTHOR (KB-H037)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "author = 'foobar'"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
+                      'Remove \'author = "foobar"\'', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "author = ('foo', 'bar')"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
+                      'Remove \'author = (\'foo\', \'bar\')', output)
