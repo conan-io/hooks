@@ -48,12 +48,12 @@ class MatchingConfigurationTests(ConanClientTestCase):
         info = {
             "Windows": {
                 "platform": "Visual Studio",
-                "extensions": "['lib', 'dll', 'exe']",
+                "extensions": "['lib', 'dll', 'exe', 'bat']",
                 "wrong_extension": ".so"
             },
             "Linux": {
                 "platform": "Linux",
-                "extensions": "['a', 'so', '']",
+                "extensions": "['a', 'so', 'sh', '']",
                 "wrong_extension": ".dylib"
             },
             "Darwin": {
