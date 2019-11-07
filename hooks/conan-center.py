@@ -336,7 +336,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         try:
             open(conanfile_path, encoding='ascii').read()
         except UnicodeDecodeError as error:
-            out.warn("This conanfile contains a non-ascii character at position ({}) "
+            out.error("This conanfile contains a non-ascii character at position ({}) "
                      "and is not compatible with Python 2".format(error.start))
 
 
