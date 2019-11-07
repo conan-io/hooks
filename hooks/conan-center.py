@@ -39,6 +39,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
              "KB-H037": "NO AUTHOR",
+             "KB-H038": "ASCII SUPPORT",
             }
 
 
@@ -329,6 +330,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if isinstance(author, str):
                 author = '"%s"' % author
             out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
+
+    @run_test("KB-H038", output)
+    def test(out):
+        try:
+            open(conanfile_path, encoding='ascii').read()
+        except UnicodeDecodeError as error:
+            out.warn("This conanfile contains a non-ascii character at position ({}) "
+                     "and is not compatible with Python 2".format(error.start))
 
 
 @raise_if_error_output

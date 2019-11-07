@@ -88,6 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[ASCII SUPPORT (KB-H038)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -462,3 +463,17 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
                       'Remove \'author = (\'foo\', \'bar\')', output)
+
+    def test_invalid_ascii_recipe(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            description = "open-source file compression that uses the Burrows–Wheeler algorithm."
+
+            def configure(self):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", ""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [ASCII SUPPORT (KB-H038)] This conanfile contains a non-ascii " \
+                      "character at position (123) and is not compatible with Python 2", output)
