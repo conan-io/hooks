@@ -465,15 +465,14 @@ class ConanCenterTests(ConanClientTestCase):
                       'Remove \'author = (\'foo\', \'bar\')', output)
 
     def test_invalid_ascii_recipe(self):
-        conanfile = textwrap.dedent("""\
-        from conans import ConanFile
-        class AConan(ConanFile):
-            description = "open-source file compression that uses the Burrows–Wheeler algorithm."
-
-            def configure(self):
-                pass
-        """)
+        conanfile = textwrap.dedent(b"""
+            from conans import ConanFile
+            class AConan(ConanFile):
+                description = "file compression that uses the Burrows\xe2\x80\x93Wheeler algorithm"
+                def configure(self):
+                    pass
+        """.decode(encoding="utf8"))
         tools.save('conanfile.py', content=conanfile.replace("{}", ""))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [ASCII SUPPORT (KB-H038)] This conanfile contains a non-ascii " \
-                      "character at position (123) and is not compatible with Python 2", output)
+                      "character at position (112) and is not compatible with Python 2", output)
