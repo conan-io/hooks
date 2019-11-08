@@ -2,6 +2,7 @@ import fnmatch
 import inspect
 import re
 import os
+import sys
 from collections import defaultdict
 
 import yaml
@@ -334,8 +335,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H038", output)
     def test(out):
         try:
-            open(conanfile_path, encoding='ascii').read()
-        except UnicodeDecodeError as error:
+            if sys.version_info[0] < 3:
+                open(conanfile_path).read()
+            else:
+                open(conanfile_path, encoding='ascii').read()
+        except (SyntaxError, UnicodeDecodeError) as error:
             out.error("This conanfile contains a non-ascii character at position ({}) "
                      "and is not compatible with Python 2".format(error.start))
 

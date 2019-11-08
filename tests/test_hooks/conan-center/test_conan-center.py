@@ -1,6 +1,7 @@
 import os
 import platform
 import textwrap
+import sys
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -472,7 +473,11 @@ class ConanCenterTests(ConanClientTestCase):
                 def configure(self):
                     pass
         """.decode(encoding="utf8"))
-        tools.save('conanfile.py', content=conanfile.replace("{}", ""))
-        output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [ASCII SUPPORT (KB-H038)] This conanfile contains a non-ascii " \
-                      "character at position (112) and is not compatible with Python 2", output)
+        tools.save('conanfile.py', content=conanfile)
+        try:
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            self.assertIn("ERROR: [ASCII SUPPORT (KB-H038)] This conanfile contains a non-ascii " \
+                    "character at position (112) and is not compatible with Python 2", output)
+        except Exception as error:
+            self.assertLess(sys.version_info[0], 3)
+            self.assertIn(r"SyntaxError: Non-ASCII character '\xe2' in file", str(error))
