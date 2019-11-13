@@ -33,6 +33,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H023": "EXPORT LICENSE",
              "KB-H024": "TEST PACKAGE FOLDER",
              "KB-H025": "META LINES",
+             "KB-H026": "LINTER WARNINGS",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
@@ -82,6 +83,9 @@ class _HooksOutputErrorCollector(object):
         self._error = True
         url_str = '({})'.format(self.kb_url) if self.kb_id else ""
         self._output.error(self._get_message(message) + " " + url_str)
+
+    def __str__(self):
+        return self._output._stream.getvalue()
 
     @property
     def failed(self):
@@ -387,6 +391,12 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
                           "in the source() method to get the sources.")
+
+    @run_test("KB-H026", output)
+    def test(out):
+        if "Linter warnings" in str(output):
+            out.error("Linter warnings detected. Check the warnings in the output and fix them " \
+                      "in the recipe")
 
 
 @raise_if_error_output
