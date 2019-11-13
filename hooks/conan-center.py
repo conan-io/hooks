@@ -403,12 +403,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
                           "in the source() method to get the sources.")
 
-    @run_test("KB-H026", output)
-    def test(out):
-        if "Linter warnings" in str(output):
-            out.error("Linter warnings detected. Check the warnings in the output and fix them " \
-                      "in the recipe")
-
 
 @raise_if_error_output
 def post_source(output, conanfile, conanfile_path, **kwargs):
