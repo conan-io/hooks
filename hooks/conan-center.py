@@ -39,7 +39,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
-             "KB-H034": "NO IMPORTS()",
+             "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
             }
 
