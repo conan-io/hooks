@@ -39,6 +39,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
             }
 
@@ -325,6 +326,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                             out.error("Additional entry %s not allowed in 'sources':'%s' of "
                                       "conandata.yml" % (entries, version))
                             return
+
+    @run_test("KB-H034", output)
+    def test(out):
+        test_package_path = os.path.join(export_folder_path, "test_package")
+        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+            return
+
+        test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
+        if "def imports" in test_package_conanfile:
+            out.error("The method `imports` is not allowed in test_package/conanfile.py")
 
     @run_test("KB-H037", output)
     def test(out):
