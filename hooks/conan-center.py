@@ -349,9 +349,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H039", output)
     def test(out):
         forbidden_attrs = []
-        for attr in ["scm", "revision_mode"]:
-            if getattr(conanfile, attr, None):
-                forbidden_attrs.append(attr)
+        if getattr(conanfile, "scm", None):
+            forbidden_attrs.append("scm")
+        if re.search(r"revision_mode\s=", conanfile_content):
+            forbidden_attrs.append("revision_mode")
 
         if forbidden_attrs:
             out.error("Conanfile should not contain attributes related to revision. "

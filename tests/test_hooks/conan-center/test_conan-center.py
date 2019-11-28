@@ -510,4 +510,4 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile.replace("{}", scm))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
-        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'scm, revision_mode'.", output)
+        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'scm'.", output)
