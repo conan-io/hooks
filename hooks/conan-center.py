@@ -41,6 +41,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H031": "CONANDATA.YML REDUCE",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
+             "KB-H039": "NO REVISION",
             }
 
 
@@ -344,6 +345,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if isinstance(author, str):
                 author = '"%s"' % author
             out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
+
+    @run_test("KB-H039", output)
+    def test(out):
+        forbidden_attrs = []
+        for attr in ["scm", "revision_mode"]:
+            if getattr(conanfile, attr, None):
+                forbidden_attrs.append(attr)
+
+        if forbidden_attrs:
+            out.error("Conanfile should not contain attributes related to revision. "
+                      "Remove '{}'.".format(", ".join(forbidden_attrs)))
 
 
 @raise_if_error_output

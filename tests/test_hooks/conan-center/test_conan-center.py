@@ -3,7 +3,7 @@ import platform
 import textwrap
 
 from conans import tools
-from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
+from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS, ERROR_GENERAL
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
@@ -88,6 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[NO REVISION (KB-H039)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -109,6 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[NO REVISION (KB-H039)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -486,3 +488,26 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
                       'Remove \'author = (\'foo\', \'bar\')', output)
+
+    def test_no_scm(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            {}
+            def configure(self):
+                pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
+        output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
+        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'revision_mode'.", output)
+
+        scm = textwrap.dedent("""\
+        scm = {"type": "git",
+               "subfolder": "hello",
+               "url": "auto",
+               "revision": "auto"}
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", scm))
+        output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
+        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'scm, revision_mode'.", output)
