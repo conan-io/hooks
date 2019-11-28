@@ -6,58 +6,59 @@ jobs:
   fast_finish: true
   include:
 
-    - stage: Linux - Conan develop
-      name: Python 2.7
-      python: 2.7
-      env: TOXENV=py27-conandev
-    - name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conandev
-      dist: xenial
-      sudo: true
+    # - stage: Linux - Conan develop
+    #   name: Python 2.7
+    #   python: 2.7
+    #   env: TOXENV=py27-conandev
+    # - name: Python 3.7
+    #   python: 3.7
+    #   env: TOXENV=py37-conandev
+    #   dist: xenial
+    #   sudo: true
 
-    # All Linux first, check versions
-    - stage: Linux - Conan Current
-      name: Python 2.7
-      python: 2.7
-      env: TOXENV=py27-conancurrent
-    - name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conancurrent
-      dist: xenial
-      sudo: true
+    # # All Linux first, check versions
+    # - stage: Linux - Conan Current
+    #   name: Python 2.7
+    #   python: 2.7
+    #   env: TOXENV=py27-conancurrent
+    # - name: Python 3.7
+    #   python: 3.7
+    #   env: TOXENV=py37-conancurrent
+    #   dist: xenial
+    #   sudo: true
 
-    - stage: Linux - Conan 1.19
-      name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conan119
-      dist: xenial
-      sudo: true
+    # - stage: Linux - Conan 1.19
+    #   name: Python 3.7
+    #   python: 3.7
+    #   env: TOXENV=py37-conan119
+    #   dist: xenial
+    #   sudo: true
 
-    - stage: Linux - Conan 1.18
-      name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conan118
-      dist: xenial
-      sudo: true
+    # - stage: Linux - Conan 1.18
+    #   name: Python 3.7
+    #   python: 3.7
+    #   env: TOXENV=py37-conan118
+    #   dist: xenial
+    #   sudo: true
 
     # Macos is slow, only if everything has passed
+    # - stage: Macos - All Conan versions
+    #   name: Conan develop - Python 3.7
+    #   language: generic
+    #   os: osx
+    #   osx_image: xcode8.3
+    #   env: PYVER=py37 TOXENV=py37-conandev
     - stage: Macos - All Conan versions
-      name: Conan develop - Python 3.7
-      language: generic
-      os: osx
-      osx_image: xcode8.3
-      env: PYVER=py37 TOXENV=py37-conandev
-    - name: Conan Current - Python 2.7
+      name: Conan Current - Python 2.7
       language: generic
       os: osx
       osx_image: xcode8.3
       env: PYVER=py27 TOXENV=py27-conancurrent
-    - name: Conan Current - Python 3.7
-      language: generic
-      os: osx
-      osx_image: xcode8.3
-      env: PYVER=py37 TOXENV=py37-conancurrent
+    # - name: Conan Current - Python 3.7
+    #   language: generic
+    #   os: osx
+    #   osx_image: xcode8.3
+    #   env: PYVER=py37 TOXENV=py37-conancurrent
 
 before_install:
   - ./.travis/before_install.sh
