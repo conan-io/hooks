@@ -384,7 +384,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                       "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
-            needed_content = ['**self.conan_data["sources"]']
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
@@ -394,10 +393,11 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                         break
             else:
                 fixed_sources = True
-                for valid in needed_content:
-                    if valid not in conanfile_content:
-                        fixed_sources = False
-                        break
+                if ('**self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.get' not in conanfile_content) and \
+                   ('self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.download' not in conanfile_content):
+                    fixed_sources = False
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
