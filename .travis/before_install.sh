@@ -5,7 +5,9 @@ set -x
 
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     brew update
-    brew upgrade openssl readline pyenv
+    brew upgrade openssl readline
+    CFLAGS="-I$(brew --prefix openssl)/include,-I$(brew --prefix readline)/include"
+    LDFLAGS="-L$(brew --prefix openssl)/lib,-L$(brew --prefix readline)/lib"
     brew install pyenv-virtualenv
 
     if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
