@@ -144,11 +144,11 @@ class RecipeLinterTests(ConanClientTestCase):
                     try:
                         raise Exception("Pikaaaaa!!")
                     except:
-                        print("I got pikachu!!")
+                        pass
                     try:
                         raise Exception("Pikaaaaa!!")
                     except Exception:
-                        print("I got pikachu!!")
+                        pass
             """)
 
         tools.save('conanfile.py', content=conanfile)
@@ -166,7 +166,7 @@ class RecipeLinterTests(ConanClientTestCase):
             class ExampleConan(ConanFile):
     
                 def build(self):
-                    print(self.conan_data["sources"][float(self.version)])
+                    _ = self.conan_data["sources"][float(self.version)]
             """)
         tools.save('conanfile.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
