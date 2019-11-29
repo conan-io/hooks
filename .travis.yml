@@ -46,17 +46,17 @@ jobs:
       name: Conan develop - Python 3.7
       language: generic
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env: PYVER=py37 TOXENV=py37-conandev
     - name: Conan Current - Python 2.7
       language: generic
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env: PYVER=py27 TOXENV=py27-conancurrent
     - name: Conan Current - Python 3.7
       language: generic
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env: PYVER=py37 TOXENV=py37-conancurrent
 
 before_install:

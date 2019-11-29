@@ -14,8 +14,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     case "${PYVER}" in
         py27)
-            pyenv install 2.7.10
-            pyenv virtualenv 2.7.10 conan
+            pyenv install 2.7.16
+            pyenv virtualenv 2.7.16 conan
             ;;
         py33)
             pyenv install 3.3.6
