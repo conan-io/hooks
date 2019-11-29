@@ -14,9 +14,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     case "${PYVER}" in
         py27)
-            CFLAGS="-I$(brew --prefix openssl)/include" \
-            LDFLAGS="-L$(brew --prefix openssl)/lib" \
-            pyenv install --verbose 2.7.16
+            pyenv install 2.7.16
             pyenv virtualenv 2.7.16 conan
             ;;
         py33)
