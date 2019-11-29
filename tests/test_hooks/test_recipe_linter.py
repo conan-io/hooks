@@ -46,8 +46,10 @@ class RecipeLinterTests(ConanClientTestCase):
                               " Please fix them.", output)
 
             if six.PY2:
-                self.assertIn("ERROR: Py3 incompatibility. Line 7: print statement used", output)
-                self.assertIn("ERROR: Py3 incompatibility. Line 8: Calling a dict.iter*() method", output)
+                self.assertIn("pre_export(): conanfile.py:8:8:"
+                              " E1601: print statement used (print-statement)", output)
+                self.assertIn("pre_export(): conanfile.py:9:20:"
+                              " W1620: Calling a dict.iter*() method (dict-iter-method)", output)
 
             self.assertIn("pre_export(): conanfile.py:9:20:"
                           " W1620: Calling a dict.iter*() method (dict-iter-method)", output)
