@@ -9,7 +9,6 @@ from parameterized import parameterized
 from conans import tools
 from conans.client.command import ERROR_GENERAL, SUCCESS
 from conans.tools import environment_append
-from hooks.recipe_linter import CONAN_HOOK_PYLINT_RCFILE, CONAN_HOOK_PYLINT_WERR
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
@@ -38,7 +37,7 @@ class RecipeLinterTests(ConanClientTestCase):
     def test_basic(self, pylint_werr):
         tools.save('conanfile.py', content=self.conanfile)
         pylint_werr_value = "1" if pylint_werr else None
-        with environment_append({CONAN_HOOK_PYLINT_WERR: pylint_werr_value}):
+        with environment_append({"CONAN_PYLINT_WERR": pylint_werr_value}):
             return_code = ERROR_GENERAL if pylint_werr else SUCCESS
             output = self.conan(['export', '.', 'name/version@'], expected_return_code=return_code)
 
@@ -63,14 +62,14 @@ class RecipeLinterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile)
         tools.save('pylintrc', content="[FORMAT]\nindent-string='  '")
 
-        with environment_append({CONAN_HOOK_PYLINT_RCFILE: os.path.join(os.getcwd(), "pylintrc")}):
+        with environment_append({"CONAN_PYLINTRC": os.path.join(os.getcwd(), "pylintrc")}):
             output = self.conan(['export', '.', 'name/version@'])
 
-        self.assertIn("pre_export(): conanfile.py:4:0:"
-                      " W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
+        self.assertIn("pre_export(): conanfile.py:4:0: "
+                      "W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
 
     def test_dynamic_fields(self):
-        conanfile = textwrap.dedent( """
+        conanfile = textwrap.dedent("""
             from conans import ConanFile, python_requires
             
             base = python_requires("name/version")
@@ -107,7 +106,7 @@ class RecipeLinterTests(ConanClientTestCase):
         self.conan(['export', 'require.py', 'name/version@'])
 
         tools.save('consumer.py', content=conanfile)
-        with environment_append({CONAN_HOOK_PYLINT_WERR: "1"}):
+        with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', 'consumer.py', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
             self.assertNotIn("(no-member)", output)
@@ -129,7 +128,7 @@ class RecipeLinterTests(ConanClientTestCase):
             """)
 
         tools.save('conanfile.py', content=conanfile)
-        with environment_append({CONAN_HOOK_PYLINT_WERR: "1"}):
+        with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', '.', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
             self.assertNotIn("no-member", output)
@@ -146,8 +145,7 @@ class RecipeLinterTests(ConanClientTestCase):
                     print(self.conan_data["sources"][float(self.version)])
             """)
         tools.save('conanfile.py', content=conanfile)
-        with environment_append({CONAN_HOOK_PYLINT_WERR: "1"}):
+        with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', '.', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
             self.assertNotIn("no-member", output)
-
