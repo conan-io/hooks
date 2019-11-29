@@ -49,7 +49,10 @@ def pre_export(output, conanfile_path, *args, **kwargs):
     try:
         buff = StringIO()
         reporter = JSONReporter(output=buff)
-        lint.Run(lint_args, reporter=reporter, do_exit=False)
+        if version.parse(pylint_version) >= version.Version("2.0"):
+            lint.Run(lint_args, reporter=reporter, do_exit=False)
+        else:
+            lint.Run(lint_args, reporter=reporter, exit=False)
     except Exception as e:
         output.error("Unexpected error running linter: {}".format(e))
     else:
