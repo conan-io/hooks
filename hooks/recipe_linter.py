@@ -27,8 +27,7 @@ CONAN_HOOK_PYLINT_WERR = "CONAN_PYLINT_WERR"
 def pre_export(output, conanfile_path, *args, **kwargs):
     output.info("Lint recipe '{}'".format(conanfile_path))
 
-    lint_args = ['--verbose',
-                 '--exit-zero',
+    lint_args = ['--exit-zero',
                  '--py3k',
                  '--enable=all',
                  '--reports=no',
