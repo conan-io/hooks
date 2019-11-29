@@ -11,7 +11,7 @@ jobs:
       name: Conan Current - Python 2.7
       language: generic
       os: osx
-      osx_image: xcode8.3
+      osx_image: xcode11.2
       env: PYVER=py27 TOXENV=py27-conancurrent
 
 before_install:
