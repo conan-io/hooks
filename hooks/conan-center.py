@@ -355,8 +355,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             forbidden_attrs.append("revision_mode")
 
         if forbidden_attrs:
-            out.error("Conanfile should not contain attributes related to revision. "
-                      "Remove '{}'.".format(", ".join(forbidden_attrs)))
+            out.error("Conanfile should not contain the follow attributes: '{}'. Remove them."
+                      .format(", ".join(forbidden_attrs)))
 
 
 @raise_if_error_output
