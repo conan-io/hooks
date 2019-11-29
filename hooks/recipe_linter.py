@@ -3,16 +3,19 @@
 import os
 import sys
 
+from packaging import version
 from six import StringIO
 
 from conans.errors import ConanException
 
 try:
-    from pylint import lint
-    from pylint.reporters.text import TextReporter, ParseableTextReporter
-    from pylint.reporters.json import JSONReporter
     import astroid  # Conan 'pylint_plugin.py' uses astroid
-except ImportError:
+    from pylint import lint, __version__ as pylint_version
+    if version.parse(pylint_version) >= version.Version("2.4"):
+        from pylint.reporters import JSONReporter
+    else:
+        from pylint.reporters.json import JSONReporter
+except ImportError as e:
     sys.stderr.write("Install pylint to use 'recipe_linter' hook: 'pip install pylint astroid'")
     sys.exit(1)
 
