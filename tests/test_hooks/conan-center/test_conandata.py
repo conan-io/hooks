@@ -60,6 +60,19 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
 
+        conanfile = textwrap.dedent("""\
+                       import os
+                       from conans import ConanFile, tools
+
+                       class AConan(ConanFile):
+
+                           def source(self):
+                               tools.download(self.conan_data["sources"]["all"]["url"])
+                       """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
+        self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
+
     def test_multiple_sources(self):
         tools.save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
