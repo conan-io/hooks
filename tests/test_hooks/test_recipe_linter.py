@@ -68,6 +68,28 @@ class RecipeLinterTests(ConanClientTestCase):
         self.assertIn("pre_export(): conanfile.py:4:0: "
                       "W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
 
+    def test_custom_plugin(self):
+        conanfile = textwrap.dedent("""
+            from conans import ConanFile
+
+            class Recipe(ConanFile):
+                def build(self):
+                    self.output.info(self.source_folder)
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        with environment_append({"CONAN_PYLINT_WERR": "1"}):
+            # With the default 'python_plugin' it doesn't raise
+            with environment_append({"CONAN_PYLINT_RECIPE_PLUGINS": None}):
+                output = self.conan(['export', '.', 'consumer/version@'])
+                self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
+
+            # With a custom one, it should fail
+            tools.save("plugin_empty.py", content="def register(_):\n\tpass")
+            with environment_append({"CONAN_PYLINT_RECIPE_PLUGINS": "plugin_empty"}):
+                output = self.conan(['export', '.', 'consumer/other@'], expected_return_code=ERROR_GENERAL)
+                self.assertIn("pre_export(): Package recipe has linter errors."
+                              " Please fix them.", output)
+
     def test_dynamic_fields(self):
         conanfile = textwrap.dedent("""
             from conans import ConanFile, python_requires
