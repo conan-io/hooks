@@ -4,6 +4,7 @@ set -e
 set -x
 
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    CFLAGS="-I$(brew --prefix openssl)/include -I$(xcrun --show-sdk-path)/usr/include" LDFLAGS="-L$(brew --prefix openssl)/lib"
     brew update
     brew install pyenv-virtualenv
 
