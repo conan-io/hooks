@@ -16,8 +16,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         py27)
             CFLAGS="-I$(brew --prefix openssl)/include" \
             LDFLAGS="-L$(brew --prefix openssl)/lib" \
-            pyenv install --verbose 2.7.10
-            pyenv virtualenv 2.7.10 conan
+            pyenv install --verbose 2.7.16
+            pyenv virtualenv 2.7.16 conan
             ;;
         py33)
             pyenv install 3.3.6
