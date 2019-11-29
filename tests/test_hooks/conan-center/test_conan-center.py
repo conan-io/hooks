@@ -88,7 +88,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[NO REVISION (KB-H039)] OK", output)
+        self.assertIn("[NOT ALLOWED ATTRIBUTES (KB-H039)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -110,7 +110,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertIn("[NO REVISION (KB-H039)] OK", output)
+        self.assertIn("[NOT ALLOWED ATTRIBUTES (KB-H039)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -500,7 +500,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
-        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'revision_mode'.", output)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'revision_mode'.", output)
 
         scm = textwrap.dedent("""\
         scm = {"type": "git",
@@ -510,4 +510,4 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile.replace("{}", scm))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
-        self.assertIn("ERROR: [NO REVISION (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'scm'.", output)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes related to revision. Remove 'scm'.", output)
