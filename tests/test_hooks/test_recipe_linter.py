@@ -16,7 +16,7 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
 class RecipeLinterTests(ConanClientTestCase):
-    conanfile = textwrap.dedent("""\
+    conanfile = textwrap.dedent("""
         from conans import ConanFile, tools
         
         class TestConan(ConanFile):
@@ -49,18 +49,18 @@ class RecipeLinterTests(ConanClientTestCase):
                               " Please fix them.", output)
 
             if six.PY2:
-                self.assertIn("pre_export(): conanfile.py:8:8:"
+                self.assertIn("pre_export(): conanfile.py:9:8:"
                               " E1601: print statement used (print-statement)", output)
             else:
-                self.assertIn("pre_export(): conanfile.py:9:20:"
+                self.assertIn("pre_export(): conanfile.py:10:20:"
                               " E1101: Instance of 'dict' has no 'iteritems' member (no-member)",
                               output)
 
-            self.assertIn("pre_export(): conanfile.py:9:20:"
+            self.assertIn("pre_export(): conanfile.py:10:20:"
                           " W1620: Calling a dict.iter*() method (dict-iter-method)", output)
-            self.assertIn("pre_export(): conanfile.py:9:12:"
+            self.assertIn("pre_export(): conanfile.py:10:12:"
                           " W0612: Unused variable 'k' (unused-variable)", output)
-            self.assertIn("pre_export(): conanfile.py:9:15:"
+            self.assertIn("pre_export(): conanfile.py:10:15:"
                           " W0612: Unused variable 'v' (unused-variable)", output)
 
     def test_custom_rcfile(self):
@@ -70,7 +70,7 @@ class RecipeLinterTests(ConanClientTestCase):
         with environment_append({"CONAN_PYLINTRC": os.path.join(os.getcwd(), "pylintrc")}):
             output = self.conan(['export', '.', 'name/version@'])
 
-        self.assertIn("pre_export(): conanfile.py:4:0: "
+        self.assertIn("pre_export(): conanfile.py:5:0: "
                       "W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
 
     def test_custom_plugin(self):
