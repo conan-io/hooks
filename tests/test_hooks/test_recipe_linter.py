@@ -2,10 +2,13 @@
 
 import os
 import textwrap
+import unittest
 
 import six
+from packaging import version
 from parameterized import parameterized
 
+from conans import __version__ as conan_version
 from conans import tools
 from conans.client.command import ERROR_GENERAL, SUCCESS
 from conans.tools import environment_append
@@ -94,9 +97,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_dynamic_fields(self):
         conanfile = textwrap.dedent("""
-            from conans import ConanFile, python_requires
-            
-            base = python_requires("name/version")
+            from conans import ConanFile
             
             class TestConan(ConanFile):
                 name = "consumer"
@@ -126,9 +127,6 @@ class RecipeLinterTests(ConanClientTestCase):
                 def deploy(self):
                     self.copy_deps("*.dll")
             """)
-        tools.save('require.py', self.conanfile)
-        self.conan(['export', 'require.py', 'name/version@'])
-
         tools.save('consumer.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', 'consumer.py', 'consumer/version@'])
@@ -173,3 +171,24 @@ class RecipeLinterTests(ConanClientTestCase):
             output = self.conan(['export', '.', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
             self.assertNotIn("no-member", output)
+
+    @unittest.skipUnless(version.parse(conan_version) >= version.parse("1.21.0"), "Need python_version")
+    def test_python_requires(self):
+        """ python_requires were not added to the 'pylint_plugin' until 1.21 """
+        conanfile = textwrap.dedent("""
+            from conans import ConanFile, python_requires
+
+            base = python_requires("name/version")
+
+            class TestConan(ConanFile):
+                name = "consumer"
+                version = "version"
+            """)
+        tools.save('require.py', self.conanfile)
+        self.conan(['export', 'require.py', 'name/version@'])
+
+        tools.save('consumer.py', content=conanfile)
+        with environment_append({"CONAN_PYLINT_WERR": "1"}):
+            output = self.conan(['export', 'consumer.py', 'consumer/version@'])
+            self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
+            self.assertNotIn("(no-name-in-module)", output)
