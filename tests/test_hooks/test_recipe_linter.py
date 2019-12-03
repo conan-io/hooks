@@ -16,7 +16,7 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
 class RecipeLinterTests(ConanClientTestCase):
-    conanfile = textwrap.dedent("""
+    conanfile = textwrap.dedent(r"""
         from conans import ConanFile, tools
         
         class TestConan(ConanFile):
@@ -74,7 +74,7 @@ class RecipeLinterTests(ConanClientTestCase):
                       "W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
 
     def test_custom_plugin(self):
-        conanfile = textwrap.dedent("""
+        conanfile = textwrap.dedent(r"""
             from conans import ConanFile
 
             class Recipe(ConanFile):
