@@ -2,10 +2,12 @@
 
 import json
 import os
+import platform
+import subprocess
 import sys
 
 from conans.errors import ConanException
-from conans.tools import chdir, logger
+from conans.tools import logger
 
 try:
     import astroid  # Conan 'pylint_plugin.py' uses astroid
@@ -22,17 +24,18 @@ CONAN_HOOK_PYLINT_RECIPE_PLUGINS = "CONAN_PYLINT_RECIPE_PLUGINS"
 
 def pre_export(output, conanfile_path, *args, **kwargs):
     output.info("Lint recipe '{}'".format(conanfile_path))
+    conanfile_dirname = os.path.dirname(conanfile_path)
 
-    lint_args = [os.path.basename(conanfile_path),
-                 '--output-format=json',
-                 '--exit-zero',
+    lint_args = ['--output-format=json',  # JSON output fails in Windows (parsing)
                  '--py3k',
                  '--enable=all',
                  '--reports=no',
                  '--disable=no-absolute-import',
                  '--persistent=no',
-                 '--disable=W0702',  # No exception type(s) specified (bare-except)
-                 '--disable=W0703',  # Catching too general exception Exception (broad-except)
+                 # These were disabled in linter that was inside Conan
+                 # '--disable=W0702',  # No exception type(s) specified (bare-except)
+                 # '--disable=W0703',  # Catching too general exception Exception (broad-except)
+                 '--init-hook="import sys;sys.path.extend([\'{}\',])"'.format(conanfile_dirname)
                  ]
 
     pylint_plugins = os.getenv(CONAN_HOOK_PYLINT_RECIPE_PLUGINS, 'conans.pylint_plugin')
@@ -44,25 +47,31 @@ def pre_export(output, conanfile_path, *args, **kwargs):
         lint_args += ['--rcfile', rc_file]
 
     try:
-        command_line = " ".join(lint_args)
-        with chdir(os.path.dirname(conanfile_path)):
-            (pylint_stdout, pylint_stderr) = lint.py_run(command_line, return_std=True)
+        command = ['pylint'] + lint_args + ['"{}"'.format(conanfile_path)]
+        command = " ".join(command)
+        shell = bool(platform.system() != "Windows")
+        p = subprocess.Popen(command, shell=shell, bufsize=10,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        pylint_stdout, pylint_stderr = p.communicate()
     except Exception as exc:
         output.error("Unexpected error running linter: {}".format(exc))
     else:
         try:
-            messages = json.loads(pylint_stdout.getvalue())
+            messages = json.loads(pylint_stdout.decode('utf-8')) if pylint_stdout else {}
         except Exception as exc:
             output.error("Error parsing JSON output: {}".format(exc))
-            logger.error("Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
+            logger.error(
+                "Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
             logger.error(" - linter arguments: {}".format(lint_args))
             logger.error(" - output: {}".format(pylint_stdout.getvalue()))
             logger.error(" - stderr: {}".format(pylint_stderr.getvalue()))
         else:
+            errors = 0
             for msg in messages:
                 line = "{path}:{line}:{column}: {message-id}: {message} ({symbol})".format(**msg)
                 output.info(line)
+                errors += int(msg["type"] == "error")
 
-            if os.getenv(CONAN_HOOK_PYLINT_WERR) \
-                    and any(msg["type"] in ("error", "warning") for msg in messages):
+            output.info("Linter detected '{}' errors".format(errors))
+            if os.getenv(CONAN_HOOK_PYLINT_WERR) and errors:
                 raise ConanException("Package recipe has linter errors. Please fix them.")
