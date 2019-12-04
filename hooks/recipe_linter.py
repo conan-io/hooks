@@ -5,6 +5,7 @@ import os
 import sys
 
 from conans.errors import ConanException
+from conans.tools import chdir, logger
 
 try:
     import astroid  # Conan 'pylint_plugin.py' uses astroid
@@ -22,7 +23,7 @@ CONAN_HOOK_PYLINT_RECIPE_PLUGINS = "CONAN_PYLINT_RECIPE_PLUGINS"
 def pre_export(output, conanfile_path, *args, **kwargs):
     output.info("Lint recipe '{}'".format(conanfile_path))
 
-    lint_args = ['"{}"'.format(conanfile_path),
+    lint_args = [os.path.basename(conanfile_path),
                  '--output-format=json',
                  '--exit-zero',
                  '--py3k',
@@ -40,22 +41,28 @@ def pre_export(output, conanfile_path, *args, **kwargs):
 
     rc_file = os.getenv(CONAN_HOOK_PYLINT_RCFILE)
     if rc_file:
-        lint_args += ['--rcfile="{}"'.format(rc_file)]
+        lint_args += ['--rcfile', rc_file]
 
-    sys.path.insert(0, os.path.dirname(conanfile_path))
     try:
         command_line = " ".join(lint_args)
-        (pylint_stdout, pylint_stderr) = lint.py_run(command_line, return_std=True)
-        messages = json.loads(pylint_stdout.getvalue())
+        with chdir(os.path.dirname(conanfile_path)):
+            (pylint_stdout, pylint_stderr) = lint.py_run(command_line, return_std=True)
     except Exception as exc:
         output.error("Unexpected error running linter: {}".format(exc))
     else:
-        for msg in messages:
-            line = "{path}:{line}:{column}: {message-id}: {message} ({symbol})".format(**msg)
-            output.info(line)
+        try:
+            messages = json.loads(pylint_stdout.getvalue())
+        except Exception as exc:
+            output.error("Error parsing JSON output: {}".format(exc))
+            logger.error("Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
+            logger.error(" - linter arguments: {}".format(lint_args))
+            logger.error(" - output: {}".format(pylint_stdout.getvalue()))
+            logger.error(" - stderr: {}".format(pylint_stderr.getvalue()))
+        else:
+            for msg in messages:
+                line = "{path}:{line}:{column}: {message-id}: {message} ({symbol})".format(**msg)
+                output.info(line)
 
-        if os.getenv(CONAN_HOOK_PYLINT_WERR) \
-                and any(msg["type"] in ("error", "warning") for msg in messages):
-            raise ConanException("Package recipe has linter errors. Please fix them.")
-    finally:
-        sys.path.pop()
+            if os.getenv(CONAN_HOOK_PYLINT_WERR) \
+                    and any(msg["type"] in ("error", "warning") for msg in messages):
+                raise ConanException("Package recipe has linter errors. Please fix them.")

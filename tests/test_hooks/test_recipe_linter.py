@@ -63,13 +63,18 @@ class RecipeLinterTests(ConanClientTestCase):
             self.assertIn("pre_export(): conanfile.py:10:15:"
                           " W0612: Unused variable 'v' (unused-variable)", output)
 
+    def test_path_with_spaces(self):
+        tools.save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
+        output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
+        recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
+        self.assertIn("pre_export(): Lint recipe '{}'".format(recipe_path), output)
+
     def test_custom_rcfile(self):
         tools.save('conanfile.py', content=self.conanfile)
         tools.save('pylintrc', content="[FORMAT]\nindent-string='  '")
 
         with environment_append({"CONAN_PYLINTRC": os.path.join(os.getcwd(), "pylintrc")}):
             output = self.conan(['export', '.', 'name/version@'])
-
         self.assertIn("pre_export(): conanfile.py:5:0: "
                       "W0311: Bad indentation. Found 4 spaces, expected 2 (bad-indentation)", output)
 
