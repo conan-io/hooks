@@ -500,7 +500,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
-        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain the follow attributes: 'revision_mode'. Remove them.", output)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'revision_mode'", output)
 
         scm = textwrap.dedent("""\
         scm = {"type": "git",
@@ -510,4 +510,4 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile.replace("{}", scm))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
-        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain the follow attributes: 'scm'. Remove them.", output)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'scm'", output)
