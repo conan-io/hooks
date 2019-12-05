@@ -36,7 +36,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
                  # These were disabled in linter that was inside Conan
                  # '--disable=W0702',  # No exception type(s) specified (bare-except)
                  # '--disable=W0703',  # Catching too general exception Exception (broad-except)
-                 '--init-hook="import sys;sys.path.extend([\'{}\',])"'.format(conanfile_dirname.replace('\\', '\\\\'))
+                 '--init-hook="import sys;sys.path.extend([\'{}\',])"'.format(conanfile_dirname.replace('\\', '/'))
                  ]
 
     pylint_plugins = os.getenv(CONAN_HOOK_PYLINT_RECIPE_PLUGINS, 'conans.pylint_plugin')
@@ -45,15 +45,16 @@ def pre_export(output, conanfile_path, *args, **kwargs):
 
     rc_file = os.getenv(CONAN_HOOK_PYLINT_RCFILE)
     if rc_file:
-        lint_args += ['--rcfile', rc_file]
+        lint_args += ['--rcfile', rc_file.replace('\\', '/')]
 
     try:
-        command = ['pylint'] + lint_args + ['"{}"'.format(conanfile_path).replace('\\', '\\\\')]
+        command = ['pylint'] + lint_args + ['"{}"'.format(conanfile_path).replace('\\', '/')]
         command = " ".join(command)
         shell = bool(platform.system() != "Windows")
         p = subprocess.Popen(command, shell=shell, bufsize=10,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         pylint_stdout, pylint_stderr = p.communicate()
+
         # Remove ANSI escape sequences
         ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
         pylint_stdout = ansi_escape.sub('', pylint_stdout.decode('utf-8'))
