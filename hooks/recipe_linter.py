@@ -55,7 +55,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         pylint_stdout, pylint_stderr = p.communicate()
 
-        # Remove ANSI escape sequences
+        # Remove ANSI escape sequences from Pylint output (fails in Windows)
         ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
         pylint_stdout = ansi_escape.sub('', pylint_stdout.decode('utf-8'))
     except Exception as exc:
