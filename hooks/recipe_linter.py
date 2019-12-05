@@ -50,7 +50,9 @@ def pre_export(output, conanfile_path, *args, **kwargs):
     try:
         command = ['pylint'] + lint_args + ['"{}"'.format(conanfile_path).replace('\\', '/')]
         command = " ".join(command)
-        p = subprocess.Popen(command, bufsize=10, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        shell = bool(platform.system() != "Windows")
+        p = subprocess.Popen(command, shell=shell, bufsize=10,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         pylint_stdout, pylint_stderr = p.communicate()
 
         # Remove ANSI escape sequences
