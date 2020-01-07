@@ -41,6 +41,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H031": "CONANDATA.YML REDUCE",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
+             "KB-H040": "NO TARGET NAME",
             }
 
 
@@ -345,6 +346,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 author = '"%s"' % author
             out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
 
+    @run_test("KB-H040", output)
+    def test(out):
+        if "self.cpp_info.name =" in conanfile_content:
+            out.error("Conanfile should not contain 'self.cpp_info.name'."
+                      " Use 'cpp_info.names' instead.")
+
+        if "self.cpp_info.names['cmake']" in conanfile_content or \
+           'self.cpp_info.names["cmake"]' in conanfile_content:
+            out.error("Conanfile should not contain 'self.cpp_info.names['cmake']'."
+                      " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.")
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
