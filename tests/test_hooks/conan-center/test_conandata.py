@@ -236,7 +236,7 @@ class ConanData(ConanClientTestCase):
                 self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                               "of conandata.yml", output)
 
-    def test_multiple_sources(self):
+    def test_os_kb_h030(self):
         tools.save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
                     sources:
