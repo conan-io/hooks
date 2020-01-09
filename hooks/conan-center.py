@@ -286,7 +286,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_sources = ["url", "sha256", "sha1", "md5", "os"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
         def _not_allowed_entries(info, allowed_entries):

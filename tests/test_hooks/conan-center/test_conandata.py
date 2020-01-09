@@ -235,3 +235,23 @@ class ConanData(ConanClientTestCase):
                 self.assertNotIn("First level entries", output)
                 self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                               "of conandata.yml", output)
+
+    def test_multiple_sources(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+                    sources:
+                        "12.14.1":
+                            - os: "Windows"
+                              url: "https://nodejs.org/dist/v12.14.1/node-v12.14.1-win-x64.zip"
+                              sha256: "1f96ccce3ba045ecea3f458e189500adb90b8bc1a34de5d82fc10a5bf66ce7e3"
+                            - os: "Linux"
+                              url: "https://nodejs.org/dist/v12.14.1/node-v12.14.1-linux-x64.tar.xz"
+                              sha256: "07cfcaa0aa9d0fcb6e99725408d9e0b07be03b844701588e3ab5dbc395b98e1b"
+                            - os: "Macos"
+                              url: "https://nodejs.org/dist/v12.14.1/node-v12.14.1-darwin-x64.tar.gz"
+                              sha256: "0be10a28737527a1e5e3784d3ad844d742fe8b0718acd701fd48f718fd3af78f"
+                            """)
+        tools.save('conandata.yml', content=conandata)
+        export_output = self.conan(['export', '.', 'name/12.14.1@user/test'])
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
