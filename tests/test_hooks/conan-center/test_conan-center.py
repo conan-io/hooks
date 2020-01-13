@@ -85,7 +85,6 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
-        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
@@ -110,7 +109,6 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
-        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
@@ -132,7 +130,6 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
-        self.assertIn("[LINTER WARNINGS (KB-H026)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
@@ -496,23 +493,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("ERROR: [TEST PACKAGE - NO IMPORTS() (KB-H034)] The method `imports` is not " \
-                      "allowed in test_package/conanfile.py", output)        
-
-    def test_linter_warnings(self):
-        conanfile = textwrap.dedent("""\
-        from conans import ConanFile, tools, CMake
-        import os
-        import platform
-
-        class AConan(ConanFile):
-            pass
-        """)
-        tools.save('conanfile.py', content=conanfile)
-        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
-        self.assertIn("ERROR: [LINTER WARNINGS (KB-H026)] Linter warnings detected." \
-                      " Check the warnings in the output and fix them in the recipe", output)
-        self.assertIn("Linter warnings", output)
-        self.assertIn("WARN: Linter. Line 1: Unused tools imported from conans", output)
+                      "allowed in test_package/conanfile.py", output)
 
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
