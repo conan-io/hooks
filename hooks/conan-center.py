@@ -467,6 +467,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
+        if conanfile.name in ["cmake",]:
+            return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
