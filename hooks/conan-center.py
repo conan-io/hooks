@@ -39,6 +39,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H032": "SYSTEM REQUIREMENTS",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H039": "NOT ALLOWED ATTRIBUTES",
@@ -282,13 +283,26 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
+    @run_test("KB-H032", output)
+    def test(out):
+        if conanfile.name in ["libusb"]:
+            out.info("'{}' is part of the allowlist.".format(conanfile.name))
+            return
+        if "def system_requirements" in conanfile_content and \
+           "SystemPackageTool" in conanfile_content:
+            import re
+            match = re.search(r'(\S+)\s?=\s?SystemPackageTool', conanfile_content)
+            if ("SystemPackageTool().install" in conanfile_content) or \
+               (match and "{}.install".format(match.group(1)) in conanfile_content):
+                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+
     @run_test("KB-H030", output)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256"]
-        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -397,7 +411,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                       "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
-            needed_content = ['**self.conan_data["sources"]']
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
@@ -407,10 +420,11 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                         break
             else:
                 fixed_sources = True
-                for valid in needed_content:
-                    if valid not in conanfile_content:
-                        fixed_sources = False
-                        break
+                if ('**self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.get' not in conanfile_content) and \
+                   ('self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.download' not in conanfile_content):
+                    fixed_sources = False
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
@@ -480,6 +494,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
+        if conanfile.name in ["cmake",]:
+            return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
