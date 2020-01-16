@@ -520,19 +520,6 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "be located using generators and the declared `cpp_info` information")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
-    @run_test("KB-H016", output)
-    def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11"]:
-            return
-        bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
-                                                                             "*Config.cmake",
-                                                                             "*-config.cmake"])
-        if bad_files:
-            out.error("The conan-center repository doesn't allow the packages to contain CMake "
-                      "find modules or config files. The packages have to "
-                      "be located using generators and the declared `cpp_info` information")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
-
     @run_test("KB-H017", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
@@ -556,6 +543,33 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
 def post_package_info(output, conanfile, reference, **kwargs):
+
+    @run_test("KB-H016", output)
+    def test(out):
+        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+            return
+        bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
+                                                                             "*Config.cmake",
+                                                                             "*-config.cmake"])
+
+        target = "find{}.cmake".format(conanfile.name.lower())
+        try:
+            target = "find{}.cmake".format(conanfile.cpp_info.names["cmake_find_package"].lower())
+        except:
+            pass
+
+        for bad_file in bad_files:
+            bad_file_name = os.path.basename(bad_file).lower()
+            if bad_file_name.startswith("find") and bad_file_name.endswith(
+                    ".cmake") and bad_file_name != target:
+                bad_files.remove(bad_file)
+                break
+
+        if bad_files:
+            out.error("The conan-center repository doesn't allow the packages to contain CMake "
+                      "find modules or config files. The packages have to "
+                      "be located using generators and the declared `cpp_info` information")
+            out.error("Found files:\n{}".format("\n".join(bad_files)))
 
     @run_test("KB-H019", output)
     def test(out):

@@ -37,8 +37,7 @@ class ConanCMakeBadFiles(ConanClientTestCase):
 
         tools.save('conanfile.py', content=self.conan_file.format("", "FindXXX.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./FindXXX.cmake",
-                      output)
+        self.assertNotIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)]", output)
 
     def test_find_files_outside_dir(self):
 
@@ -54,11 +53,11 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         conanfile2 = textwrap.dedent("""\
                 import os
                 from conans import ConanFile, tools
-    
+
                 class AConan(ConanFile):
-    
+
                     def package(self):
-                        tools.save(os.path.join(self.package_folder, "{}", "file.cmake"), 
+                        tools.save(os.path.join(self.package_folder, "{}", "file.cmake"),
                                    "foo")
                     def package_info(self):
                         self.cpp_info.builddirs = ["some_build_dir"]
@@ -71,3 +70,24 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile2.format("some_build_dir/subdir"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
+
+    def test_find_package_names(self):
+        tools.save('conanfile.py', content=self.conan_file.format("lib/foo/cmake", "FindFoo.cmake"))
+        output = self.conan(['create', '.', 'foo/version@user/channel'])
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./lib/foo/cmake/FindFoo.cmake",
+                      output)
+
+        conan_file3 = textwrap.dedent("""\
+                        import os
+                        from conans import ConanFile, tools
+                        class AConan(ConanFile):
+                            def package(self):
+                                tools.save(os.path.join(self.package_folder, "lib", "foo", "cmake", "FindBar.cmake"), "foo")
+
+                            def package_info(self):
+                                self.cpp_info.names["cmake_find_package"] = "Bar"
+                        """)
+        tools.save('conanfile.py', conan_file3)
+        output = self.conan(['create', '.', 'foo/version@user/channel'])
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./lib/foo/cmake/FindBar.cmake",
+                      output)
