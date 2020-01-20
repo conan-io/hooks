@@ -20,7 +20,7 @@ jobs:
     - stage: Linux - Conan Current
       name: Python 2.7
       python: 2.7
-      env: TOXENV=py27-conancurrent
+      env: TOXENV=py27-conancurrent USE_UNSUPPORTED_CONAN_WITH_PYTHON_2=1
     - name: Python 3.7
       python: 3.7
       env: TOXENV=py37-conancurrent
