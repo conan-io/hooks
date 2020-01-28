@@ -27,17 +27,18 @@ jobs:
       dist: xenial
       sudo: true
 
-    - stage: Linux - Conan 1.19
+    - stage: Linux - Conan 1.21
       name: Python 3.7
       python: 3.7
-      env: TOXENV=py37-conan119
+      env: TOXENV=py37-conan121
       dist: xenial
       sudo: true
 
-    - stage: Linux - Conan 1.18
+
+    - stage: Linux - Conan 1.20
       name: Python 3.7
       python: 3.7
-      env: TOXENV=py37-conan118
+      env: TOXENV=py37-conan120
       dist: xenial
       sudo: true
 
