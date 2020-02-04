@@ -364,14 +364,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         if "self.cpp_info.name =" in conanfile_content:
             out.error("CCI uses the name of the package for cmake generator."
-                      " Conanfile should not contain 'self.cpp_info.name'."
                       " Use 'cpp_info.names' instead.")
 
         for generator in ["cmake", "cmake_multi"]:
             if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
                'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
-                out.error("CCI uses the name of the package for cmake generator. "
-                          "Conanfile should not contain 'self.cpp_info.names['{}']'. "
+                out.error("CCI uses the name of the package for {0} generator. "
+                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
 @raise_if_error_output

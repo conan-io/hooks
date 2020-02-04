@@ -542,16 +542,16 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile.replace("{}", regular))
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for cmake generator."
-                      " Conanfile should not contain 'self.cpp_info.name'."
+        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] "
+                      "CCI uses the name of the package for cmake generator."
                       " Use 'cpp_info.names' instead.", output)
 
         for line, gen in [(cmake, "cmake"), (cmake_multi, "cmake_multi")]:
             tools.save('conanfile.py', content=conanfile.replace("{}", line))
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for "
-                          "cmake generator. Conanfile should not contain "
-                          "'self.cpp_info.names['{}']'. "
+                          "{0} generator. Conanfile should not contain "
+                          "'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(gen), output)
 
         for it in [pkg_config, cmake_find, cmake_find_multi]:
