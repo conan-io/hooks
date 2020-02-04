@@ -9,7 +9,7 @@ jobs:
     - stage: Linux - Conan develop
       name: Python 2.7
       python: 2.7
-      env: TOXENV=py27-conandev
+      env: TOXENV=py27-conandev USE_UNSUPPORTED_CONAN_WITH_PYTHON_2=1
     - name: Python 3.7
       python: 3.7
       env: TOXENV=py37-conandev
@@ -27,17 +27,18 @@ jobs:
       dist: xenial
       sudo: true
 
+    - stage: Linux - Conan 1.21
+      name: Python 3.7
+      python: 3.7
+      env: TOXENV=py37-conan121
+      dist: xenial
+      sudo: true
+
+
     - stage: Linux - Conan 1.20
       name: Python 3.7
       python: 3.7
       env: TOXENV=py37-conan120
-      dist: xenial
-      sudo: true
-
-    - stage: Linux - Conan 1.19
-      name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conan119
       dist: xenial
       sudo: true
 

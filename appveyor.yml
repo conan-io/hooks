@@ -7,6 +7,7 @@ environment:
         # Conan development
         - PYVER: py27
           TOXENV: py27-conandev
+          USE_UNSUPPORTED_CONAN_WITH_PYTHON_2: 1
         - PYVER: py37
           TOXENV: py37-conandev
 
@@ -16,13 +17,13 @@ environment:
         - PYVER: py37
           TOXENV: py37-conancurrent
 
+        # Conan 1.21.x
+        - PYVER: py37
+          TOXENV: py37-conan121
+
         # Conan 1.20.x
         - PYVER: py37
           TOXENV: py37-conan120
-
-        # Conan 1.19.x
-        - PYVER: py37
-          TOXENV: py37-conan119
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/

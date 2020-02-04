@@ -39,6 +39,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H032": "SYSTEM REQUIREMENTS",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
@@ -282,6 +283,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
+    @run_test("KB-H032", output)
+    def test(out):
+        if conanfile.name in ["libusb"]:
+            out.info("'{}' is part of the allowlist.".format(conanfile.name))
+            return
+        if "def system_requirements" in conanfile_content and \
+           "SystemPackageTool" in conanfile_content:
+            import re
+            match = re.search(r'(\S+)\s?=\s?SystemPackageTool', conanfile_content)
+            if ("SystemPackageTool().install" in conanfile_content) or \
+               (match and "{}.install".format(match.group(1)) in conanfile_content):
+                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+
     @run_test("KB-H030", output)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
@@ -431,7 +445,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
 
-            if "del self.settings.compiler.libcxx" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.libcxx" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
@@ -440,7 +454,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
-            if "del self.settings.compiler.cppstd" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.cppstd" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
@@ -478,6 +492,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
+        if conanfile.name in ["cmake",]:
+            return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
