@@ -536,20 +536,25 @@ class ConanCenterTests(ConanClientTestCase):
         pkg_config = 'self.cpp_info.names["pkg_config"] = "foolib"'
         regular = 'self.cpp_info.name = "Foo"'
         cmake = 'self.cpp_info.names["cmake"] = "Foo"'
+        cmake_multi = 'self.cpp_info.names["cmake_multi"] = "Foo"'
         cmake_find = 'self.cpp_info.names["cmake_find_package"] = "Foo"'
-        cmake_multi = 'self.cpp_info.names["cmake_find_package_multi"] = "Foo"'
+        cmake_find_multi = 'self.cpp_info.names["cmake_find_package_multi"] = "Foo"'
 
         tools.save('conanfile.py', content=conanfile.replace("{}", regular))
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] Conanfile should not contain 'self.cpp_info.name'."
+        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for cmake generator."
+                      " Conanfile should not contain 'self.cpp_info.name'."
                       " Use 'cpp_info.names' instead.", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("{}", cmake))
-        output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] Conanfile should not contain 'self.cpp_info.names['cmake']'."
-                      " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.", output)
+        for line, gen in [(cmake, "cmake"), (cmake_multi, "cmake_multi")]:
+            tools.save('conanfile.py', content=conanfile.replace("{}", line))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for "
+                          "cmake generator. Conanfile should not contain "
+                          "'self.cpp_info.names['{}']'. "
+                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(gen), output)
 
-        for it in [pkg_config, cmake_find, cmake_multi]:
+        for it in [pkg_config, cmake_find, cmake_find_multi]:
             tools.save('conanfile.py', content=conanfile.replace("{}", it))
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
