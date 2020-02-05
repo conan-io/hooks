@@ -7,7 +7,6 @@ environment:
         # Conan development
         - PYVER: py27
           TOXENV: py27-conandev
-          USE_UNSUPPORTED_CONAN_WITH_PYTHON_2: 1
         - PYVER: py37
           TOXENV: py37-conandev
 
