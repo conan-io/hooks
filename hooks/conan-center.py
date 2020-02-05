@@ -42,6 +42,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H032": "SYSTEM REQUIREMENTS",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
+             "KB-H040": "NO TARGET NAME",
             }
 
 
@@ -359,6 +360,18 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 author = '"%s"' % author
             out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
 
+    @run_test("KB-H040", output)
+    def test(out):
+        if "self.cpp_info.name =" in conanfile_content:
+            out.error("CCI uses the name of the package for cmake generator."
+                      " Use 'cpp_info.names' instead.")
+
+        for generator in ["cmake", "cmake_multi"]:
+            if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
+               'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
+                out.error("CCI uses the name of the package for {0} generator. "
+                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
+                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
