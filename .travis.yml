@@ -10,55 +10,71 @@ jobs:
       name: Python 2.7
       python: 2.7
       env: TOXENV=py27-conandev
-    - name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conandev
+    - name: Python 3.5
+      python: 3.5
+      env: TOXENV=py35-conandev
       dist: xenial
-      sudo: true
+    - name: Python 3.8
+      python: 3.8
+      env: TOXENV=py38-conandev
+      dist: xenial
 
     # All Linux first, check versions
     - stage: Linux - Conan Current
       name: Python 2.7
       python: 2.7
       env: TOXENV=py27-conancurrent
-    - name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conancurrent
+    - name: Python 3.5
+      python: 3.5
+      env: TOXENV=py35-conancurrent
       dist: xenial
-      sudo: true
+    - name: Python 3.8
+      python: 3.8
+      env: TOXENV=py38-conancurrent
+      dist: xenial
 
     - stage: Linux - Conan 1.21
-      name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conan121
+      name: Python 3.5
+      python: 3.5
+      env: TOXENV=py35-conan121
       dist: xenial
-      sudo: true
-
+    - name: Python 3.8
+      python: 3.8
+      env: TOXENV=py38-conan121
+      dist: xenial
 
     - stage: Linux - Conan 1.20
-      name: Python 3.7
-      python: 3.7
-      env: TOXENV=py37-conan120
+      name: Python 3.5
+      python: 3.5
+      env: TOXENV=py35-conan120
       dist: xenial
-      sudo: true
+    - name: Python 3.8
+      python: 3.8
+      env: TOXENV=py38-conan120
+      dist: xenial
 
     # Macos is slow, only if everything has passed
     - stage: Macos - All Conan versions
-      name: Conan develop - Python 3.7
+      name: Conan develop - Python 3.8
       language: generic
       os: osx
       osx_image: xcode11.2
-      env: PYVER=py37 TOXENV=py37-conandev
+      env: PYVER=py38 TOXENV=py38-conandev
     - name: Conan Current - Python 2.7
       language: generic
       os: osx
       osx_image: xcode11.2
       env: PYVER=py27 TOXENV=py27-conancurrent
-    - name: Conan Current - Python 3.7
+    - name: Conan Current - Python 3.5
       language: generic
       os: osx
       osx_image: xcode11.2
-      env: PYVER=py37 TOXENV=py37-conancurrent
+      env: PYVER=py35 TOXENV=py35-conancurrent
+    - name: Conan Current - Python 3.8
+      language: generic
+      os: osx
+      osx_image: xcode11.2
+      env: PYVER=py38 TOXENV=py38-conancurrent
 
 before_install:
   - ./.travis/before_install.sh
