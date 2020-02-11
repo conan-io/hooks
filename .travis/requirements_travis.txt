@@ -1,2 +1,1 @@
 tox-travis
-six==1.14.0
