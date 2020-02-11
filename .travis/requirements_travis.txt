@@ -1,1 +1,2 @@
 tox-travis
+virtualenv==16.7.9  # TODO: Remove when dropping Python 2
