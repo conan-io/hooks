@@ -86,7 +86,10 @@ install:
       pyenv activate conan;
     fi
   - pip install --upgrade pip
-  - pip uninstall -y -r <(pip freeze)
+  - |
+    if [[ "$(pip freeze)" ]]; then
+      pip uninstall -y -r <(pip freeze);
+    fi
   - pip install -r .travis/requirements_travis.txt
 
 script:
