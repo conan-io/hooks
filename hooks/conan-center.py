@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H041": "NO FINAL ENDLINE",
             }
 
 
@@ -372,6 +373,30 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("CCI uses the name of the package for {0} generator. "
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+
+    @run_test("KB-H041", output)
+    def test(out):
+        checked_fileexts = ".c", ".cc", ".cpp", ".cxx", ".h", ".hxx", ".hpp", ".py", ".txt", ".yml", ".cmake"
+
+        def _check_final_newline(path):
+            with open(path, "rb") as f:
+                try:
+                    f.seek(-1, 2)  # Move to last byte
+                except OSError:
+                    return  # File is empty ==> ignore
+                if f.read(1) not in (b'\n', '\r'):
+                    out.error("File '{}' does not end with an endline".format(path))
+
+        for root, _, filenames in os.walk(export_folder_path):
+            for filename in filenames:
+                _, fileext = os.path.splitext(filename)
+                if fileext.lower() in checked_fileexts:
+                    _check_final_newline(os.path.join(root, filename))
+
+        config_yml = os.path.join(export_folder_path, os.path.pardir, "config.yml")
+        if os.path.isfile(config_yml):
+            _check_final_newline(config_yml)
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
