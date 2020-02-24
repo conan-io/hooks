@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 import textwrap
 import pytest
@@ -105,6 +106,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
         self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
+        self.assertNotIn("ERROR: [NO F-STRINGS (KB-H042)]", output)
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
         self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
@@ -558,3 +560,23 @@ class ConanCenterTests(ConanClientTestCase):
             tools.save('conanfile.py', content=conanfile.replace("{}", it))
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
+
+    @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires Python 3.6 or higher")
+    def test_f_strings(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            name = "foo"
+            version = "0.1.0"
+            url = "https://github.com/conan-io/conan-center-index"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+
+            def configure(self):
+                self.output.info(f"Conan package is {self.name}")
+                self.output.info(f'Version is {self.version}')
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'foo/0.1.0@user/test'])
+        self.assertIn("ERROR: [NO F-STRINGS (KB-H042)] Line (12): Python f-strings (PEP 498) is not allowed in Conan recipes.", output)
