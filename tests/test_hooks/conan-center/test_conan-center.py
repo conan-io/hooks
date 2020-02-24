@@ -402,7 +402,8 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         path = os.path.join(".", "CMakeLists.txt")
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
-                      "minimum version declared (e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
+                      "minimum version declared at the beginning "
+                      "(e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
 
     def test_cmake_minimum_version_test_package(self):
@@ -431,7 +432,7 @@ class ConanCenterTests(ConanClientTestCase):
         # validate residual cmake files in test_package/build
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
+        self.assertNotIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
         cmake = textwrap.dedent("""CMAKE_MINIMUM_REQUIRED (VERSION 2.8.11)
         project(test)
@@ -446,7 +447,15 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
-        self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
+        self.assertNotIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
+
+        cmake = textwrap.dedent("""project(test)
+        cmake_minimum_required(VERSION 2.8.11)
+        """)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
+        self.assertNotIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
     def test_system_requirements(self):
         conanfile = textwrap.dedent("""\
