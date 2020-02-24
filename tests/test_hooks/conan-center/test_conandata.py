@@ -60,6 +60,49 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
 
+        conanfile = textwrap.dedent("""\
+                       import os
+                       from conans import ConanFile, tools
+
+                       class AConan(ConanFile):
+
+                           def source(self):
+                               tools.download(self.conan_data["sources"]["all"]["url"])
+                       """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
+        self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
+
+    def test_multiple_sources(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          - url: "url1_1.69.0"
+                            sha256: "sha1_1.69.0"
+                          - url: "url2_1.69.0"
+                            sha256: "sha2_1.69.0"
+                          """)
+        tools.save('conandata.yml', content=conandata)
+        export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
+
+    def test_sha1_md5(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          url: "url1.69.0"
+                          sha256: "sha256_1.69.0"
+                          sha1: "md5_1.69.0"
+                          md5: "sha1_1.69.0"
+                          """)
+        tools.save('conandata.yml', content=conandata)
+        export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
+
     def test_reduce_conandata(self):
         tools.save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""

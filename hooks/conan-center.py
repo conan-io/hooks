@@ -34,13 +34,17 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H023": "EXPORT LICENSE",
              "KB-H024": "TEST PACKAGE FOLDER",
              "KB-H025": "META LINES",
+             "KB-H026": "LINTER WARNINGS",
              "KB-H027": "CONAN CENTER INDEX URL",
              "KB-H028": "CMAKE MINIMUM VERSION",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H032": "SYSTEM REQUIREMENTS",
+             "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H038": "ASCII SUPPORT",
+             "KB-H040": "NO TARGET NAME",
             }
 
 
@@ -84,6 +88,9 @@ class _HooksOutputErrorCollector(object):
         self._error = True
         url_str = '({})'.format(self.kb_url) if self.kb_id else ""
         self._output.error(self._get_message(message) + " " + url_str)
+
+    def __str__(self):
+        return self._output._stream.getvalue()
 
     @property
     def failed(self):
@@ -278,13 +285,26 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
+    @run_test("KB-H032", output)
+    def test(out):
+        if conanfile.name in ["libusb"]:
+            out.info("'{}' is part of the allowlist.".format(conanfile.name))
+            return
+        if "def system_requirements" in conanfile_content and \
+           "SystemPackageTool" in conanfile_content:
+            import re
+            match = re.search(r'(\S+)\s?=\s?SystemPackageTool', conanfile_content)
+            if ("SystemPackageTool().install" in conanfile_content) or \
+               (match and "{}.install".format(match.group(1)) in conanfile_content):
+                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+
     @run_test("KB-H030", output)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256"]
-        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -324,6 +344,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                                       "conandata.yml" % (entries, version))
                             return
 
+    @run_test("KB-H034", output)
+    def test(out):
+        test_package_path = os.path.join(export_folder_path, "test_package")
+        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
+            return
+
+        test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
+        if "def imports" in test_package_conanfile:
+            out.error("The method `imports` is not allowed in test_package/conanfile.py")
+
     @run_test("KB-H037", output)
     def test(out):
         author = getattr(conanfile, "author", None)
@@ -343,6 +373,18 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("This conanfile contains a non-ascii character at position ({}) "
                      "and is not compatible with Python 2".format(error.start))
 
+    @run_test("KB-H040", output)
+    def test(out):
+        if "self.cpp_info.name =" in conanfile_content:
+            out.error("CCI uses the name of the package for cmake generator."
+                      " Use 'cpp_info.names' instead.")
+
+        for generator in ["cmake", "cmake_multi"]:
+            if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
+               'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
+                out.error("CCI uses the name of the package for {0} generator. "
+                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
+                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -382,7 +424,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                       "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
-            needed_content = ['**self.conan_data["sources"]']
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
@@ -392,10 +433,11 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                         break
             else:
                 fixed_sources = True
-                for valid in needed_content:
-                    if valid not in conanfile_content:
-                        fixed_sources = False
-                        break
+                if ('**self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.get' not in conanfile_content) and \
+                   ('self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.download' not in conanfile_content):
+                    fixed_sources = False
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
@@ -418,7 +460,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
 
-            if "del self.settings.compiler.libcxx" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.libcxx" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
@@ -427,7 +469,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
-            if "del self.settings.compiler.cppstd" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.cppstd" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
@@ -465,6 +507,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
+        if conanfile.name in ["cmake",]:
+            return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
@@ -603,10 +647,10 @@ def _shared_files_well_managed(conanfile, folder):
 
 def _files_match_settings(conanfile, folder, output):
     header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
-    visual_extensions = ["lib", "dll", "exe"]
-    mingw_extensions = ["a", "a.dll", "dll", "exe"]
+    visual_extensions = ["lib", "dll", "exe", "bat"]
+    mingw_extensions = ["a", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
-    linux_extensions = ["a", "so", ""]
+    linux_extensions = ["a", "so", "sh", ""]
     macos_extensions = ["a", "dylib", ""]
 
     has_header = _get_files_with_extensions(folder, header_extensions)

@@ -8,7 +8,15 @@
 
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
-**WARNING**: Hooks were originally named "Plugins"
+ * [Conan Center](#conan-center)
+ * [Attribute checker](#attribute-checker)
+ * [Bintray updater](#bintray-updater)
+ * [Binary linter](#binary-linter)
+ * [Github updater](#github-updater)
+ * [Member typo checker](#members-typo-checker)
+ * [SPDX checker](#spdx-checker)
+ * [Recipe linter](#recipe-linter)
+
 
 ## Hook setup
 
@@ -159,6 +167,21 @@ The hook uses [spdx_lookup](https://pypi.org/project/spdx-lookup/) python module
 Use `pip install spdx_lookup` in order to install required dependency.
 
 The hook is automatically called when *export* command is executed.
+
+### [Recipe linter](hooks/recipe_linter.py)
+
+This hook runs [Pylint](https://www.pylint.org/) over the recipes before exporting
+them (it runs in the `pre_export` hook), it can be really useful to check for
+typos, code flaws or company standards.
+
+There several environment variables you can use to configure it:
+ * `CONAN_PYLINTRC`: path to a configuration file to fully customize Pylint behavior.
+ * `CONAN_PYLINT_WERR`: if set, linting errors will trigger a `ConanException`.
+ * `CONAN_PYLINT_RECIPE_PLUGINS`: list of modules (comma separated list) to load. They are used to register additional checker or dynamic fields before running
+ the linter. By default it points to the `conans.pylint_plugin` module distributed
+ together with Conan, this file contains the declaration of some extra fields that are valid in the `ConanFile` class.
+
+This hook requires additional dependencies to work: `pip install pylint astroid`.
 
 ## License
 

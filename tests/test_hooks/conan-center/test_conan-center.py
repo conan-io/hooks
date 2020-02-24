@@ -2,9 +2,12 @@ import os
 import platform
 import textwrap
 import sys
+import pytest
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
+from conans.tools import Version
+from conans import __version__ as conan_version
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
@@ -90,6 +93,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[ASCII SUPPORT (KB-H038)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -111,6 +115,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
@@ -131,6 +136,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_installer(self):
         tools.save('conanfile.py', content=self.conanfile_installer)
@@ -217,6 +223,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
 
     def test_exports_licenses(self):
         tools.save('conanfile.py',
@@ -443,6 +450,60 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertNotIn("ERROR [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
+    def test_system_requirements(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        from conans.tools import SystemPackageTool
+        class SystemReqConan(ConanFile):
+            url = "https://github.com/conan-io/conan-center-index"
+            license = "fake_license"
+            description = "whatever"
+            def system_requirements(self):
+                installer = SystemPackageTool()
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
+
+        conanfile += "        installer.install([])"
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
+                      "'SystemPackageTool.install' is not allowed in the recipe.", output)
+
+        conanfile = conanfile.replace("installer.install([])", "SystemPackageTool().install([])")
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
+                      "'SystemPackageTool.install' is not allowed in the recipe.", output)
+
+        output = self.conan(['create', '.', 'libusb/version@user/test'])
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] 'libusb' is part of the allowlist.", output)
+        self.assertNotIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)]", output)
+
+    def test_imports_not_allowed(self):
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def imports(self):
+                self.copy("*.dll", "", "bin")
+                self.copy("*.dylib", "", "lib")
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE - NO IMPORTS() (KB-H034)] The method `imports` is not " \
+                      "allowed in test_package/conanfile.py", output)
+
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
@@ -481,3 +542,37 @@ class ConanCenterTests(ConanClientTestCase):
         except Exception as error:
             self.assertLess(sys.version_info[0], 3)
             self.assertIn(r"SyntaxError: Non-ASCII character '\xe2' in file", str(error))
+    @pytest.mark.skipif(Version(conan_version) < "1.21", reason="requires Conan 1.21 or higher")
+    def test_no_target_name(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            def package_info(self):
+                {}
+
+        """)
+        pkg_config = 'self.cpp_info.names["pkg_config"] = "foolib"'
+        regular = 'self.cpp_info.name = "Foo"'
+        cmake = 'self.cpp_info.names["cmake"] = "Foo"'
+        cmake_multi = 'self.cpp_info.names["cmake_multi"] = "Foo"'
+        cmake_find = 'self.cpp_info.names["cmake_find_package"] = "Foo"'
+        cmake_find_multi = 'self.cpp_info.names["cmake_find_package_multi"] = "Foo"'
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", regular))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] "
+                      "CCI uses the name of the package for cmake generator."
+                      " Use 'cpp_info.names' instead.", output)
+
+        for line, gen in [(cmake, "cmake"), (cmake_multi, "cmake_multi")]:
+            tools.save('conanfile.py', content=conanfile.replace("{}", line))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for "
+                          "{0} generator. Conanfile should not contain "
+                          "'self.cpp_info.names['{0}']'. "
+                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(gen), output)
+
+        for it in [pkg_config, cmake_find, cmake_find_multi]:
+            tools.save('conanfile.py', content=conanfile.replace("{}", it))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
