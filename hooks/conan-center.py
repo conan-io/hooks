@@ -376,21 +376,23 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H041", output)
     def test(out):
-        checked_fileexts = ".c", ".cc", ".cpp", ".cxx", ".h", ".hxx", ".hpp", ".py", ".txt", ".yml", ".cmake"
+        checked_fileexts = ".c", ".cc", ".cpp", ".cxx", ".h", ".hxx", ".hpp", \
+                           ".py", ".txt", ".yml", ".cmake", ".xml", ".patch", ".md"
+
+        files_noext = "Makefile", "GNUMakefile"
 
         def _check_final_newline(path):
-            with open(path, "rb") as f:
-                try:
-                    f.seek(-1, 2)  # Move to last byte
-                except OSError:
-                    return  # File is empty ==> ignore
-                if f.read(1) not in (b'\n', '\r'):
-                    out.error("File '{}' does not end with an endline".format(path))
+            try:
+                last_char = tools.load(path)[-1]
+            except OSError:
+                return  # File is empty ==> ignore
+            if last_char not in ("\n", "\r"):
+                out.error("File '{}' does not end with an endline".format(path))
 
         for root, _, filenames in os.walk(export_folder_path):
             for filename in filenames:
                 _, fileext = os.path.splitext(filename)
-                if fileext.lower() in checked_fileexts:
+                if filename in files_noext or fileext.lower() in checked_fileexts:
                     _check_final_newline(os.path.join(root, filename))
 
         config_yml = os.path.join(export_folder_path, os.path.pardir, "config.yml")
