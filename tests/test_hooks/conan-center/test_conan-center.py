@@ -564,6 +564,7 @@ class ConanCenterTests(ConanClientTestCase):
     @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires Python 3.6 or higher")
     def test_f_strings(self):
         conanfile = textwrap.dedent("""\
+        # the code inside the triple quotes with "f"
         from conans import ConanFile
         class AConan(ConanFile):
             name = "foo"
@@ -572,6 +573,7 @@ class ConanCenterTests(ConanClientTestCase):
             license = "fake_license"
             description = "whatever"
             exports_sources = "header.h"
+            _var = "stuff"
 
             def configure(self):
                 self.output.info(f"Conan package is {self.name}")
@@ -579,4 +581,7 @@ class ConanCenterTests(ConanClientTestCase):
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'foo/0.1.0@user/test'])
-        self.assertIn("ERROR: [NO F-STRINGS (KB-H042)] Line (12): Python f-strings (PEP 498) is not allowed in Conan recipes.", output)
+        self.assertNotIn("ERROR: [NO F-STRINGS (KB-H042)] Line (1):", output)
+        self.assertNotIn("ERROR: [NO F-STRINGS (KB-H042)] Line (10):", output)
+        self.assertIn("ERROR: [NO F-STRINGS (KB-H042)] Line (13): Python f-strings (PEP 498) is not allowed in Conan recipes.", output)
+        self.assertIn("ERROR: [NO F-STRINGS (KB-H042)] Line (14): Python f-strings (PEP 498) is not allowed in Conan recipes.", output)

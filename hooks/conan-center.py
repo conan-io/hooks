@@ -376,8 +376,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H042", output)
     def test(out):
+        regex = re.compile(r"f[\"'].*[\"']")
         for num, line in enumerate(conanfile_content.splitlines(), 1):
-            if 'f"' in line or "f'" in line:
+            if regex.search(line):
                 out.error("Line ({}): Python f-strings (PEP 498) is not allowed in Conan recipes.".format(num))
 
 @raise_if_error_output
