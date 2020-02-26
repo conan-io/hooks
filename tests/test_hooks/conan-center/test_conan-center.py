@@ -406,6 +406,24 @@ class ConanCenterTests(ConanClientTestCase):
                       "(e.g. cmake_minimum_required(VERSION 3.1.2))" % path,
                       output)
 
+        cmake = textwrap.dedent("""
+        # foobar.cmake
+        cmake_minimum_required(VERSION 2.8)
+        project(test)
+        """)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
+        cmake = textwrap.dedent("""
+
+        cmake_minimum_required(VERSION 2.8)
+        project(test)
+        """)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
     def test_cmake_minimum_version_test_package(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
         conanfile_tp = textwrap.dedent("""\
@@ -453,6 +471,18 @@ class ConanCenterTests(ConanClientTestCase):
         cmake_minimum_required(VERSION 2.8.11)
         """)
         tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
+        self.assertNotIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
+        cmake = """cmake_minimum_required(VERSION 2.8.11)
+        project(test)
+        """
+        tools.save('CMakeLists.txt', content=cmake)
+        cmake = textwrap.dedent("""project(test)
+        cmake_minimum_required(VERSION 2.8.11)
+        """)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
         self.assertNotIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)

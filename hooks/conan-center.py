@@ -263,7 +263,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
                         for line in cmake_content.splitlines():
-                            if line.startswith("#") or re.search(r"^\s+#", line):
+                            if line.startswith("#") or re.search(r"^\s+#", line) or len(line.strip()) == 0:
                                 continue
                             elif "cmake_minimum_required(version" in line or \
                                  "cmake_minimum_required (version" in line:
