@@ -384,7 +384,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         def _check_final_newline(path):
             try:
                 last_char = tools.load(path)[-1]
-            except OSError:
+            except (OSError, IndexError):
                 return  # File is empty ==> ignore
             if last_char not in ("\n", "\r"):
                 out.error("File '{}' does not end with an endline".format(path))
