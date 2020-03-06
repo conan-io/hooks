@@ -43,7 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
-             "KB-H038": "NO F-STRINGS",
+             "KB-H042": "NO F-STRINGS",
             }
 
 
@@ -374,7 +374,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
-    @run_test("KB-H038", output)
+    @run_test("KB-H042", output)
     def test(out):
         regex = re.compile(r"f[\"'].*[\"']")
         for num, line in enumerate(conanfile_content.splitlines(), 1):
