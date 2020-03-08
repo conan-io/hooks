@@ -1,8 +1,9 @@
+from collections import defaultdict
 import fnmatch
 import inspect
-import re
 import os
-from collections import defaultdict
+import re
+import subprocess
 
 import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
@@ -44,6 +45,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
              "KB-H041": "NO FINAL ENDLINE",
+             "KB-H043": "MISSING SYSTEM LIBS",
              "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
@@ -664,6 +666,27 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
 
+    @run_test("KB-H043", output)
+    def test(out):
+        if tools.is_apple_os(_get_os(conanfile)):
+            out.info("apple os not supported")
+            return
+        dict_deplibs_libs = _deplibs_from_shlibs(conanfile, out)
+        all_system_libs = _all_system_libs(_get_os(conanfile))
+
+        needed_system_libs = set(dict_deplibs_libs.keys()).intersection(all_system_libs)
+
+        deps_system_libs = set(conanfile.deps_cpp_info.system_libs)
+
+        conanfile_system_libs = set(m.group(2) for m in re.finditer(r"""(["'])([a-zA-Z0-9._-]+)(\1)""", tools.load(conanfile_path))).intersection(all_system_libs)
+
+        missing_system_libs = needed_system_libs.difference(deps_system_libs.union(conanfile_system_libs))
+
+        for missing_system_lib in missing_system_libs:
+            libs = dict_deplibs_libs[missing_system_lib]
+            for lib in libs:
+                out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.system_libs.".format(lib, missing_system_lib))
+
 def post_package_info(output, conanfile, reference, **kwargs):
 
     @run_test("KB-H019", output)
@@ -816,3 +839,113 @@ def _get_os(conanfile):
     if not settings:
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
+
+
+def _get_compiler(conanfile):
+    settings = _get_settings(conanfile)
+    if not settings:
+        return None
+    return settings.get_safe("compiler")
+
+
+def _all_system_libs(os_):
+    if os_ == "Linux":
+        return _GLIBC_LIBS
+    elif os_ == "Windows":
+        return _WIN32_LIBS
+    else:
+        return []
+
+
+def _deplibs_from_shlibs(conanfile, out):
+    deplibs = dict()
+    os_ = _get_os(conanfile)
+    shlext = {
+        "Windows": "dll",
+        "Macos": "dylib"
+    }.get(os_, "so")
+    libraries = _get_files_with_extensions(conanfile.package_folder, [shlext])
+    if not libraries:
+        return deplibs
+    if os_ == "Linux" or tools.is_apple_os(os_) or _get_compiler(conanfile) != "Visual Studio":
+        objdump = tools.get_env("OBJDUMP") or tools.which("objdump")
+        if not objdump:
+            out.warn("objdump not found")
+            return
+        for library in libraries:
+            if _get_os(conanfile) == "Windows":
+                cmd = [objdump, "--section=.idata", "-x", library]
+            else:
+                cmd = [objdump, "-p", library]
+            try:
+                objdump_output = subprocess.check_output(cmd, cwd=conanfile.package_folder).decode()
+            except subprocess.CalledProcessError:
+                out.warn("Running objdump on '{}' failed. Is the environment variable OBJDUMP correctly configured?".format(library))
+                continue
+            if _get_os(conanfile) == "Windows":
+                open("output.txt", "w").write(objdump_output)
+                for dep_lib_match in re.finditer(r"DLL Name: (.*).dll", objdump_output, re.IGNORECASE):
+                    dep_lib_base = dep_lib_match.group(1).lower()
+                    deplibs.setdefault(dep_lib_base, []).append(library)
+            else:
+                dep_libs_fn = list(l.replace("NEEDED", "").strip() for l in objdump_output.splitlines() if "NEEDED" in l)
+                for dep_lib_fn in dep_libs_fn:
+                    dep_lib_match = re.match(r"lib(.*).{}(?:\.[0-9]+)*".format(shlext), dep_lib_fn)
+                    if not dep_lib_match:
+                        out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(dep_lib_fn, library))
+                        continue
+                    deplibs.setdefault(dep_lib_match.group(1), []).append(library)
+    elif _get_compiler(conanfile) == "Visual Studio" or _get_os == "Windows":
+        with tools.vcvars(conanfile.settings):
+            for library in libraries:
+                try:
+                    dumpbin_output = subprocess.check_output(["dumpbin", "-dependents", library], cwd=conanfile.package_folder).decode()
+                except subprocess.CalledProcessError:
+                    out.warn("Running dumpbin on '{}' failed.".format(library))
+                    continue
+                print("OUTPUT:", dumpbin_output)
+                for l in re.finditer(r"([a-z0-9\-_]+)\.dll", dumpbin_output, re.IGNORECASE):
+                    dep_lib_base = l.group(1).lower()
+                    deplibs.setdefault(dep_lib_base, []).append(library)
+    return deplibs
+
+
+_GLIBC_LIBS = {
+    "anl", "BrokenLocale", "crypt", "dl", "g", "m", "mvec", "nsl", "nss_compat", "nss_db", "nss_dns",
+    "nss_files", "nss_hesiod", "pthread", "resolv", "rt", "thread_db", "util",
+}
+
+_WIN32_LIBS = {
+    "aclui", "activeds", "adsiid", "advapi32", "advpack", "ahadmin", "amstrmid", "authz", "aux_ulib",
+    "avifil32", "avrt", "bcrypt", "bhsupp", "bits", "bthprops", "cabinet", "certadm", "certidl",
+    "certpoleng", "clfsmgmt", "clfsw32", "clusapi", "comctl32", "comdlg32", "comsvcs", "corguids",
+    "correngine", "credui", "crypt32", "cryptnet", "cryptui", "cryptxml", "cscapi", "d2d1", "d3d10",
+    "d3d10_1", "d3d11", "d3d8thk", "d3d9", "davclnt", "dbgeng", "dbghelp", "dciman32", "dhcpcsvc",
+    "dhcpcsvc6", "dhcpsapi", "dinput8", "dmoguids", "dnsapi", "dpx", "drt", "drtprov", "drttransport",
+    "dsound", "dsprop", "dsuiext", "dtchelp", "dwrite", "dxgi", "dxva2", "eappcfg", "eappprxy",
+    "ehstorguids", "elscore", "esent", "evr", "evr_vista", "faultrep", "fci", "fdi", "fileextd", "fontsub",
+    "format", "framedyd", "framedyn", "fwpuclnt", "fxsutility", "gdi32", "gdiplus", "gpedit", "gpmuuid",
+    "hlink", "htmlhelp", "httpapi", "icm32", "icmui", "iepmapi", "imagehlp", "imgutil", "imm32",
+    "infocardapi", "iphlpapi", "iprop", "irprops", "kernel32", "ksguid", "ksproxy", "ksuser", "ktmw32",
+    "loadperf", "locationapi", "lz32", "magnification", "mapi32", "mbnapi_uuid", "mf", "mfplat",
+    "mfplat_vista", "mfplay", "mfreadwrite", "mfuuid", "mf_vista", "mgmtapi", "mmc", "mpr", "mqoa", "mqrt",
+    "msacm32", "mscms", "mscoree", "mscorsn", "msctfmonitor", "msdasc", "msdelta", "msdmo", "msdrm", "msi",
+    "msimg32", "mspatchc", "dwmapi", "glu32", "iscsidsc", "mprapi", "msrating", "nmsupp", "prntvpt",
+    "scarddlg", "sisbkup", "wdsbp", "mstask", "msvfw32", "mswsock", "msxml2", "msxml6", "mtx", "mtxdm",
+    "muiload", "ncrypt", "ndfapi", "ndproxystub", "netapi32", "netsh", "newdev", "nmapi", "normaliz",
+    "ntdsapi", "ntmsapi", "ntquery", "odbc32", "odbcbcp", "odbccp32", "ole32", "oleacc", "oleaut32", "oledb",
+    "oledlg", "opengl32", "osptk", "p2p", "p2pgraph", "parser", "pathcch", "pdh", "photoacquireuid",
+    "portabledeviceguids", "powrprof", "propsys", "psapi", "quartz", "qutil", "qwave", "rasapi32", "rasdlg",
+    "resutils", "rpcns4", "rpcrt4", "rstrtmgr", "rtm", "rtutils", "sapi", "sas", "sbtsv", "scrnsave",
+    "scrnsavw", "searchsdk", "secur32", "sensapi", "sensorsapi", "setupapi", "sfc", "shdocvw", "shell32",
+    "shfolder", "shlwapi", "slc", "slcext", "slwga", "snmpapi", "sporder", "srclient", "sti", "strmiids",
+    "strsafe", "structuredquery", "svcguid", "t2embed", "tapi32", "taskschd", "tbs", "tdh", "tlbref",
+    "traffic", "transcodeimageuid", "tspubplugincom", "txfw32", "uiautomationcore", "urlmon", "user32",
+    "userenv", "usp10", "uuid", "uxtheme", "vds_uuid", "version", "vfw32", "virtdisk", "vpccominterfaces",
+    "vssapi", "vss_uuid", "vstorinterface", "wbemuuid", "wcmguid", "wdsclientapi", "wdsmc", "wdspxe",
+    "wdstptc", "webservices", "wecapi", "wer", "wevtapi", "wiaguid", "winbio", "windowscodecs",
+    "windowssideshowguids", "winfax", "winhttp", "wininet", "winmm", "winsatapi", "winscard", "winspool",
+    "winstrm", "wintrust", "wlanapi", "wlanui", "wldap32", "wmcodecdspuuid", "wmdrmsdk", "wmiutils",
+    "wmvcore", "workspaceax", "ws2_32", "wsbapp_uuid", "wscapi", "wsdapi", "wsmsvc", "wsnmp32", "wsock32",
+    "wtsapi32", "wuguid", "xaswitch", "xinput", "xmllite", "xolehlp", "xpsprint",
+}.difference({"kernel32", "user32", "gdi32", "winspool", "shell32", "ole32", "oleaut32", "uuid", "comdlg32", "advapi32"})
