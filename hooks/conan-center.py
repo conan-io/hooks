@@ -262,12 +262,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                        os.path.join("test_package", "build") not in root:
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
-                        if not "cmake_minimum_required(version" in cmake_content and \
-                           not "cmake_minimum_required (version" in cmake_content:
-                            file_path = os.path.join(os.path.relpath(root), filename)
-                            out.error("The CMake file '%s' must contain a minimum version " \
-                                      "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
-                                      file_path)
+                        for line in cmake_content.splitlines():
+                            if line.startswith("#") or re.search(r"^\s+#", line) or len(line.strip()) == 0:
+                                continue
+                            elif "cmake_minimum_required(version" in line or \
+                                 "cmake_minimum_required (version" in line:
+                                break
+                            else:
+                                file_path = os.path.join(os.path.relpath(root), filename)
+                                out.error("The CMake file '%s' must contain a minimum version " \
+                                          "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.1.2))" %
+                                          file_path)
 
         dir_path = os.path.dirname(conanfile_path)
         _find_cmake_minimum(dir_path)
