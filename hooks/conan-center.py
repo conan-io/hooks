@@ -692,7 +692,10 @@ def _files_match_settings(conanfile, folder, output):
             return False
         else:
             return True
-    return False
+
+    output.warn("An unknown `os` setting value is used: %s" % os)
+    output.warn("Skipping...")
+    return True
 
 
 def _is_recipe_header_only(conanfile):
