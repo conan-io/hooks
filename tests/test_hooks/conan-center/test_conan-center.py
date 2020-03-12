@@ -590,8 +590,8 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'foo/0.1.0@user/test'])
         for line in [1, 10, 21]:
-            self.assertNotIn("ERROR: [NO F-STRINGS (KB-H038)] Line ({}):".format(line), output)
+            self.assertNotIn("ERROR: [NO F-STRINGS (KB-H042)] Line ({}):".format(line), output)
         for line in [13, 14, 15, 17]:
-            self.assertIn("ERROR: [NO F-STRINGS (KB-H038)] Line ({}): "
+            self.assertIn("ERROR: [NO F-STRINGS (KB-H042)] Line ({}): "
                           "Python f-strings (PEP 498) is not allowed in Conan recipes.".format(line), output)
 
