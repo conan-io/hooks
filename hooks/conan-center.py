@@ -300,7 +300,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
-        allowed_first_level = ["sources", "patches"]
+        allowed_first_level = ["sources", "patches", "mirrors"]
         allowed_sources = ["url", "sha256", "sha1", "md5"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
@@ -335,11 +335,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                             out.error("Additional entries %s not allowed in 'patches':'%s' of "
                                       "conandata.yml" % (entries, version))
                             return
-                    if entry == "sources":
+                    if entry in ["sources", "mirrors"]:
                         entries = _not_allowed_entries(element, allowed_sources)
                         if entries:
-                            out.error("Additional entry %s not allowed in 'sources':'%s' of "
-                                      "conandata.yml" % (entries, version))
+                            out.error("Additional entries %s not allowed in '%s':'%s' of "
+                                      "conandata.yml" % (entries, entry, version))
                             return
 
     @run_test("KB-H034", output)

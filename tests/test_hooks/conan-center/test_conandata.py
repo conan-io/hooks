@@ -213,8 +213,15 @@ class ConanData(ConanClientTestCase):
                   checksum: "sha_custom"
                   base_path: "source_subfolder"
             """)
+        conandata_mirror = textwrap.dedent("""
+            mirrors:
+              "1.70.0":
+                url: "mirror.69.0"
+                sha256: "sha1.mirror.69.0"
+                other: "mirror_data"
+            """)
         for conandata in [conandata_random, conandata_sources, conandata_patches,
-                          conandata_patches_specific]:
+                          conandata_patches_specific, conandata_mirror]:
             print(conandata)
             tools.save('conandata.yml', content=conandata)
             output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
@@ -222,10 +229,10 @@ class ConanData(ConanClientTestCase):
 
             if conandata == conandata_random:
                 self.assertIn("First level entries ['random_field'] not allowed. Use only first "
-                              "level entries ['sources', 'patches'] in conandata.yml", output)
+                              "level entries ['sources', 'patches', 'mirrors'] in conandata.yml", output)
             if conandata == conandata_sources:
                 self.assertNotIn("First level entries", output)
-                self.assertIn("Additional entry ['other'] not allowed in 'sources':'1.70.0' of "
+                self.assertIn("Additional entries ['other'] not allowed in 'sources':'1.70.0' of "
                               "conandata.yml", output)
             if conandata == conandata_patches:
                 self.assertNotIn("First level entries", output)
@@ -235,3 +242,7 @@ class ConanData(ConanClientTestCase):
                 self.assertNotIn("First level entries", output)
                 self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                               "of conandata.yml", output)
+            if conandata == conandata_mirror:
+                self.assertNotIn("First level entries", output)
+                self.assertIn("Additional entries ['other'] not allowed in 'mirrors':'1.70.0' of "
+                              "conandata.yml", output)
