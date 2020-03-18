@@ -186,6 +186,18 @@ class ConanData(ConanClientTestCase):
             if version == "1.71.0":
                 self.assertEqual(expected_conandata_1710, conandata)
 
+    def test_versions_as_string(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+            sources:
+              1.73:
+                url: "url1.69.0"
+        """)
+
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+
     def test_wrong_conandata_format(self):
         tools.save('conanfile.py', content=self.conanfile)
         conandata_sources = textwrap.dedent("""
@@ -215,7 +227,6 @@ class ConanData(ConanClientTestCase):
             """)
         for conandata in [conandata_random, conandata_sources, conandata_patches,
                           conandata_patches_specific]:
-            print(conandata)
             tools.save('conandata.yml', content=conandata)
             output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
             self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
