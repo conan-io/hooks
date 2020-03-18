@@ -332,9 +332,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
             for entry in conandata_yml:
 
-                versions = conandata_yml[entry].keys()
-                if any([not isinstance(it, str) for it in versions]):
-                    out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
+                if entry in ['sources', 'patches']:
+                    versions = conandata_yml[entry].keys()
+                    if any([not isinstance(it, str) for it in versions]):
+                        out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
 
                 if version not in conandata_yml[entry]:
                     continue

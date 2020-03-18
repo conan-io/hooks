@@ -198,24 +198,50 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)] Versions in conandata.yml should be strings", output)
 
-    def test_wrong_conandata_format(self):
+    def test_unknown_field(self):
         tools.save('conanfile.py', content=self.conanfile)
-        conandata_sources = textwrap.dedent("""
+        conandata = textwrap.dedent("""
+            random_field: "random"
+            """)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertIn("First level entries ['random_field'] not allowed. Use only first "
+                      "level entries ['sources', 'patches'] in conandata.yml", output)
+
+    def test_unknown_subentry_sources(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
             sources:
               "1.70.0":
                 url: "url1.69.0"
                 sha256: "sha1.69.0"
                 other: "more_data"
             """)
-        conandata_patches = textwrap.dedent("""
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertNotIn("First level entries", output)
+        self.assertIn("Additional entry ['other'] not allowed in 'sources':'1.70.0' of "
+                      "conandata.yml", output)
+
+    def test_unknown_subentry_patches(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
             patches:
               "1.70.0":
                 patches: "1.70.0.patch"
             """)
-        conandata_random = textwrap.dedent("""
-            random_field: "random"
-                    """)
-        conandata_patches_specific = textwrap.dedent("""
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertNotIn("First level entries", output)
+        self.assertIn("Additional entries ['patches'] not allowed in 'patches':'1.70.0' "
+                      "of conandata.yml", output)
+
+    def test_unknown_subentry_in_list(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
             patches:
               "1.70.0":
                 - patch_file: "001-1.70.0.patch"
@@ -225,24 +251,10 @@ class ConanData(ConanClientTestCase):
                   checksum: "sha_custom"
                   base_path: "source_subfolder"
             """)
-        for conandata in [conandata_random, conandata_sources, conandata_patches,
-                          conandata_patches_specific]:
-            tools.save('conandata.yml', content=conandata)
-            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-            self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
 
-            if conandata == conandata_random:
-                self.assertIn("First level entries ['random_field'] not allowed. Use only first "
-                              "level entries ['sources', 'patches'] in conandata.yml", output)
-            if conandata == conandata_sources:
-                self.assertNotIn("First level entries", output)
-                self.assertIn("Additional entry ['other'] not allowed in 'sources':'1.70.0' of "
-                              "conandata.yml", output)
-            if conandata == conandata_patches:
-                self.assertNotIn("First level entries", output)
-                self.assertIn("Additional entries ['patches'] not allowed in 'patches':'1.70.0' "
-                              "of conandata.yml", output)
-            if conandata == conandata_patches_specific:
-                self.assertNotIn("First level entries", output)
-                self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
-                              "of conandata.yml", output)
+        self.assertNotIn("First level entries", output)
+        self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
+                      "of conandata.yml", output)
