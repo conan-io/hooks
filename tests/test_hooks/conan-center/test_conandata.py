@@ -196,7 +196,7 @@ class ConanData(ConanClientTestCase):
 
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)] Versions in conandata.yml should be strings", output)
 
     def test_wrong_conandata_format(self):
         tools.save('conanfile.py', content=self.conanfile)
