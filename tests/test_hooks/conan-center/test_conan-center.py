@@ -223,6 +223,29 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
         self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
 
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        from conans import ConanFile, CMake, RunEnvironment
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def build(self):
+                with tools.environment_append(RunEnvironment(self).vars):
+                    self.output.info("foobar")
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
+
     def test_exports_licenses(self):
         tools.save('conanfile.py',
                    content=self.conanfile_base.format(placeholder='exports = "LICENSE"'))
