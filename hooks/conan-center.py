@@ -285,7 +285,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
         if "RunEnvironment" in test_package_conanfile and \
-           not re.search(r"self\.run(.*, run_environment=True)", test_package_conanfile):
+           not re.search(r"self\.run\(.*, run_environment=True\)", test_package_conanfile):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
