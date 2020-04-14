@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H044": "NO REQUIRES.ADD()",
             }
 
 
@@ -383,6 +384,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("CCI uses the name of the package for {0} generator. "
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+
+    @run_test("KB-H044", output)
+    def test(out):
+        for forbidden in ["self.requires.add", "self.build_requires.add"]:
+            if forbidden in conanfile_content:
+                out.error("The method '{}()' is not allowed. Use '{}()' instead."
+                          .format(forbidden, forbidden.replace(".add", "")))
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
