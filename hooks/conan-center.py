@@ -649,16 +649,18 @@ def _files_match_settings(conanfile, folder, output):
     mingw_extensions = ["a", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
     linux_extensions = ["a", "so", "sh", ""]
+    freebsd_extensions = ["a", "so", "sh", ""]
     macos_extensions = ["a", "dylib", ""]
 
     has_header = _get_files_with_extensions(folder, header_extensions)
     has_visual = _get_files_with_extensions(folder, visual_extensions)
     has_mingw = _get_files_with_extensions(folder, mingw_extensions)
     has_linux = _get_files_with_extensions(folder, linux_extensions)
+    has_freebsd = _get_files_with_extensions(folder, freebsd_extensions)
     has_macos = _get_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
 
-    if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
+    if not has_header and not has_visual and not has_mingw and not has_linux and not has_freebsd and not has_macos:
         output.error("Empty package")
         return False
     if _is_recipe_header_only(conanfile):
@@ -686,18 +688,25 @@ def _files_match_settings(conanfile, folder, output):
             output.error("Package for Linux does not contain artifacts with these extensions: "
                          "%s" % linux_extensions)
         return has_linux
+    if os == "FreeBSD":
+        if not has_freebsd:
+            output.error("Package for FreeBSD does not contain artifacts with these extensions: "
+                         "%s" % freebsd_extensions)
+        return has_freebsd
     if os == "Macos":
         if not has_macos:
             output.error("Package for Macos does not contain artifacts with these extensions: "
                          "%s" % macos_extensions)
         return has_macos
     if os is None:
-        if not has_header and (has_visual or has_mingw or has_linux or has_macos):
+        if not has_header and (has_visual or has_mingw or has_linux or has_freebsd or has_macos):
             output.error("Package for Header Only does not contain artifacts with these extensions: "
                          "%s" % header_extensions)
             return False
         else:
             return True
+
+    output.error("OS %s might not be supported" % os)
     return False
 
 
