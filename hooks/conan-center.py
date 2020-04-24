@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H046": "VALIDATE CHECK_MIN_CPPSTD",
             }
 
 
@@ -383,6 +384,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("CCI uses the name of the package for {0} generator. "
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+
+    @run_test("KB-H046", output)
+    def test(out):
+        if "check_min_cppstd" in conanfile_content and \
+            (not 'settings.get_safe("compiler.cppstd")' in conanfile_content and \
+            not "settings.get_safe('compiler.cppstd')" in conanfile_content):
+            out.error("'tools.check_min_cppstd requires 'if self.settings.get_safe(\"compiler.cppstd\")' first."
+                      "  Check if 'cppstd' is configured before 'check_min_cppstd'.")
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
