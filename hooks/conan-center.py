@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H045": "DELETE OPTIONS",
             }
 
 
@@ -383,6 +384,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("CCI uses the name of the package for {0} generator. "
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+
+    @run_test("KB-H045", output)
+    def test(out):
+        if "self.options.remove" in conanfile_content:
+            out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
