@@ -611,6 +611,12 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[VALIDATE CHECK_MIN_CPPSTD (KB-H046)] OK", output)
 
+        tools.save('conanfile.py', content=conanfile.replace("{0}", 'tools.check_min_cppstd(self, "11")')
+                   .replace("{1}", "if self.settings.get_safe(\"compiler.cppstd\"):\n            pass"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [VALIDATE CHECK_MIN_CPPSTD (KB-H046)] 'tools.check_min_cppstd requires 'if self.settings.get_safe(\"compiler.cppstd\")' first."
+                      "  Check if 'cppstd' is configured before 'check_min_cppstd'.", output)
+
         tools.save('conanfile.py', content=conanfile.replace("{0}", 'tools.check_min_cppstd(self, "11")').replace("{1}", ""))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [VALIDATE CHECK_MIN_CPPSTD (KB-H046)] 'tools.check_min_cppstd requires 'if self.settings.get_safe(\"compiler.cppstd\")' first."

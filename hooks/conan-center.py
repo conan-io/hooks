@@ -387,11 +387,25 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H046", output)
     def test(out):
-        if "check_min_cppstd" in conanfile_content and \
-            (not 'settings.get_safe("compiler.cppstd")' in conanfile_content and \
-            not "settings.get_safe('compiler.cppstd')" in conanfile_content):
-            out.error("'tools.check_min_cppstd requires 'if self.settings.get_safe(\"compiler.cppstd\")' first."
-                      "  Check if 'cppstd' is configured before 'check_min_cppstd'.")
+        def _which_line_is(content, lines):
+            n = 0
+            for line in lines:
+                n += 1
+                if content in line:
+                    return n
+            return 0
+
+        lines = conanfile_content.splitlines()
+        check_line = _which_line_is("check_min_cppstd", lines)
+        if check_line:
+            if_1_line = _which_line_is('settings.get_safe("compiler.cppstd")', lines)
+            if_2_line = _which_line_is("settings.get_safe('compiler.cppstd')", lines)
+            if (not if_1_line and not if_2_line) or \
+               (if_1_line and if_1_line > check_line) or \
+               (if_2_line and if_2_line > check_line):
+                out.error("'tools.check_min_cppstd requires 'if self.settings.get_safe(\"compiler.cppstd\")' first."
+                          "  Check if 'cppstd' is configured before 'check_min_cppstd'.")
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
