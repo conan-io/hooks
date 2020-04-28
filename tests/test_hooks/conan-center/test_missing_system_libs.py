@@ -10,7 +10,7 @@ from conans import __version__ as conan_version
 
 
 @unittest.skipUnless(conan_version >= "1.19.0", "Conan >= 1.19.0 needed")
-@unittest.skipIf(tools.is_apple_os(tools.detected_os()))
+@unittest.skipIf(tools.is_apple_os(tools.detected_os()), "Apple os'es are not supported")
 class ConanMissingSystemLibs(ConanClientTestCase):
     cmakelists = textwrap.dedent("""\
         cmake_minimum_required(VERSION 2.8)
