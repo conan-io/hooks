@@ -39,9 +39,11 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
+             "KB-H032": "SYSTEM REQUIREMENTS",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H036": "CUSTOM METHODS",             
              "KB-H037": "NO AUTHOR",
+             "KB-H040": "NO TARGET NAME",
             }
 
 
@@ -261,12 +263,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                        os.path.join("test_package", "build") not in root:
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
-                        if not "cmake_minimum_required(version" in cmake_content and \
-                           not "cmake_minimum_required (version" in cmake_content:
-                            file_path = os.path.join(os.path.relpath(root), filename)
-                            out.error("The CMake file '%s' must contain a minimum version " \
-                                      "declared (e.g. cmake_minimum_required(VERSION 3.1.2))" %
-                                      file_path)
+                        for line in cmake_content.splitlines():
+                            if line.startswith("#") or re.search(r"^\s+#", line) or len(line.strip()) == 0:
+                                continue
+                            elif "cmake_minimum_required(version" in line or \
+                                 "cmake_minimum_required (version" in line:
+                                break
+                            else:
+                                file_path = os.path.join(os.path.relpath(root), filename)
+                                out.error("The CMake file '%s' must contain a minimum version " \
+                                          "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.1.2))" %
+                                          file_path)
 
         dir_path = os.path.dirname(conanfile_path)
         _find_cmake_minimum(dir_path)
@@ -282,13 +289,26 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
+    @run_test("KB-H032", output)
+    def test(out):
+        if conanfile.name in ["libusb"]:
+            out.info("'{}' is part of the allowlist.".format(conanfile.name))
+            return
+        if "def system_requirements" in conanfile_content and \
+           "SystemPackageTool" in conanfile_content:
+            import re
+            match = re.search(r'(\S+)\s?=\s?SystemPackageTool', conanfile_content)
+            if ("SystemPackageTool().install" in conanfile_content) or \
+               (match and "{}.install".format(match.group(1)) in conanfile_content):
+                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+
     @run_test("KB-H030", output)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256"]
-        allowed_patches = ["patch_file", "base_path", "url", "sha256"]
+        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -312,6 +332,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                           "conandata.yml" % (entries, allowed_first_level))
 
             for entry in conandata_yml:
+
+                if entry in ['sources', 'patches']:
+                    versions = conandata_yml[entry].keys()
+                    if any([not isinstance(it, str) for it in versions]):
+                        out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
+
                 if version not in conandata_yml[entry]:
                     continue
                 for element in conandata_yml[entry][version]:
@@ -371,6 +397,18 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 author = '"%s"' % author
             out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
 
+    @run_test("KB-H040", output)
+    def test(out):
+        if "self.cpp_info.name =" in conanfile_content:
+            out.error("CCI uses the name of the package for cmake generator."
+                      " Use 'cpp_info.names' instead.")
+
+        for generator in ["cmake", "cmake_multi"]:
+            if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
+               'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
+                out.error("CCI uses the name of the package for {0} generator. "
+                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
+                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -410,7 +448,6 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                       "to be downloaded.")
 
         if "def source(self):" in conanfile_content:
-            needed_content = ['**self.conan_data["sources"]']
             invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
             if "git clone" in conanfile_content and "git checkout" in conanfile_content:
                 fixed_sources = True
@@ -420,20 +457,15 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
                         break
             else:
                 fixed_sources = True
-                for valid in needed_content:
-                    if valid not in conanfile_content:
-                        fixed_sources = False
-                        break
+                if ('**self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.get' not in conanfile_content) and \
+                   ('self.conan_data["sources"]' not in conanfile_content and \
+                    'tools.download' not in conanfile_content):
+                    fixed_sources = False
 
             if not fixed_sources:
                 out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
                           "in the source() method to get the sources.")
-
-    @run_test("KB-H026", output)
-    def test(out):
-        if "Linter warnings" in str(output):
-            out.error("Linter warnings detected. Check the warnings in the output and fix them " \
-                      "in the recipe")
 
 
 @raise_if_error_output
@@ -452,7 +484,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
 
-            if "del self.settings.compiler.libcxx" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.libcxx" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
@@ -461,7 +493,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
-            if "del self.settings.compiler.cppstd" not in low:
+            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.cppstd" not in low:
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
@@ -499,6 +531,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
+        if conanfile.name in ["cmake",]:
+            return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
@@ -538,7 +572,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H016", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
                                                                              "*Config.cmake",
@@ -641,16 +675,18 @@ def _files_match_settings(conanfile, folder, output):
     mingw_extensions = ["a", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
     linux_extensions = ["a", "so", "sh", ""]
+    freebsd_extensions = ["a", "so", "sh", ""]
     macos_extensions = ["a", "dylib", ""]
 
     has_header = _get_files_with_extensions(folder, header_extensions)
     has_visual = _get_files_with_extensions(folder, visual_extensions)
     has_mingw = _get_files_with_extensions(folder, mingw_extensions)
     has_linux = _get_files_with_extensions(folder, linux_extensions)
+    has_freebsd = _get_files_with_extensions(folder, freebsd_extensions)
     has_macos = _get_files_with_extensions(folder, macos_extensions)
     os = _get_os(conanfile)
 
-    if not has_header and not has_visual and not has_mingw and not has_linux and not has_macos:
+    if not has_header and not has_visual and not has_mingw and not has_linux and not has_freebsd and not has_macos:
         output.error("Empty package")
         return False
     if _is_recipe_header_only(conanfile):
@@ -678,18 +714,25 @@ def _files_match_settings(conanfile, folder, output):
             output.error("Package for Linux does not contain artifacts with these extensions: "
                          "%s" % linux_extensions)
         return has_linux
+    if os == "FreeBSD":
+        if not has_freebsd:
+            output.error("Package for FreeBSD does not contain artifacts with these extensions: "
+                         "%s" % freebsd_extensions)
+        return has_freebsd
     if os == "Macos":
         if not has_macos:
             output.error("Package for Macos does not contain artifacts with these extensions: "
                          "%s" % macos_extensions)
         return has_macos
     if os is None:
-        if not has_header and (has_visual or has_mingw or has_linux or has_macos):
+        if not has_header and (has_visual or has_mingw or has_linux or has_freebsd or has_macos):
             output.error("Package for Header Only does not contain artifacts with these extensions: "
                          "%s" % header_extensions)
             return False
         else:
             return True
+
+    output.error("OS %s might not be supported" % os)
     return False
 
 
