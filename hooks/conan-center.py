@@ -669,7 +669,6 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H043", output)
     def test(out):
         if tools.is_apple_os(_get_os(conanfile)):
-            out.info("apple os not supported")
             return
         dict_deplibs_libs = _deplibs_from_shlibs(conanfile, out)
         all_system_libs = _all_system_libs(_get_os(conanfile))
