@@ -448,7 +448,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     def _is_pure_c():
         if not _is_recipe_header_only(conanfile):
-            cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+            cpp_extensions = ["cc", "c++", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
             c_extensions = ["c", "h"]
             return not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) and \
                    _get_files_with_extensions(conanfile.source_folder, c_extensions)
