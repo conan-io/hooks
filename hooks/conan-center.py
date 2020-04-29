@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H046": "CMAKE VERBOSE MAKEFILE",
             }
 
 
@@ -384,6 +385,23 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("CCI uses the name of the package for {0} generator. "
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+
+    @run_test("KB-H046", output)
+    def test(out):
+
+        def check_for_verbose_flag(cmake_path):
+            cmake_content = tools.load(cmake_path)
+            if "cmake_verbose_makefile" in cmake_content.lower():
+                out.error("The CMake definition 'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed. "
+                          "Remove it from {}.".format(os.path.relpath(cmake_path)))
+
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
+                           os.path.join(test_package_path, "CMakeLists.txt")]:
+            if os.path.exists(cmake_path):
+                check_for_verbose_flag(cmake_path)
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):

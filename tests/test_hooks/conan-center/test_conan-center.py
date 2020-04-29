@@ -620,3 +620,45 @@ class ConanCenterTests(ConanClientTestCase):
             tools.save('conanfile.py', content=conanfile.replace("{}", it))
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
+
+    def test_cmake_verbose_makefile(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE VERBOSE MAKEFILE (KB-H046)] OK", output)
+
+        cmake = """cmake_minimum_required(VERSION 2.8.11)
+        project(test)
+
+        set(CMAKE_VERBOSE_MAKEFILE ON)
+        """
+        tools.save('CMakeLists.txt', content=cmake)
+        print("CWD: %s" % os.getcwd())
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
+                      "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."
+                      " Remove it from CMakeLists.txt.", output)
+
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def test(self):
+                pass
+        """)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        tools.save('CMakeLists.txt', content=cmake.replace("set(CMAKE_VERBOSE_MAKEFILE ON)", ""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertNotIn("Remove it from CMakeLists.txt", output)
+        self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
+                      "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."
+                      " Remove it from test_package/CMakeLists.txt.", output)
