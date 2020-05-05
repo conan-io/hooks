@@ -43,6 +43,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
+             "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
             }
 
@@ -285,7 +286,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             return
 
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
-        if "RunEnvironment" in test_package_conanfile:
+        if "RunEnvironment" in test_package_conanfile and \
+           not re.search(r"self\.run\(.*, run_environment=True\)", test_package_conanfile):
             out.error("The 'RunEnvironment()' build helper is no longer needed. "
                       "It has been integrated into the self.run(..., run_environment=True)")
 
@@ -385,6 +387,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                           "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
                           " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
 
+    @run_test("KB-H044", output)
+    def test(out):
+        for forbidden in ["self.requires.add", "self.build_requires.add"]:
+            if forbidden in conanfile_content:
+                out.error("The method '{}()' is not allowed. Use '{}()' instead."
+                          .format(forbidden, forbidden.replace(".add", "")))
+
     @run_test("KB-H045", output)
     def test(out):
         if "self.options.remove" in conanfile_content:
@@ -454,7 +463,7 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     def _is_pure_c():
         if not _is_recipe_header_only(conanfile):
-            cpp_extensions = ["cc", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
+            cpp_extensions = ["cc", "c++", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
             c_extensions = ["c", "h"]
             return not _get_files_with_extensions(conanfile.source_folder, cpp_extensions) and \
                    _get_files_with_extensions(conanfile.source_folder, c_extensions)
@@ -553,7 +562,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H016", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
                                                                              "*Config.cmake",

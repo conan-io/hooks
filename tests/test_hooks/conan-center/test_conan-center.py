@@ -223,6 +223,29 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
         self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
 
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        from conans import ConanFile, CMake, RunEnvironment
+
+        class TestConan(ConanFile):
+            settings = "os", "arch"
+
+            def build(self):
+                with tools.environment_append(RunEnvironment(self).vars):
+                    self.output.info("foobar")
+
+            def test(self):
+                self.run("echo bar", run_environment=True)
+        """)
+
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
+        self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
+
     def test_exports_licenses(self):
         tools.save('conanfile.py',
                    content=self.conanfile_base.format(placeholder='exports = "LICENSE"'))
@@ -540,6 +563,54 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
         self.assertIn("ERROR: [TEST PACKAGE - NO IMPORTS() (KB-H034)] The method `imports` is not " \
                       "allowed in test_package/conanfile.py", output)
+
+    def test_requirements_add(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                def requirements(self):
+                    {}
+        """)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.requires("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.requires.add("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.requires.add()' is not " \
+                      "allowed. Use 'self.requires()' instead.", output)
+
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                def build_requirements(self):
+                    {}
+        """)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.build_requires("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        # Conan >= 1.23 requires "context" parameter for build_requires.add()
+        if Version(conan_version) < "1.23":
+            tools.save('conanfile.py',
+                    content=conanfile.replace("{}", 'self.build_requires.add("name/version@user/test")'))
+            output = self.conan(['create', '.', 'foo/version@user/test'])
+            self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.build_requires.add()' is not " \
+                        "allowed. Use 'self.build_requires()' instead.", output)
 
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
