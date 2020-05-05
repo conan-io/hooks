@@ -44,6 +44,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
              "KB-H044": "NO REQUIRES.ADD()",
+             "KB-H045": "DELETE OPTIONS",
             }
 
 
@@ -392,6 +393,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if forbidden in conanfile_content:
                 out.error("The method '{}()' is not allowed. Use '{}()' instead."
                           .format(forbidden, forbidden.replace(".add", "")))
+
+    @run_test("KB-H045", output)
+    def test(out):
+        if "self.options.remove" in conanfile_content:
+            out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
 
 
 @raise_if_error_output

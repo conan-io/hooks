@@ -668,3 +668,21 @@ class ConanCenterTests(ConanClientTestCase):
             tools.save('conanfile.py', content=conanfile.replace("{}", it))
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
+
+    def test_delete_option(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            options = {"foo": [True, False]}
+
+            def config_options(self):
+                {}
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", "del self.options.foo"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[DELETE OPTIONS (KB-H045)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", 'self.options.remove("foo")'))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [DELETE OPTIONS (KB-H045)] Found 'self.options.remove'."
+                      " Replace it by 'del self.options.<opt>'.", output)
