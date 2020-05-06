@@ -564,6 +564,54 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [TEST PACKAGE - NO IMPORTS() (KB-H034)] The method `imports` is not " \
                       "allowed in test_package/conanfile.py", output)
 
+    def test_requirements_add(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                def requirements(self):
+                    {}
+        """)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.requires("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.requires.add("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.requires.add()' is not " \
+                      "allowed. Use 'self.requires()' instead.", output)
+
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+                def build_requirements(self):
+                    {}
+        """)
+
+        tools.save('conanfile.py',
+                   content=conanfile.replace("{}", 'self.build_requires("name/version@user/test")'))
+        output = self.conan(['create', '.', 'foo/version@user/test'])
+        self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
+
+        # Conan >= 1.23 requires "context" parameter for build_requires.add()
+        if Version(conan_version) < "1.23":
+            tools.save('conanfile.py',
+                    content=conanfile.replace("{}", 'self.build_requires.add("name/version@user/test")'))
+            output = self.conan(['create', '.', 'foo/version@user/test'])
+            self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.build_requires.add()' is not " \
+                        "allowed. Use 'self.build_requires()' instead.", output)
+
     def test_no_author(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
@@ -662,3 +710,20 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
                       "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."
                       " Remove it from test_package/CMakeLists.txt.", output)
+    def test_delete_option(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            options = {"foo": [True, False]}
+
+            def config_options(self):
+                {}
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", "del self.options.foo"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[DELETE OPTIONS (KB-H045)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", 'self.options.remove("foo")'))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [DELETE OPTIONS (KB-H045)] Found 'self.options.remove'."
+                      " Replace it by 'del self.options.<opt>'.", output)
