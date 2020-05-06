@@ -709,7 +709,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertNotIn("Remove it from CMakeLists.txt", output)
         self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
                       "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."
-                      " Remove it from test_package/CMakeLists.txt.", output)
+                      " Remove it from {}."
+                      .format(os.path.join("test_package", "CMakeLists.txt")), output)
     def test_delete_option(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
