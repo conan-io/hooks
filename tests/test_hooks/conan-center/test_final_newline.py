@@ -85,6 +85,13 @@ class TestGlobalFinalNewLine(ConanClientTestCase):
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
+    def test_no_newline_in_build_file(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save(os.path.join('test_package', 'build', 'some_file.txt'), 'some data')
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertNotIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
+        self.assertNotIn("does not end with an endline", output)
+
     def test_ok_usage(self):
         tools.save(os.path.join('config.yml'), content=self.config_yml)
         tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile)
