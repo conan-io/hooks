@@ -403,6 +403,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("File '{}' does not end with an endline".format(path))
 
         for root, _, filenames in os.walk(export_folder_path):
+            if os.path.relpath(root, export_folder_path).replace("\\", "/").startswith("test_package/build"):
+                # Discard any file in temp builds
+                continue
             for filename in filenames:
                 _, fileext = os.path.splitext(filename)
                 if filename in files_noext or fileext.lower() in checked_fileexts:
