@@ -9,7 +9,7 @@ jobs:
     - stage: Linux - Conan develop
       name: Python 2.7
       python: 2.7
-      env: TOXENV=py27-conandev
+      env: TOXENV=py27-conandev TOXARGS='-- --ignore=tests/test_hooks/conan-center/test_non_ascii_char.py'
     - name: Python 3.5
       python: 3.5
       env: TOXENV=py35-conandev
@@ -23,7 +23,7 @@ jobs:
     - stage: Linux - Conan Current
       name: Python 2.7
       python: 2.7
-      env: TOXENV=py27-conancurrent
+      env: TOXENV=py27-conancurrent TOXARGS='-- --ignore=tests/test_hooks/conan-center/test_non_ascii_char.py'
     - name: Python 3.5
       python: 3.5
       env: TOXENV=py35-conancurrent
@@ -64,7 +64,7 @@ jobs:
       language: generic
       os: osx
       osx_image: xcode11.2
-      env: PYVER=py27 TOXENV=py27-conancurrent
+      env: PYVER=py27 TOXENV=py27-conancurrent TOXARGS='-- --ignore=tests/test_hooks/conan-center/test_non_ascii_char.py'
     - name: Conan Current - Python 3.5
       language: generic
       os: osx
@@ -98,4 +98,4 @@ script:
       if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
       pyenv activate conan
     fi
-  - tox
+  - tox ${TOXARGS}
