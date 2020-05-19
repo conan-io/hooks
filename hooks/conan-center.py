@@ -46,6 +46,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H041": "NO FINAL ENDLINE",
              "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
+             "KB-H047": "NO ASCII CHARACTERS",
             }
 
 
@@ -425,6 +426,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         if "self.options.remove" in conanfile_content:
             out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
+
+    @run_test("KB-H047", output)
+    def test(out):
+        for num, line in enumerate(conanfile_content.splitlines(), 1):
+            if not all(ord(it) < 128 for it in line):
+                out.error("The line ({}) contains a non-ascii character." \
+                          " Only ASCII characters are allowed, please remove it.".format(num))
 
 
 @raise_if_error_output
