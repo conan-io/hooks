@@ -2,6 +2,7 @@ import os
 import platform
 import textwrap
 import pytest
+import six
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -669,6 +670,7 @@ class ConanCenterTests(ConanClientTestCase):
             output = self.conan(['create', '.', 'name/version@user/test'])
             self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
 
+    @pytest.mark.skipif(six.PY2, reason="Python 2 doesn't support UTF-8 by default")
     def test_non_ascii_characters(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
