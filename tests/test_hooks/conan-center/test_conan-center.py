@@ -680,12 +680,18 @@ class ConanCenterTests(ConanClientTestCase):
             pass
         """)
         tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, the barbarian"))
+        tools.save(os.path.join('test_package', 'conanfile.py'),
+                                 content=conanfile.replace("{}", "def test(self): # Conan, the barbarian").replace("pass", "    pass"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[NO ASCII CHARACTERS (KB-H047)] OK", output)
 
         tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, o bárbaro"))
+        tools.save(os.path.join('test_package', 'conanfile.py'),
+                   content=conanfile.replace("{}", "def test(self): # Conan, o bárbaro").replace("pass", "    pass"))
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The line (3) contains a non-ascii character." \
+        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'conanfile.py' contains a non-ascii character at line (3)." \
+                      " Only ASCII characters are allowed, please remove it.", output)
+        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'test_package/conanfile.py' contains a non-ascii character at line (3)." \
                       " Only ASCII characters are allowed, please remove it.", output)
 
     def test_delete_option(self):

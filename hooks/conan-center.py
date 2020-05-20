@@ -429,10 +429,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H047", output)
     def test(out):
-        for num, line in enumerate(conanfile_content.splitlines(), 1):
-            if not all(ord(it) < 128 for it in line):
-                out.error("The line ({}) contains a non-ascii character." \
-                          " Only ASCII characters are allowed, please remove it.".format(num))
+
+        def _check_non_ascii(filename, content):
+            for num, line in enumerate(content.splitlines(), 1):
+                if not all(ord(it) < 128 for it in line):
+                    out.error("The file '{}' contains a non-ascii character at line ({})." \
+                            " Only ASCII characters are allowed, please remove it."
+                            .format(filename, num))
+
+        _check_non_ascii("conanfile.py", conanfile_content)
+        test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
+        test_package_path = os.path.join(test_package_dir, "conanfile.py")
+        if os.path.exists(test_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_non_ascii("test_package/conanfile.py", test_package_content)
 
 
 @raise_if_error_output
