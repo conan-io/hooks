@@ -647,7 +647,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
-        build_dirs = conanfile.cpp_info.builddirs
+        build_dirs = [bd.replace("\\", "/") for bd in conanfile.cpp_info.builddirs]
         files_missplaced = []
 
         for filename in bad_files:
