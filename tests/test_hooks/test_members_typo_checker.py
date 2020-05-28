@@ -25,7 +25,7 @@ class MembersTypoCheckerTests(ConanClientTestCase):
             name = "name"
             version = "version"
 
-            export_sources = "OH_NO"
+            exports_sourcess = "OH_NO"
 
             require = "Hello/0.1@oh_no/stable"
 
@@ -51,7 +51,7 @@ class MembersTypoCheckerTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile_with_typos)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn(
-            "pre_export(): WARN: The 'export_sources' member looks like a typo. Similar to:", output)
+            "pre_export(): WARN: The 'exports_sourcess' member looks like a typo. Similar to:", output)
         self.assertIn(
             "pre_export(): WARN:     exports_sources", output)
         self.assertIn(
