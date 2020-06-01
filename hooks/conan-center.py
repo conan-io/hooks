@@ -478,6 +478,8 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H010", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
                       "to be downloaded.")
@@ -551,6 +553,8 @@ def pre_build(output, conanfile, **kwargs):
 def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H012", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
             out.error("No 'licenses' folder found in package: %s " % conanfile.package_folder)
@@ -582,6 +586,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl"]:
             return
