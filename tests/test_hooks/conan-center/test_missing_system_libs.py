@@ -168,12 +168,12 @@ class ConanMissingSystemLibs(ConanClientTestCase):
             library = os.path.join(".", self._shlibdir, "libsimplelib.{}".format(self._shlext))
             self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
 
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     @parameterized.expand([
-        ("shared_dependency", True),
-        ("static_dependency", False),
+        (True,),
+        (False,),
     ])
-    def test_dep_system_lib_ok(self, name, dep_shared):
+    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
+    def test_dep_system_lib_ok(self, dep_shared):
         self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info, system_libs_static=self._os_build_info.shlibs_bases, system_libs_shared=[])
         self.conan(["create", "dep", "dep/version@user/channel", "-o", "dep:shared={}".format(dep_shared)])
         self._write_files(subdir="lib", name="lib", requires=("dep/version@user/channel", ), osbuildinfo=self._os_build_info2, system_libs_static=self._os_build_info2.shlibs_bases, system_libs_shared=[])
@@ -186,11 +186,11 @@ class ConanMissingSystemLibs(ConanClientTestCase):
             library = os.path.join(".", self._shlibdir, "liblib.{}".format(self._shlext))
             self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
 
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     @parameterized.expand([
         ("shared_dependency", True),
         ("static_dependency", False),
     ])
+    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     def test_dep_system_lib_missing(self, name, dep_shared):
         self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info, system_libs_static=self._os_build_info.shlibs_bases, system_libs_shared=[])
         self.conan(["create", "dep", "dep/version@user/channel", "-o", "dep:shared={}".format(dep_shared)])
