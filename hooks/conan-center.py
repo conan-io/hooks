@@ -47,6 +47,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
+             "KB-H047": "NO ASCII CHARACTERS",
             }
 
 
@@ -404,6 +405,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("File '{}' does not end with an endline".format(path))
 
         for root, _, filenames in os.walk(export_folder_path):
+            if os.path.relpath(root, export_folder_path).replace("\\", "/").startswith("test_package/build"):
+                # Discard any file in temp builds
+                continue
             for filename in filenames:
                 _, fileext = os.path.splitext(filename)
                 if filename in files_noext or fileext.lower() in checked_fileexts:
@@ -423,6 +427,23 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         if "self.options.remove" in conanfile_content:
             out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
+
+    @run_test("KB-H047", output)
+    def test(out):
+
+        def _check_non_ascii(filename, content):
+            for num, line in enumerate(content.splitlines(), 1):
+                if not all(ord(it) < 128 for it in line):
+                    out.error("The file '{}' contains a non-ascii character at line ({})." \
+                            " Only ASCII characters are allowed, please remove it."
+                            .format(filename, num))
+
+        _check_non_ascii("conanfile.py", conanfile_content)
+        test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
+        test_package_path = os.path.join(test_package_dir, "conanfile.py")
+        if os.path.exists(test_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_non_ascii("test_package/conanfile.py", test_package_content)
 
 
     @run_test("KB-H046", output)
@@ -475,6 +496,8 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H010", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
                       "to be downloaded.")
@@ -548,6 +571,8 @@ def pre_build(output, conanfile, **kwargs):
 def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H012", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
             out.error("No 'licenses' folder found in package: %s " % conanfile.package_folder)
@@ -579,6 +604,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
+        if conanfile.version == "system":
+            return
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl"]:
             return
@@ -644,7 +671,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
-        build_dirs = conanfile.cpp_info.builddirs
+        build_dirs = [bd.replace("\\", "/") for bd in conanfile.cpp_info.builddirs]
         files_missplaced = []
 
         for filename in bad_files:

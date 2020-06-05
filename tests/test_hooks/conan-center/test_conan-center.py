@@ -1,7 +1,9 @@
+# coding=utf-8
 import os
 import platform
 import textwrap
 import pytest
+import six
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -711,6 +713,30 @@ class ConanCenterTests(ConanClientTestCase):
                       "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."
                       " Remove it from {}."
                       .format(os.path.join("test_package", "CMakeLists.txt")), output)
+
+    @pytest.mark.skipif(six.PY2, reason="Python2 doesn't support utf-8 by default")
+    def test_non_ascii_characters(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            {}
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, the barbarian"))
+        tools.save(os.path.join('test_package', 'conanfile.py'),
+                                 content=conanfile.replace("{}", "def test(self): # Conan, the barbarian").replace("pass", "    pass"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[NO ASCII CHARACTERS (KB-H047)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, o bárbaro"))
+        tools.save(os.path.join('test_package', 'conanfile.py'),
+                   content=conanfile.replace("{}", "def test(self): # Conan, o bárbaro").replace("pass", "    pass"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'conanfile.py' contains a non-ascii character at line (3)." \
+                      " Only ASCII characters are allowed, please remove it.", output)
+        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'test_package/conanfile.py' contains a non-ascii character at line (3)." \
+                      " Only ASCII characters are allowed, please remove it.", output)
+
     def test_delete_option(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
