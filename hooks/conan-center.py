@@ -46,6 +46,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H041": "NO FINAL ENDLINE",
              "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
+             "KB-H046": "CMAKE VERBOSE MAKEFILE",
              "KB-H047": "NO ASCII CHARACTERS",
             }
 
@@ -443,6 +444,23 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if os.path.exists(test_package_path):
             test_package_content = tools.load(test_package_path)
             _check_non_ascii("test_package/conanfile.py", test_package_content)
+
+
+    @run_test("KB-H046", output)
+    def test(out):
+
+        def check_for_verbose_flag(cmake_path):
+            cmake_content = tools.load(cmake_path)
+            if "cmake_verbose_makefile" in cmake_content.lower():
+                out.error("The CMake definition 'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed. "
+                          "Remove it from {}.".format(os.path.relpath(cmake_path)))
+
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
+                           os.path.join(test_package_path, "CMakeLists.txt")]:
+            if os.path.exists(cmake_path):
+                check_for_verbose_flag(cmake_path)
 
 
 @raise_if_error_output
