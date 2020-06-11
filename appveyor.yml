@@ -20,13 +20,13 @@ environment:
         - PYVER: py38
           TOXENV: py38-conancurrent
 
-        # Conan 1.21.x
+        # Conan 1.24.x
         - PYVER: py38
-          TOXENV: py38-conan121
+          TOXENV: py38-conan124
 
-        # Conan 1.20.x
+        # Conan 1.23.x
         - PYVER: py38
-          TOXENV: py38-conan120
+          TOXENV: py38-conan123
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
