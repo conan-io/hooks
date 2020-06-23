@@ -20,18 +20,19 @@ environment:
         - PYVER: py38
           TOXENV: py38-conancurrent
 
-        # Conan 1.24.x
+        # Conan prev 
         - PYVER: py38
-          TOXENV: py38-conan124
+          TOXENV: py38-conanprev
 
-        # Conan 1.23.x
+        # Conan prev prev
         - PYVER: py38
-          TOXENV: py38-conan123
+          TOXENV: py38-conanprevprev
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
   - python -m pip install --upgrade pip
-  - pip install tox==3.7.0 tox-venv==0.3.1
+  - pip install tox==3.7.0 tox-venv==0.3.1 requests
 
 test_script:
+  - python .ci/last_conan_version.py
   - tox
