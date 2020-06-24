@@ -46,6 +46,23 @@ class ConanCenterTests(ConanClientTestCase):
             def package_id(self):
                 self.info.header_only()
         """)
+    conanfile_settings_clear_with_settings = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            homepage = "homepage.com"
+            exports_sources = "header.h"
+            settings = "os", "compiler", "arch", "build_type"
+
+            def package(self):
+                self.copy("*", dst="include")
+
+            def package_id(self):
+                self.info.settings.clear()
+        """)
     conanfile_fpic = textwrap.dedent("""\
             from conans import ConanFile
 
@@ -119,6 +136,27 @@ class ConanCenterTests(ConanClientTestCase):
 
     def test_conanfile_header_only_with_settings(self):
         tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
+        tools.save('header.h', content="")
+        output = self.conan(['create', '.', 'name/version@jgsogo/test'])
+        self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+        self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
+        self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] 'fPIC' option not found", output)
+        self.assertIn("[VERSION RANGES (KB-H008)] OK", output)
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
+        self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
+        self.assertIn("[DEFAULT PACKAGE LAYOUT (KB-H013)] OK", output)
+        self.assertIn("[SHARED ARTIFACTS (KB-H015)] OK", output)
+        self.assertIn("[EXPORT LICENSE (KB-H023)] OK", output)
+        self.assertIn("ERROR: [TEST PACKAGE FOLDER (KB-H024)] There is no 'test_package' for this "
+                      "recipe", output)
+        self.assertIn("[META LINES (KB-H025)] OK", output)
+        self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
+
+    def test_conanfile_settings_clear_with_settings(self):
+        tools.save('conanfile.py', content=self.conanfile_settings_clear_with_settings)
         tools.save('header.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
