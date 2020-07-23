@@ -38,6 +38,7 @@ class ConanCenterTests(ConanClientTestCase):
             description = "whatever"
             homepage = "homepage.com"
             exports_sources = "header.h"
+            topics = ("one", "two")
             settings = "os", "compiler", "arch", "build_type"
 
             def package(self):
@@ -54,6 +55,7 @@ class ConanCenterTests(ConanClientTestCase):
             license = "fake_license"
             description = "whatever"
             homepage = "homepage.com"
+            topics = ("one", "two")
             exports_sources = "header.h"
             settings = "os", "compiler", "arch", "build_type"
 
