@@ -158,8 +158,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if not field_value:
                     out_method("Conanfile doesn't have '%s' attribute. " % field)
 
-        _message_attr(["url", "license", "description", "homepage"], out.error)
-        _message_attr(["topics"], out.warn)
+        _message_attr(["url", "license", "description", "homepage", "topics"], out.error)
 
     @run_test("KB-H005", output)
     def test(out):

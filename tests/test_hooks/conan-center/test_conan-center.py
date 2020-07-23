@@ -38,6 +38,7 @@ class ConanCenterTests(ConanClientTestCase):
             description = "whatever"
             homepage = "homepage.com"
             exports_sources = "header.h"
+            topics = ("one", "two")
             settings = "os", "compiler", "arch", "build_type"
 
             def package(self):
@@ -54,6 +55,7 @@ class ConanCenterTests(ConanClientTestCase):
             license = "fake_license"
             description = "whatever"
             homepage = "homepage.com"
+            topics = ("one", "two")
             exports_sources = "header.h"
             settings = "os", "compiler", "arch", "build_type"
 
@@ -426,7 +428,7 @@ class ConanCenterTests(ConanClientTestCase):
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'homepage' attribute.",
-            "WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
         ]
 
         tools.save('conanfile.py', content=conanfile)
