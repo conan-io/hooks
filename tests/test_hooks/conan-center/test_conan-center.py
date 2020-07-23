@@ -426,7 +426,7 @@ class ConanCenterTests(ConanClientTestCase):
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'homepage' attribute.",
-            "WARN: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
         ]
 
         tools.save('conanfile.py', content=conanfile)
