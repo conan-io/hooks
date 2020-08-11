@@ -579,10 +579,6 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
 
-        output = self.conan(['create', '.', 'libusb/version@user/test'])
-        self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] 'libusb' is part of the allowlist.", output)
-        self.assertNotIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)]", output)
-
     def test_imports_not_allowed(self):
         conanfile_tp = textwrap.dedent("""\
         from conans import ConanFile, tools
