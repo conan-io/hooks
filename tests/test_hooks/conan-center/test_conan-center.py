@@ -794,3 +794,37 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [DELETE OPTIONS (KB-H045)] Found 'self.options.remove'."
                       " Replace it by 'del self.options.<opt>'.", output)
+
+    def test_cmake_version_required(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
+
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_packages/CMakeLists.txt "
+                      "requires CMake 3.1 at least."
+                      " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
+
+        cmake += "set(CMAKE_CXX_STANDARD 11)"
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_packages/CMakeLists.txt "
+                      "requires CMake 3.1 at least."
+                      " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 3.1)
+                project(test)
+                set(CMAKE_CXX_STANDARD 11)
+                """)
+        tools.save('CMakeLists.txt', content=cmake)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
