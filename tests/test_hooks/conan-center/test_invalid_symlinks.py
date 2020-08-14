@@ -12,8 +12,12 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
         from conans import ConanFile, tools
 
         class AConan(ConanFile):
-            url = "url"
+            url = "https://github.com/conan-io/conan-center-index"
             topics = "topic1", 
+            license = "MIT"
+            description = "description"
+            homepage = "homepage"
+            
 
             def build(self):
                 tools.save(os.path.join(self.build_folder, "build.txt"), "contents")
@@ -31,5 +35,6 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
 
     def test_symlink_invalid(self):
         tools.save('conanfile.py', content=self.conanfile)
+        tools.save('test_package/conanfile.py', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [INVALID SYMLINKS (KB-H049)]", output)
