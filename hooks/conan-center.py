@@ -8,6 +8,8 @@ import yaml
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 from conans import tools, Settings
+from conans.errors import ConanException
+
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
