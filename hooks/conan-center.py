@@ -49,6 +49,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
              "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
+             "KB-H049": "INVALID SYMLINKS",
             }
 
 
@@ -681,6 +682,16 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if bad_files:
             out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+    @run_test("KB-H049", output)
+    def test(out):
+        """ Check that all symlinks are contained inside the package """
+        try:
+            tools.fix_symlinks(conanfile, raise_if_error=True)
+        except ConanException:
+            out.error("There are symlinks in the package pointing outside the package_folder."
+                      " You can use 'tools.fix_symlinks(self)' to fix some of these symlinks.")
+
 
 def post_package_info(output, conanfile, reference, **kwargs):
 
