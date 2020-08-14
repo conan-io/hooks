@@ -22,7 +22,7 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
         """)
 
     def _get_environ(self, **kwargs):
-        kwargs = super(NoPDBsTests, self)._get_environ(**kwargs)
+        kwargs = super(InvalidSymlinksTestCase, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
                                                    'hooks', 'conan-center')})
         return kwargs
