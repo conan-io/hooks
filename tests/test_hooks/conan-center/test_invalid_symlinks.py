@@ -27,6 +27,14 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
                            os.path.join(self.package_folder, "outside_symlink.txt"))
         """)
 
+    test_conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class TestPackage(ConanFile):
+            def test(self):
+                pass
+        """)
+
     def _get_environ(self, **kwargs):
         kwargs = super(InvalidSymlinksTestCase, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
@@ -35,6 +43,6 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
 
     def test_symlink_invalid(self):
         tools.save('conanfile.py', content=self.conanfile)
-        tools.save('test_package/conanfile.py', content="")
+        tools.save('test_package/conanfile.py', content=self.test_conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [INVALID SYMLINKS (KB-H049)]", output)
