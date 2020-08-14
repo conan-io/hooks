@@ -1,11 +1,15 @@
 import os
 import textwrap
 
+import pytest
+from conans import __version__ as conan_version
 from conans import tools
+from conans.tools import Version
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 
+@pytest.mark.skipif(Version(conan_version) < "1.27", reason="requires Conan 1.27 or higher")
 class InvalidSymlinksTestCase(ConanClientTestCase):
     conanfile = textwrap.dedent("""\
         import os
