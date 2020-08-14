@@ -12,6 +12,8 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
         from conans import ConanFile, tools
 
         class AConan(ConanFile):
+            url = "url"
+            topics = "topic1", 
 
             def build(self):
                 tools.save(os.path.join(self.build_folder, "build.txt"), "contents")
