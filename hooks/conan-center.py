@@ -495,6 +495,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         out.error("The CMake definition {} requires CMake 3.4 at least. Update "
                                 "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'."
                                 .format(cmake_def))
+                        break
 
 
 @raise_if_error_output
