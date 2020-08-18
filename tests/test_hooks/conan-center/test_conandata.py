@@ -115,13 +115,13 @@ class ConanData(ConanClientTestCase):
                 sha256: "sha1.70.0"
             patches:
               "1.70.0":
-                - patch_file: "001-1.70.0.patch"
+                - patch_file: "patches/001-1.70.0.patch"
                   base_path: "source_subfolder/1.70.0"
                 - url: "https://fake_url.com/custom.patch"
                   sha256: "sha_custom"
                   base_path: "source_subfolder"
               "1.71.0":
-                - patch_file: "001-1.71.0.patch"
+                - patch_file: "patches/001-1.71.0.patch"
                   base_path: "source_subfolder/1.71.0"
             """)
         expected_conandata_1690 = {
@@ -148,7 +148,7 @@ class ConanData(ConanClientTestCase):
                     "1.70.0":
                         [
                             {
-                                "patch_file": "001-1.70.0.patch",
+                                "patch_file": "patches/001-1.70.0.patch",
                                 "base_path": "source_subfolder/1.70.0"
                             },
                             {
@@ -165,7 +165,7 @@ class ConanData(ConanClientTestCase):
                     "1.71.0":
                         [
                             {
-                                "patch_file": "001-1.71.0.patch",
+                                "patch_file": "patches/001-1.71.0.patch",
                                 "base_path": "source_subfolder/1.71.0"
                             }
                         ]
@@ -244,7 +244,7 @@ class ConanData(ConanClientTestCase):
         conandata = textwrap.dedent("""
             patches:
               "1.70.0":
-                - patch_file: "001-1.70.0.patch"
+                - patch_file: "patches/001-1.70.0.patch"
                   base_path: "source_subfolder/1.70.0"
                   other_field: "whatever"
                 - url: "https://fake_url.com/custom.patch"

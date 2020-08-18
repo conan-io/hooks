@@ -121,10 +121,14 @@ def kb_url(kb_id):
 def run_test(kb_id, output):
     def tmp(func):
         out = _HooksOutputErrorCollector(output, kb_id)
-        ret = func(out)
-        if not out.failed:
-            out.success("OK")
-        return ret
+        try:
+            ret = func(out)
+            if not out.failed:
+                out.success("OK")
+            return ret
+        except Exception as e:
+            out.error("Exception raised from hook '{}': {}".format(kb_id, e))
+            raise e
 
     return tmp
 
@@ -531,11 +535,10 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
             patches_for_version = patches.get(conanfile.version, [])
             if not isinstance(patches_for_version, list):
-                out.error("Pathces listed in 'conandata.yml' for a version should be a list of dicts"
-                          " with the 'patch_file' and 'base_path' members")
+                out.error("Pathces listed in 'conandata.yml' for a version should be a list of dicts")
                 return
 
-            patches_for_version = [it['patch_file'].rsplit('/', 1)[1] for it in patches.get(conanfile.version, [])]
+            patches_for_version = [it['patch_file'].rsplit('/', 1)[1] for it in patches.get(conanfile.version, []) if 'patch_file' in it]
             patches_directory = os.path.join(export_source_folder_path, 'patches')
             if not os.path.exists(patches_directory):
                 out.error("Nothing is exported to 'patches' although the recipe is exporting them")
