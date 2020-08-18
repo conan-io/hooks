@@ -49,6 +49,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
              "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
+             "KB-H049": "CMAKE EXPORT ALL SYMBOLS",
             }
 
 
@@ -479,6 +480,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                "cxx_standard" in cmake_content.lower():
                 out.error("The CMake definition CXX_STANDARD requires CMake 3.1 at least."
                           " Update to 'cmake_minimum_required(VERSION 3.1)'.")
+
+    @run_test("KB-H049", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        cmake_path = os.path.join(dir_path, "CMakeLists.txt")
+        if os.path.isfile(cmake_path):
+            cmake_content = tools.load(cmake_path)
+            match = re.search(r"cmake_minimum_required\s?\(VERSION (\d?\.?\d?\.?\d+)\)", cmake_content, re.I)
+            if match and tools.Version(match.group(1)) < "3.4" and "WINDOWS_EXPORT_ALL_SYMBOLS" in cmake_content:
+                out.error("The CMake definition WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least."
+                          " Update to 'cmake_minimum_required(VERSION 3.4)'.")
 
 
 @raise_if_error_output
