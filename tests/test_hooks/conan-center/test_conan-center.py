@@ -845,14 +845,17 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake.replace("3.4", "2.8.12"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
-                      "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update to "
-                      "'cmake_minimum_required(VERSION 3.4)'.", output)
+                      "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
 
-        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3"))
+        tools.save('CMakeLists.txt',
+                   content=cmake.replace("3.4", "3")
+                                .replace("CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS",
+                                         "WINDOWS_EXPORT_ALL_SYMBOLS"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
-                      "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update to "
-                      "'cmake_minimum_required(VERSION 3.4)'.", output)
+                      "WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
 
         tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
         output = self.conan(['export', '.', 'name/version@user/test'])

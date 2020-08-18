@@ -489,10 +489,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             cmake_content = tools.load(cmake_path)
             match = re.search(r"cmake_minimum_required\s?\(VERSION (\d?\.?\d?\.?\d+)\)",
                               cmake_content, re.I)
-            if match and tools.Version(match.group(1)) < "3.4" and \
-               "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS" in cmake_content:
-                out.error("The CMake definition CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4"
-                          " at least. Update to 'cmake_minimum_required(VERSION 3.4)'.")
+            if match and tools.Version(match.group(1)) < "3.4":
+                for cmake_def in ["WINDOWS_EXPORT_ALL_SYMBOLS", "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS"]:
+                    out.error("The CMake definition {} requires CMake 3.4 at least. Update "
+                              "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'."
+                              .format(cmake_def))
 
 
 @raise_if_error_output
