@@ -535,7 +535,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
             patches_for_version = patches.get(conanfile.version, [])
             if not isinstance(patches_for_version, list):
-                out.error("Pathces listed in 'conandata.yml' for a version should be a list of dicts")
+                out.error("Patches listed in 'conandata.yml' for a version should be a list of dicts")
                 return
 
             patches_for_version = [it['patch_file'].rsplit('/', 1)[1] for it in patches.get(conanfile.version, []) if 'patch_file' in it]
