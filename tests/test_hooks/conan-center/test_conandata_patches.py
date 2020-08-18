@@ -64,8 +64,8 @@ class ConandataPatchesTestCase(ConanClientTestCase):
                  base_path: "source_folder"
         """))
         output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("post_export(): ERROR: [CONANDATA EXPORTED PATCHES (KB-H049)] Pathces listed in 'conandata.yml'"
-                      " for a version should be a list of dicts with the 'patch_file' and 'base_path' members", output)
+        self.assertIn("post_export(): ERROR: [CONANDATA EXPORTED PATCHES (KB-H049)] Patches listed in 'conandata.yml'"
+                      " for a version should be a list of dicts", output)
 
     def test_patches_nothing_exported(self):
         tools.save('conanfile.py', content=self.conanfile)
