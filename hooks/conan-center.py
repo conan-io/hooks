@@ -49,6 +49,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
              "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
+             "KB-H050": "DEFAULT SHARED OPTION VALUE",
             }
 
 
@@ -505,6 +506,19 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
             new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
             out.info("New conandata.yml contents: {}".format(new_conandata_yml))
             tools.save(conandata_path, new_conandata_yml)
+
+    @run_test("KB-H050", output)
+    def test(out):
+        # TODO: Add current allowlist from CCI
+        if conanfile.name in []:
+            out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
+            return
+
+        default_options = getattr(conanfile, "default_options")
+        if default_options:
+            shared = default_options.get("shared")
+            if shared == True:
+                out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
 
 
 @raise_if_error_output
