@@ -36,7 +36,7 @@ class ConandataPatchesTestCase(ConanClientTestCase):
                    base_path: "source_folder"
         """))
         output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("exports_sources: Copied 2 '.patch' files: my.patch, other.patch", output)
+        self.assertIn("exports_sources: Copied 2 '.patch' files", output)
         self.assertIn("post_export(): [CONANDATA EXPORTED PATCHES (KB-H049)] Remove exported patch 'other.patch',"
                       " it doesn't belong to this version", output)
         self.assertIn("Exported revision: 203c6faa9e0b4b05bca0bf43170c82f9", output)
@@ -44,7 +44,7 @@ class ConandataPatchesTestCase(ConanClientTestCase):
         # If we add more files, the revision is the same
         tools.save('patches/another.patch', content="")
         output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("exports_sources: Copied 3 '.patch' files: my.patch, another.patch, other.patch", output)
+        self.assertIn("exports_sources: Copied 3 '.patch' files", output)
         self.assertIn("Exported revision: 203c6faa9e0b4b05bca0bf43170c82f9", output)
 
 
