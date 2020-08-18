@@ -297,7 +297,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H032", output)
     def test(out):
-        if conanfile.name in ["libusb"] or conanfile.version == "system":
+        if conanfile.name in ["libusb", "backward-cpp"] or conanfile.version == "system":
             out.info("'{}' is part of the allowlist.".format(conanfile.name))
             return
         if "def system_requirements" in conanfile_content and \
@@ -510,7 +510,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H050", output)
     def test(out):
         # TODO: Add current allowlist from CCI
-        if conanfile.name in []:
+        if conanfile.name in ["glib", "paho-mqtt-c"]:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
