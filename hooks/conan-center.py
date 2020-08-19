@@ -509,16 +509,13 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H050", output)
     def test(out):
-        # TODO: Add current allowlist from CCI
-        if conanfile.name in ["glib", "paho-mqtt-c"]:
+        if conanfile.name in ["glib", "paho-mqtt-c", "tbb"]:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
         default_options = getattr(conanfile, "default_options")
-        if default_options:
-            shared = default_options.get("shared")
-            if shared == True:
-                out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
+        if default_options and default_options.get("shared") == True:
+            out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
 
 
 @raise_if_error_output
