@@ -829,7 +829,6 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
 
-
     def test_cmake_export_all_symbols_version_required(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
         cmake = textwrap.dedent("""
@@ -860,3 +859,24 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
+
+    def test_default_option_value(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            options = {"shared": [True, False]}
+            default_options = {"shared": False}
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("False}", "True}"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [DEFAULT SHARED OPTION VALUE (KB-H050)] The option 'shared' must be "
+                      "'False' by default. Update 'default_options'.", output)
