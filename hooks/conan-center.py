@@ -1,12 +1,10 @@
 import fnmatch
 import inspect
-import re
 import os
-from collections import defaultdict
-
-import yaml
+import re
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
+import yaml
 from conans import tools, Settings
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
@@ -122,10 +120,14 @@ def kb_url(kb_id):
 def run_test(kb_id, output):
     def tmp(func):
         out = _HooksOutputErrorCollector(output, kb_id)
-        ret = func(out)
-        if not out.failed:
-            out.success("OK")
-        return ret
+        try:
+            ret = func(out)
+            if not out.failed:
+                out.success("OK")
+            return ret
+        except Exception as e:
+            out.error("Exception raised from hook: {}".format(e))
+            raise e
 
     return tmp
 
