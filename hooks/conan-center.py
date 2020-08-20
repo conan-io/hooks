@@ -50,6 +50,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
+             "KB-H051": "DEFAULT OPTIONS AS DICTIONARY"
             }
 
 
@@ -481,6 +482,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("The CMake definition CXX_STANDARD requires CMake 3.1 at least."
                           " Update to 'cmake_minimum_required(VERSION 3.1)'.")
 
+    @run_test("KB-H051", output)
+    def test(out):
+        default_options = getattr(conanfile, "default_options")
+        if default_options and not isinstance(default_options, dict):
+            out.error("Use a dictionary to declare 'default_options'")
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -514,7 +521,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
             return
 
         default_options = getattr(conanfile, "default_options")
-        if default_options and default_options.get("shared") == True:
+        if default_options and isinstance(default_options, dict) and default_options.get("shared") is True:
             out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
 
 
