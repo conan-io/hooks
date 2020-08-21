@@ -47,6 +47,9 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
              "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
+             "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
+             "KB-H050": "DEFAULT SHARED OPTION VALUE",
+             "KB-H051": "DEFAULT OPTIONS AS DICTIONARY"
              }
 
 
@@ -298,7 +301,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H032", output)
     def test(out):
-        if conanfile.name in ["libusb"] or conanfile.version == "system":
+        if conanfile.name in ["libusb", "backward-cpp"] or conanfile.version == "system":
             out.info("'{}' is part of the allowlist.".format(conanfile.name))
             return
         if "def system_requirements" in conanfile_content and \
@@ -484,6 +487,28 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("The CMake definition CXX_STANDARD requires CMake 3.1 at least."
                           " Update to 'cmake_minimum_required(VERSION 3.1)'.")
 
+    @run_test("KB-H049", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        cmake_path = os.path.join(dir_path, "CMakeLists.txt")
+        if os.path.isfile(cmake_path):
+            cmake_content = tools.load(cmake_path)
+            match = re.search(r"cmake_minimum_required\s?\(VERSION (\d?\.?\d?\.?\d+)\)",
+                              cmake_content, re.I)
+            if match and tools.Version(match.group(1)) < "3.4":
+                for cmake_def in ["CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS", "WINDOWS_EXPORT_ALL_SYMBOLS"]:
+                    if cmake_def in cmake_content:
+                        out.error("The CMake definition {} requires CMake 3.4 at least. Update "
+                                "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'."
+                                .format(cmake_def))
+                        break
+
+    @run_test("KB-H051", output)
+    def test(out):
+        default_options = getattr(conanfile, "default_options")
+        if default_options and not isinstance(default_options, dict):
+            out.error("Use a dictionary to declare 'default_options'")
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -509,6 +534,16 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
             new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
             out.info("New conandata.yml contents: {}".format(new_conandata_yml))
             tools.save(conandata_path, new_conandata_yml)
+
+    @run_test("KB-H050", output)
+    def test(out):
+        if conanfile.name in ["glib", "paho-mqtt-c", "tbb"]:
+            out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
+            return
+
+        default_options = getattr(conanfile, "default_options")
+        if default_options and isinstance(default_options, dict) and default_options.get("shared") is True:
+            out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
 
 
 @raise_if_error_output
