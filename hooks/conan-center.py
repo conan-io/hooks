@@ -49,7 +49,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H048": "CMAKE VERSION REQUIRED",
              "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
-             "KB-H051": "DEFAULT OPTIONS AS DICTIONARY"
+             "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
+             "KB-H052": "CONFIG.YML HAS NEW VERSION"
              }
 
 
@@ -133,6 +134,12 @@ def run_test(kb_id, output):
             raise e
 
     return tmp
+
+
+def load_yml(path):
+    if os.path.isfile(path):
+        return yaml.safe_load(tools.load(path))
+    return None
 
 
 @raise_if_error_output
@@ -331,40 +338,38 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         not_allowed.append(field)
             return not_allowed
 
-        if os.path.exists(conandata_path):
-            conandata = tools.load(conandata_path)
-            conandata_yml = yaml.safe_load(conandata)
-            if not conandata_yml:
-                return
-            entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
-            if entries:
-                out.error("First level entries %s not allowed. Use only first level entries %s in "
-                          "conandata.yml" % (entries, allowed_first_level))
+        conandata_yml = load_yml(conandata_path)
+        if not conandata_yml:
+            return
+        entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
+        if entries:
+            out.error("First level entries %s not allowed. Use only first level entries %s in "
+                      "conandata.yml" % (entries, allowed_first_level))
 
-            for entry in conandata_yml:
-                if entry in ['sources', 'patches']:
-                    if not isinstance(conandata_yml[entry], dict):
-                        out.error("Expecting a dictionary with versions as keys under '{}' element".format(entry))
-                    else:
-                        versions = conandata_yml[entry].keys()
-                        if any([not isinstance(it, str) for it in versions]):
-                            out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
+        for entry in conandata_yml:
+            if entry in ['sources', 'patches']:
+                if not isinstance(conandata_yml[entry], dict):
+                    out.error("Expecting a dictionary with versions as keys under '{}' element".format(entry))
+                else:
+                    versions = conandata_yml[entry].keys()
+                    if any([not isinstance(it, str) for it in versions]):
+                        out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
 
-                if version not in conandata_yml[entry]:
-                    continue
-                for element in conandata_yml[entry][version]:
-                    if entry == "patches":
-                        entries = _not_allowed_entries(element, allowed_patches)
-                        if entries:
-                            out.error("Additional entries %s not allowed in 'patches':'%s' of "
-                                      "conandata.yml" % (entries, version))
-                            return
-                    if entry == "sources":
-                        entries = _not_allowed_entries(element, allowed_sources)
-                        if entries:
-                            out.error("Additional entry %s not allowed in 'sources':'%s' of "
-                                      "conandata.yml" % (entries, version))
-                            return
+            if version not in conandata_yml[entry]:
+                continue
+            for element in conandata_yml[entry][version]:
+                if entry == "patches":
+                    entries = _not_allowed_entries(element, allowed_patches)
+                    if entries:
+                        out.error("Additional entries %s not allowed in 'patches':'%s' of "
+                                  "conandata.yml" % (entries, version))
+                        return
+                if entry == "sources":
+                    entries = _not_allowed_entries(element, allowed_sources)
+                    if entries:
+                        out.error("Additional entry %s not allowed in 'sources':'%s' of "
+                                  "conandata.yml" % (entries, version))
+                        return
 
     @run_test("KB-H034", output)
     def test(out):
@@ -520,6 +525,32 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if default_options and not isinstance(default_options, dict):
             out.error("Use a dictionary to declare 'default_options'")
 
+    @run_test("KB-H052", output)
+    def test(out):
+        config_path = os.path.abspath(os.path.join(export_folder_path, os.path.pardir, "config.yml"))
+        config_yml = load_yml(config_path)
+
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        conandata_yml = load_yml(conandata_path)
+
+        if not config_yml or not conandata_yml:
+            return
+
+        if 'versions' not in config_yml:
+            return
+
+        if 'sources' not in conandata_yml:
+            return
+
+        versions_conandata = conandata_yml['sources'].keys()
+        versions_config = config_yml['versions'].keys()
+
+        for version in versions_conandata:
+            if version not in versions_config:
+                out.error('The version "{}" exists in "{}" but not in "{}", so it will not be built.'
+                          ' Please update "{}" to include newly added '
+                          'version "{}".'.format(version, conandata_path, config_path, config_path,
+                                                 version))
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -530,21 +561,19 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
 
-        if os.path.exists(conandata_path):
-            conandata = tools.load(conandata_path)
-            conandata_yml = yaml.safe_load(conandata)
-            if not conandata_yml:
-                return
-            info = {}
-            for entry in conandata_yml:
-                if version not in conandata_yml[entry]:
-                    continue
-                info[entry] = {}
-                info[entry][version] = conandata_yml[entry][version]
-            out.info("Saving conandata.yml: {}".format(info))
-            new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
-            out.info("New conandata.yml contents: {}".format(new_conandata_yml))
-            tools.save(conandata_path, new_conandata_yml)
+        conandata_yml = load_yml(conandata_path)
+        if not conandata_yml:
+            return
+        info = {}
+        for entry in conandata_yml:
+            if version not in conandata_yml[entry]:
+                continue
+            info[entry] = {}
+            info[entry][version] = conandata_yml[entry][version]
+        out.info("Saving conandata.yml: {}".format(info))
+        new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
+        out.info("New conandata.yml contents: {}".format(new_conandata_yml))
+        tools.save(conandata_path, new_conandata_yml)
 
     @run_test("KB-H050", output)
     def test(out):
