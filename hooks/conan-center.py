@@ -544,6 +544,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
         versions_conandata = conandata_yml['sources'].keys()
         versions_config = config_yml['versions'].keys()
+        conandata_path = os.path.relpath(conandata_path, export_folder_path)
+        config_path = os.path.relpath(config_path, export_folder_path)
 
         for version in versions_conandata:
             if version not in versions_config:
