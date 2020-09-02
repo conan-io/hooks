@@ -50,7 +50,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
-             "KB-H052": "CONFIG.YML HAS NEW VERSION"
+             "KB-H052": "CONFIG.YML HAS NEW VERSION",
+             "KB-H054": "HEADER ONLY AND CMAKE TARGET"
              }
 
 
@@ -553,6 +554,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                           ' Please update "{}" to include newly added '
                           'version "{}".'.format(version, conandata_path, config_path, config_path,
                                                  version))
+
+    @run_test("KB-H054", output)
+    def test(out):
+        dir_path = os.path.dirname(conanfile_path)
+        cmake_path = os.path.join(dir_path, "test_package", "CMakeLists.txt")
+        if header_only and os.path.isfile(cmake_path):
+            content = tools.load(cmake_path).lower()
+            if "conan_basic_setup()" in content and "${conan_libs}" not in content:
+                out.error("The test_package/CMakeLists.txt uses 'conan_basic_setup()', but the "
+                          "recipe is header only. Add 'TARGETS' to 'conan_basic_setup()'.")
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):

@@ -914,3 +914,27 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', 'all', 'name/version@user/test'])
         self.assertNotIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
                          output)
+
+    def test_header_only_with_test_package_target(self):
+        cmake = """cmake_minimum_required(VERSION 3.1)
+        project(test)
+        include(conanbuildinfo.cmake)
+        conan_basic_setup()
+        add_executable(test_package foo.cpp)
+        target_link_libraries(test_package name::name)
+        """
+        tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [HEADER ONLY AND CMAKE TARGET (KB-H054)] The test_package/CMakeLists.txt"
+                      " uses 'conan_basic_setup()', but the recipe is header only. Add 'TARGETS' to"
+                      " 'conan_basic_setup()'.", output)
+
+        tools.save('test_package/CMakeLists.txt', content=cmake.replace("setup()", "setup(TARGETS)"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[HEADER ONLY AND CMAKE TARGET (KB-H054)] OK", output)
+
+        cmake = cmake.replace("name::name", "${CONAN_LIBS}")
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[HEADER ONLY AND CMAKE TARGET (KB-H054)] OK", output)
