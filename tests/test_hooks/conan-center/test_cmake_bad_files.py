@@ -43,21 +43,36 @@ class ConanCMakeBadFiles(ConanClientTestCase):
 
         tools.save('conanfile.py', content=self.conan_file.format("", "WhateverConfig.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./WhateverConfig.cmake",
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files: ./WhateverConfig.cmake",
                       output)
 
     def test_find_and_find_files(self):
-
         tools.save('conanfile.py', content=self.conan_file.format("", "FindXXX.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files:\n./FindXXX.cmake",
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files: ./FindXXX.cmake",
+                      output)
+
+    def test_find_and_find_files_and_config_files(self):
+        conanfile = textwrap.dedent("""\
+            import os
+            from conans import ConanFile, tools
+
+            class AConan(ConanFile):
+
+                def package(self):
+                    tools.save(os.path.join(self.package_folder, "FindXXX.cmake"), "foo")
+                    tools.save(os.path.join(self.package_folder, "XXXConfig.cmake"), "foo")
+            """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files: ./XXXConfig.cmake; ./FindXXX.cmake",
                       output)
 
     def test_find_files_outside_dir(self):
 
         tools.save('conanfile.py', content=self.conan_file.format("folder", "file.cmake"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)] Found files:\n"
+        self.assertIn("ERROR: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)] Found files: "
                       "./folder/file.cmake", output.replace("\\", "/"))
 
         tools.save('conanfile.py', content=self.conan_file.format("", "file.cmake"))
@@ -67,11 +82,11 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         conanfile2 = textwrap.dedent("""\
                 import os
                 from conans import ConanFile, tools
-    
+
                 class AConan(ConanFile):
-    
+
                     def package(self):
-                        tools.save(os.path.join(self.package_folder, "{}", "file.cmake"), 
+                        tools.save(os.path.join(self.package_folder, "{}", "file.cmake"),
                                    "foo")
                     def package_info(self):
                         self.cpp_info.builddirs = ["some_build_dir"]

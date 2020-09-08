@@ -727,7 +727,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("The conan-center repository doesn't allow the packages to contain `pc` "
                       "files. The packages have to "
                       "be located using generators and the declared `cpp_info` information")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
+            out.error("Found files: {}".format("; ".join(bad_files)))
 
     @run_test("KB-H016", output)
     def test(out):
@@ -740,14 +740,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("The conan-center repository doesn't allow the packages to contain CMake "
                       "find modules or config files. The packages have to "
                       "be located using generators and the declared `cpp_info` information")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
+            out.error("Found files: {}".format("; ".join(bad_files)))
 
     @run_test("KB-H017", output)
     def test(out):
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pdb"])
         if bad_files:
             out.error("The conan-center repository doesn't allow PDB files")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
+            out.error("Found files: {}".format("; ".join(bad_files)))
 
     @run_test("KB-H018", output)
     def test(out):
@@ -755,7 +755,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if bad_files:
             out.error("Libtool files found (*.la). Do not package *.la files "
                       "but library files (.a) ")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
+            out.error("Found files: {}".format("; ".join(bad_files)))
 
     @run_test("KB-H021", output)
     def test(out):
@@ -763,7 +763,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                                                   ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
         if bad_files:
             out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
-            out.error("Found files:\n{}".format("\n".join(bad_files)))
+            out.error("Found files: {}".format("; ".join(bad_files)))
 
 
 def post_package_info(output, conanfile, reference, **kwargs):
@@ -791,7 +791,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         if files_missplaced:
             out.error("The *.cmake files have to be placed in a folder declared as "
                       "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
-            out.error("Found files:\n{}".format("\n".join(files_missplaced)))
+            out.error("Found files: {}".format("; ".join(files_missplaced)))
 
 
 def _get_files_following_patterns(folder, patterns):
