@@ -51,4 +51,4 @@ class InvalidSymlinksTestCase(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile)
         tools.save('test_package/conanfile.py', content=self.test_conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [INVALID SYMLINKS (KB-H049)]", output)
+        self.assertIn("ERROR: [INVALID SYMLINKS (KB-H053)]", output)
