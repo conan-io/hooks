@@ -6,6 +6,8 @@ from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
 from conans import tools, Settings
+from conans.errors import ConanException
+
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
@@ -51,7 +53,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
-             "KB-H053": "PRIVATE IMPORTS"
+             "KB-H053": "PRIVATE IMPORTS",
+             "KB-H054": "INVALID SYMLINKS"
              }
 
 
@@ -545,6 +548,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
         versions_conandata = conandata_yml['sources'].keys()
         versions_config = config_yml['versions'].keys()
+        conandata_path = os.path.relpath(conandata_path, export_folder_path)
+        config_path = os.path.relpath(config_path, export_folder_path)
 
         for version in versions_conandata:
             if version not in versions_config:
@@ -789,6 +794,17 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if bad_files:
             out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
             out.error("Found files:\n{}".format("\n".join(bad_files)))
+
+    @run_test("KB-H053", output)
+    def test(out):
+        """ Check that all symlinks are contained inside the package """
+        try:
+            tools.fix_symlinks(conanfile, raise_if_error=True)
+        except AttributeError:  # FIXME: Conan < 1.28 doesn't provide this tool
+            pass
+        except ConanException:
+            out.error("There are symlinks in the package pointing outside the package_folder."
+                      " You can use 'tools.fix_symlinks(self)' to fix some of these symlinks.")
 
 
 def post_package_info(output, conanfile, reference, **kwargs):
