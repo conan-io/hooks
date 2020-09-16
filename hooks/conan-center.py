@@ -773,7 +773,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         """ Check that all symlinks are contained inside the package """
         try:
             tools.fix_symlinks(conanfile, raise_if_error=True)
-        except AttributeError:  # FIXME: Conan < 1.27 doesn't provide this tool
+        except AttributeError:  # FIXME: Conan < 1.28 doesn't provide this tool
             pass
         except ConanException:
             out.error("There are symlinks in the package pointing outside the package_folder."
