@@ -51,8 +51,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
-             "KB-H053": "PRIVATE IMPORTS",
-             "KB-H054": "INVALID SYMLINKS"
+             "KB-H053": "INVALID SYMLINKS"
+             "KB-H054": "PRIVATE IMPORTS",
              }
 
 
