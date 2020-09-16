@@ -828,3 +828,89 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('test_package/CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
+
+    def test_cmake_export_all_symbols_version_required(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 3.4)
+                project(test)
+                set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
+
+        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "2.8.12"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
+                      "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
+
+        tools.save('CMakeLists.txt',
+                   content=cmake.replace("3.4", "3")
+                                .replace("CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS",
+                                         "WINDOWS_EXPORT_ALL_SYMBOLS"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
+                      "WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
+
+        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
+
+    def test_default_option_value(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            options = {"shared": [True, False]}
+            default_options = {"shared": False}
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("False}", "True}"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [DEFAULT SHARED OPTION VALUE (KB-H050)] The option 'shared' must be "
+                      "'False' by default. Update 'default_options'.", output)
+
+    def test_missing_version_in_config(self):
+        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile_base.format(placeholder=''))
+        conandata = textwrap.dedent("""
+                    sources:
+                        1.0:
+                           url: fakeurl
+                           md5: 12323423423
+                        2.0:
+                           url: fakeurl
+                           md5: 12323423423
+        """)
+        config = textwrap.dedent("""
+        versions:
+          1.0:
+            folder:all
+        """)
+        tools.save("config.yml", content=config)
+        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
+                      output)
+
+        config = textwrap.dedent("""
+        versions:
+          1.0:
+            folder:all
+          2.0:
+            folder:all
+        """)
+        tools.save("config.yml", content=config)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertNotIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
+                         output)
