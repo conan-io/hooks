@@ -707,7 +707,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if conanfile.version == "system":
             return
         # INFO: Whitelist for package names
-        if conanfile.name in ["ms-gsl", "cccl"]:
+        if conanfile.name in ["ms-gsl", "cccl", "poppler-data"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
