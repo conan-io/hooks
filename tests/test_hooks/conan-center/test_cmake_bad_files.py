@@ -100,7 +100,7 @@ class ConanCMakeBadFiles(ConanClientTestCase):
                 from conans import ConanFile, tools
                 class AConan(ConanFile):
                     def package(self):
-                        tools.save(os.path.join(self.package_folder, {}), "foo")
+                        tools.save(os.path.join(self.package_folder, 'lib', 'cmake', 'FooBar.cmake'), "foo")
 
                     def package_info(self):
                         self.cpp_info.names["cmake_find_package"] = "foobar"
