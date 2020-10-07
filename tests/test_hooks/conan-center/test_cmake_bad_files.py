@@ -65,7 +65,7 @@ class ConanCMakeBadFiles(ConanClientTestCase):
             """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files: ./XXXConfig.cmake; ./FindXXX.cmake",
+        self.assertIn("ERROR: [CMAKE-MODULES-CONFIG-FILES (KB-H016)] Found files: ./FindXXX.cmake; ./XXXConfig.cmake",
                       output)
 
     def test_find_files_outside_dir(self):

@@ -740,6 +740,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("The conan-center repository doesn't allow the packages to contain CMake "
                       "find modules or config files. The packages have to "
                       "be located using generators and the declared `cpp_info` information")
+
             out.error("Found files: {}".format("; ".join(bad_files)))
 
     @run_test("KB-H017", output)
@@ -802,7 +803,7 @@ def _get_files_following_patterns(folder, patterns):
                 for pattern in patterns:
                     if fnmatch.fnmatch(filename, pattern):
                         ret.append(os.path.join(root, filename).replace("\\", "/"))
-    return ret
+    return sorted(ret)
 
 
 def _get_files_with_extensions(folder, extensions):
