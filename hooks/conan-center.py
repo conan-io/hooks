@@ -492,7 +492,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if os.path.isfile(cmake_test_pkg):
             cmake_content = tools.load(cmake_test_pkg)
             if re.search(r"cmake_minimum_required\(version [\"']?2", cmake_content.lower()):
-                out.error("The test_packages/CMakeLists.txt requires CMake 3.1 at least."
+                out.error("The test_package/CMakeLists.txt requires CMake 3.1 at least."
                           " Update to 'cmake_minimum_required(VERSION 3.1)'.")
 
         cmake_path = os.path.join(dir_path, "CMakeLists.txt")
