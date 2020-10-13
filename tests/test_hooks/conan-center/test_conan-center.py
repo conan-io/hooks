@@ -809,14 +809,14 @@ class ConanCenterTests(ConanClientTestCase):
         for pair in [("", ""), ("2.8.11", '"2.8.11"'), ("2.8.11", "'2.8.11'")]:
             tools.save('test_package/CMakeLists.txt', content=cmake.replace(*pair))
             output = self.conan(['export', '.', 'name/version@user/test'])
-            self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_packages/CMakeLists.txt "
+            self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
                             "requires CMake 3.1 at least."
                             " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
 
         cmake += "set(CMAKE_CXX_STANDARD 11)"
         tools.save('CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_packages/CMakeLists.txt "
+        self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
                       "requires CMake 3.1 at least."
                       " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
 
