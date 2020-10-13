@@ -50,7 +50,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
-             "KB-H052": "CONFIG.YML HAS NEW VERSION"
+             "KB-H052": "CONFIG.YML HAS NEW VERSION",
+             "KB-H053": "PRIVATE IMPORTS",
              }
 
 
@@ -553,6 +554,32 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                           ' Please update "{}" to include newly added '
                           'version "{}".'.format(version, conandata_path, config_path, config_path,
                                                  version))
+
+    @run_test("KB-H053", output)
+    def test(out):
+        def _is_private_import(line):
+            allowed_list = ["tools", "errors"]
+            for pattern in ["from conans.", "import conans."]:
+                if line.startswith(pattern):
+                    for allowed in allowed_list:
+                        if line.startswith(pattern + allowed):
+                            return False
+                    return True
+            return False
+
+        def _check_private_imports(filename, content):
+            for num, line in enumerate(content.splitlines(), 1):
+                if _is_private_import(line):
+                    out.error("The file {} imports private conan API on line {}, "
+                              "this is strongly discouraged.".format(filename, num))
+                    out.error(line)
+
+        _check_private_imports("conanfile.py", conanfile_content)
+        test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
+        test_package_path = os.path.join(test_package_dir, "conanfile.py")
+        if os.path.exists(test_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_private_imports("test_package/conanfile.py", test_package_content)
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):

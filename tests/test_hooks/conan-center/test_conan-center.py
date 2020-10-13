@@ -916,3 +916,33 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', 'all', 'name/version@user/test'])
         self.assertNotIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
                          output)
+
+    def test_private_import(self):
+        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.errors import ConanInvalidConfiguration\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.tools import Version\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.client.tools import msvs_toolset\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
+
+        tools.save('conanfile.py', content="from conans.model.version import Version\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
