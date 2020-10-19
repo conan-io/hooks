@@ -558,6 +558,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H053", output)
     def test(out):
         def _is_private_import(line):
+            full_line_allowed_list = ["from conans.model import Generator"]
+            if line in full_line_allowed_list:
+              return true
+            
             allowed_list = ["tools", "errors"]
             for pattern in ["from conans.", "import conans."]:
                 if line.startswith(pattern):
