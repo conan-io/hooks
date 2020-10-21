@@ -53,7 +53,6 @@ class BinaryLinter(object):
         self._binary = lief.parse(filename)
 
         if not self._binary:
-            self._output.info('file "%s" is not a executable, skipping...' % filename)
             return
 
         if self._binary.format != self._expected_format:
