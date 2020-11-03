@@ -733,8 +733,9 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.version == "system":
             return
+        
         # INFO: Whitelist for package names
-        if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "gnu-config", "autoconf", "automake"]:
+        if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
@@ -758,7 +759,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H016", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11", "ignition-cmake"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11", "ignition-cmake",
+                              "extra-cmake-modules"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
                                                                              "*Config.cmake",
