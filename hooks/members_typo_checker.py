@@ -10,8 +10,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     base_members = get_base_members(ConanFile)
     base_members.extend(["requires", "build_requires", "requirements",
-                         "build_requirements", "python_requires", "keep_imports",
-                         "imports", "build_id", "deploy", "scm"])
+                         "build_requirements", "python_requires", "python_requires_extend",
+                         "keep_imports", "imports", "build_id", "deploy", "scm"])
 
     def get_members(conanfile):
         # We use a different function on the conanfile because members
