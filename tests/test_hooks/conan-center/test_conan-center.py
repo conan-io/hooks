@@ -946,3 +946,8 @@ class ConanCenterTests(ConanClientTestCase):
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
+
+        tools.save('conanfile.py', content="from conans.model import Generator\n" +
+                                           self.conanfile_base.format(placeholder=''))
+        output = self.conan(['export', '.', 'name/version@'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
