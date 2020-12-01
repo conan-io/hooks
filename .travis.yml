@@ -18,6 +18,10 @@ jobs:
       python: 3.8
       env: TOXENV=py38-conandev
       dist: xenial
+    - name: Python 3.7
+      python: 3.7
+      env: TOXENV=py37-conandev
+      dist: xenial
 
     # All Linux first, check versions
     - stage: Linux - Conan Current
