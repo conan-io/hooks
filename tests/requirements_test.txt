@@ -4,4 +4,3 @@ responses
 pluggy==0.11.0
 pylint
 astroid
-wheel
