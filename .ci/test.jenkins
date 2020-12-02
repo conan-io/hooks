@@ -1,0 +1,57 @@
+
+String get_latest_conan_version() {
+    String url = 'https://pypi.python.org/pypi/conan/json'
+    String response = sh(script: "curl -s --location --request GET ${url}", returnStdout: true)
+    Map content = readJSON text: response
+    return content['info']['version'] as String
+}
+
+void patch_tox_ini(String filepath, String conanPrev, String conanPrevPrev) {
+    String content = readFile file: filepath
+    content = content.replace('conanprev: conan-unknown', "conanprev: $conanPrev")
+    content = content.replace('conanprevprev: conan-unknown', "conanprevprev: $conanPrevPrev")
+    writeFile file: filepath, text: content
+}
+
+node('Linux') {
+    String conanPrev, conanPrevPrev
+    stage('Handle latest Conan version') {
+        String conanLatest = get_latest_conan_version()
+        echo "Lastest Conan version found in Pypi: $conanLatest"
+
+        def matcher = (conanLatest =~ /^(\d+).(\d+).(\d+)$/)
+        int major = matcher[0][1] as int
+        int minor = matcher[0][2] as int
+        int minorPrev = minor - 1
+        int minorPrevPrev = minor - 2
+
+        conanPrev = "conan>=$major.$minorPrev,<$major.$minor"
+        conanPrevPrev = "conan>=$major.$minorPrevPrev,<$major.$minorPrev"
+
+        echo "conanPrev = $conanPrev"
+        echo "conanPrevPrev = $conanPrevPrev"
+    }
+    
+    List pyVersions = ['2.7', '3.5', '3.8']
+    List conanVersions = ['conandev', 'conancurrent', 'conanprev', 'conanprevprev']
+
+    // Test Linux before (plenty of resources)
+    stage('Test using Linux') {
+        def branches = [:]
+        pyVersions.each { py -> 
+            conanVersions.each { conan -> 
+                String branchName = "$py-$conan"
+                branches[branchName] = {
+                    docker.image("python:$py-slim").inside() {
+                        sh 'ls -la'
+                    }
+                }
+            }
+        }
+
+        parallel branches
+    }
+    
+
+
+}
