@@ -2,3 +2,4 @@
 .idea/
 .tox/
 .pytest_cache/
+_venv/
