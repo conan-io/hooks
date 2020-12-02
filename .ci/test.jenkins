@@ -32,7 +32,7 @@ node('Linux') {
         echo "conanPrevPrev = $conanPrevPrev"
     }
     
-    List pyVersions = ['2.7', '3.5', '3.8']
+    List pyVersions = ['2.7', '3.6', '3.8']
     List conanVersions = ['conandev', 'conancurrent', 'conanprev', 'conanprevprev']
 
     // Test Linux before (plenty of resources)
@@ -44,7 +44,7 @@ node('Linux') {
     stage('Test using Linux') {
         sh 'apt-get update'
         // To build some deps from sources it needs pythonXX-dev
-        sh 'apt-get -y install python3-venv python3.8-venv python3.5-dev'
+        sh 'apt-get -y install python3-venv python3.8-venv'
         sh 'pip install -r .ci/requirements.txt'
 
         def envs = sh(returnStdout: true, script: "tox -l").trim().split('\n')
