@@ -608,7 +608,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H050", output)
     def test(out):
-        if conanfile.name in ["paho-mqtt-c", "tbb"]:
+        if conanfile.name in ["paho-mqtt-c", "tbb", "pdal"]:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
