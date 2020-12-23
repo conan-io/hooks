@@ -965,7 +965,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both 'requires' attribute and 'requirements' "
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both 'requires' attribute and 'requirements()' "
                       "method should not be declared at same recipe.", output)
 
         tools.save('conanfile.py', content=conanfile.replace('requires = "foo/0.1.0"', ""))
