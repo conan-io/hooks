@@ -113,6 +113,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -951,3 +952,27 @@ class ConanCenterTests(ConanClientTestCase):
                                            self.conanfile_base.format(placeholder=''))
         output = self.conan(['export', '.', 'name/version@'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+    def test_duplicated_requires(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class MockRecipe(ConanFile):
+            requires = "foo/0.1.0"
+
+            def requirements(self):
+                self.requires("bar/0.1.0")
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both 'requires' attribute and 'requirements' "
+                      "method should not be declared at same recipe.", output)
+
+        tools.save('conanfile.py', content=conanfile.replace('requires = "foo/0.1.0"', ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("def requirements(self):", "")
+                                                    .replace('self.requires("bar/0.1.0")', ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)

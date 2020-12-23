@@ -52,6 +52,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
              "KB-H053": "PRIVATE IMPORTS",
+             "KB-H054": "SINGLE REQUIRES",
              }
 
 
@@ -583,6 +584,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             test_package_content = tools.load(test_package_path)
             _check_private_imports("test_package/conanfile.py", test_package_content)
 
+    @run_test("KB-H054", output)
+    def test(out):
+        if hasattr(conanfile, "requires") and callable(getattr(conanfile, "requirements", None)):
+            out.error("Both 'requires' attribute and 'requirements' method should not be "
+                      "declared at same recipe.")
+
+
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     export_folder_path = os.path.dirname(conanfile_path)
@@ -735,7 +743,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.version == "system":
             return
-        
+
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
             return
