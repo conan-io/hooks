@@ -4,6 +4,7 @@ import platform
 import textwrap
 import pytest
 import six
+from parameterized import parameterized
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -953,26 +954,27 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
 
-    def test_duplicated_requires(self):
+    @parameterized.expand([("",), ("build_",)])
+    def test_duplicated_requires(self, prefix):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
         class MockRecipe(ConanFile):
-            requires = "foo/0.1.0"
+            {0}requires = "foo/0.1.0"
 
-            def requirements(self):
-                self.requires("bar/0.1.0")
-        """)
+            def {0}requirements(self):
+                self.{0}requires("bar/0.1.0")
+        """.format(prefix))
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both 'requires' attribute and 'requirements()' "
-                      "method should not be declared at same recipe.", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both '{0}requires' attribute and '{0}requirements()' "
+                      "method should not be declared at same recipe.".format(prefix), output)
 
-        tools.save('conanfile.py', content=conanfile.replace('requires = "foo/0.1.0"', ""))
+        tools.save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("def requirements(self):", "")
-                                                    .replace('self.requires("bar/0.1.0")', ""))
+        tools.save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
+                                                    .replace('self.{}requires("bar/0.1.0")'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
