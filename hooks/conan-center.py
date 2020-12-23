@@ -587,7 +587,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H054", output)
     def test(out):
         if hasattr(conanfile, "requires") and callable(getattr(conanfile, "requirements", None)):
-            out.error("Both 'requires' attribute and 'requirements' method should not be "
+            out.error("Both 'requires' attribute and 'requirements()' method should not be "
                       "declared at same recipe.")
 
 
