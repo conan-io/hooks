@@ -717,7 +717,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", ]:
+        if conanfile.name in ["cmake", "android-ndk"]:
             return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
@@ -750,7 +750,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H020", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "android-ndk"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pc"])
         if bad_files:
