@@ -802,7 +802,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
 
     @run_test("KB-H019", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["android-ndk", "cmake", "msys2", "strawberryperl"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
         build_dirs = [bd.replace("\\", "/") for bd in conanfile.cpp_info.builddirs]
