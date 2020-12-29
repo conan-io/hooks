@@ -750,7 +750,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H020", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl", "android_ndk"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "android-ndk"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pc"])
         if bad_files:
