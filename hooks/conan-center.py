@@ -717,7 +717,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", "android-ndk"]:
+        if conanfile.name in ["cmake", "android-ndk", "mingw"]:
             return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
@@ -735,7 +735,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.version == "system":
             return
-        
+
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
             return
