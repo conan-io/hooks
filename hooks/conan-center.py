@@ -356,20 +356,33 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     if any([not isinstance(it, str) for it in versions]):
                         out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
 
+            def validate_one(e, name, allowed):
+                not_allowed = _not_allowed_entries(e, allowed)
+                if not_allowed:
+                    out.error("Additional entries %s not allowed in '%s':'%s' of "
+                              "conandata.yml" % (not_allowed, name, version))
+                    return False
+                return True
+
+            def validate_recursive(e, data, name, allowed):
+                if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
+                    for child in data[e]:
+                        if not validate_recursive(child, data[e], name, allowed):
+                            return False
+                    return True
+                else:
+                    return validate_one(e, name, allowed)
+
             if version not in conandata_yml[entry]:
                 continue
             for element in conandata_yml[entry][version]:
                 if entry == "patches":
-                    entries = _not_allowed_entries(element, allowed_patches)
-                    if entries:
-                        out.error("Additional entries %s not allowed in 'patches':'%s' of "
-                                  "conandata.yml" % (entries, version))
+                    if not validate_recursive(element, conandata_yml[entry][version], "patches",
+                                              allowed_patches):
                         return
                 if entry == "sources":
-                    entries = _not_allowed_entries(element, allowed_sources)
-                    if entries:
-                        out.error("Additional entry %s not allowed in 'sources':'%s' of "
-                                  "conandata.yml" % (entries, version))
+                    if not validate_recursive(element, conandata_yml[entry][version], "sources",
+                                              allowed_sources):
                         return
 
     @run_test("KB-H034", output)
