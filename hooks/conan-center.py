@@ -52,6 +52,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
              "KB-H053": "PRIVATE IMPORTS",
+             "KB-H054": "LIBRARY DOES NOT EXIST"
              }
 
 
@@ -839,6 +840,27 @@ def post_package_info(output, conanfile, reference, **kwargs):
             out.error("The *.cmake files have to be placed in a folder declared as "
                       "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
             out.error("Found files: {}".format("; ".join(files_missplaced)))
+
+
+    @run_test("KB-H054", output)
+    def test(out):
+        def _test_component(component):
+            libs_to_search = component.libs
+            for p in component.libdirs:
+                libs_found = tools.collect_libs(conanfile, p)
+                if not libs_found:
+                    out.warn("Component %s::%s libdir \"%s\" does not contain any library" % (conanfile.name, component.name, p))
+                libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
+                if not libs_declared_and_found:
+                    out.warn("Component %s::%s libdir \"%s\" does not contain any declared library" % (conanfile.name, component.name, p))
+                for l in libs_declared_and_found:
+                    libs_to_search.remove(l)
+            for l in libs_to_search:
+                out.error("Component %s::%s library \"%s\" not found in libdirs" % (conanfile.name, component.name, l))
+
+        _test_component(conanfile.cpp_info)
+        for c in conanfile.cpp_info.components:
+            _test_component(conanfile.cpp_info.components[c])
 
 
 def _get_files_following_patterns(folder, patterns):
