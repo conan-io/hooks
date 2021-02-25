@@ -951,3 +951,54 @@ class ConanCenterTests(ConanClientTestCase):
                                            self.conanfile_base.format(placeholder=''))
         output = self.conan(['export', '.', 'name/version@'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+    def test_library_doesnot_exist(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        import os
+
+        class AConan(ConanFile):
+
+            def package(self):
+                os.makedirs(os.path.join(self.package_folder, "lib"))
+                open(os.path.join(self.package_folder, "lib", "libfoo.a"), "w")
+
+            def package_info(self):
+                self.cpp_info.libs = []
+        """)
+        tools.save('conanfile.py', content=conanfile)
+
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::name libdir "lib" does not contain any declared library', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("open", "# open"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::name libdir "lib" does not contain any library', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("[]", "['bar']"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::name library "bar" not found in libdirs', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::fake libdir "lib" does not contain any declared library', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs")
+                                                    .replace("open", "# open"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::fake libdir "lib" does not contain any library', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs = []",
+                                                             "components['fake'].libs = ['bar']"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::fake library "bar" not found in libdirs', output)

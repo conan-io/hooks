@@ -749,7 +749,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.version == "system":
             return
-        
+
         # INFO: Whitelist for package names
         if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
             return
@@ -845,7 +845,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
     @run_test("KB-H054", output)
     def test(out):
         def _test_component(component):
-            libs_to_search = component.libs
+            libs_to_search = component.libs.copy()
             for p in component.libdirs:
                 libs_found = tools.collect_libs(conanfile, p)
                 if not libs_found:
