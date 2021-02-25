@@ -845,7 +845,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
     @run_test("KB-H054", output)
     def test(out):
         def _test_component(component):
-            libs_to_search = component.libs.copy()
+            libs_to_search = list(component.libs)
             for p in component.libdirs:
                 libs_found = tools.collect_libs(conanfile, p)
                 if not libs_found:
