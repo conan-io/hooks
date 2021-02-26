@@ -958,6 +958,7 @@ class ConanCenterTests(ConanClientTestCase):
         import os
 
         class AConan(ConanFile):
+            settings = "os"
 
             def package(self):
                 os.makedirs(os.path.join(self.package_folder, "lib"))
@@ -1002,3 +1003,8 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
                       'name::fake library "bar" not found in libdirs', output)
+
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertNotIn('does not contain any library', output)
