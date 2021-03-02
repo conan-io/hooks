@@ -52,7 +52,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
              "KB-H053": "PRIVATE IMPORTS",
-             "KB-H054": "LIBRARY DOES NOT EXIST"
+             "KB-H054": "LIBRARY DOES NOT EXIST",
+             "KB-H055": "SINGLE REQUIRES",
              }
 
 
@@ -596,6 +597,15 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if os.path.exists(test_package_path):
             test_package_content = tools.load(test_package_path)
             _check_private_imports("test_package/conanfile.py", test_package_content)
+
+    @run_test("KB-H055", output)
+    def test(out):
+        for prefix in ["", "build_"]:
+            if hasattr(conanfile, "{}requires".format(prefix)) and \
+               callable(getattr(conanfile, "{}requirements".format(prefix), None)):
+                out.error("Both '{0}requires' attribute and '{0}requirements()' method should not "
+                          "be declared at same recipe.".format(prefix))
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):

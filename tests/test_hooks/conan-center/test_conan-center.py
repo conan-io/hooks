@@ -4,6 +4,7 @@ import platform
 import textwrap
 import pytest
 import six
+from parameterized import parameterized
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -113,6 +114,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -951,6 +953,31 @@ class ConanCenterTests(ConanClientTestCase):
                                            self.conanfile_base.format(placeholder=''))
         output = self.conan(['export', '.', 'name/version@'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+    @parameterized.expand([("",), ("build_",)])
+    def test_duplicated_requires(self, prefix):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class MockRecipe(ConanFile):
+            {0}requires = "foo/0.1.0"
+
+            def {0}requirements(self):
+                self.{0}requires("bar/0.1.0")
+        """.format(prefix))
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] Both '{0}requires' attribute and '{0}requirements()' "
+                      "method should not be declared at same recipe.".format(prefix), output)
+
+        tools.save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
+                                                    .replace('self.{}requires("bar/0.1.0")'.format(prefix), ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
     def test_library_doesnot_exist(self):
         conanfile = textwrap.dedent("""\
