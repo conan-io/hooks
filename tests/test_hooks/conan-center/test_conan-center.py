@@ -114,7 +114,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -967,14 +967,14 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] Both '{0}requires' attribute and '{0}requirements()' "
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] Both '{0}requires' attribute and '{0}requirements()' "
                       "method should not be declared at same recipe.".format(prefix), output)
 
         tools.save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
         tools.save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
                                                     .replace('self.{}requires("bar/0.1.0")'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[SINGLE REQUIRES (KB-H054)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
