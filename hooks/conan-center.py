@@ -52,6 +52,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
              "KB-H052": "CONFIG.YML HAS NEW VERSION",
              "KB-H053": "PRIVATE IMPORTS",
+             "KB-H054": "LIBRARY DOES NOT EXIST",
              "KB-H055": "SINGLE REQUIRES",
              }
 
@@ -357,20 +358,33 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     if any([not isinstance(it, str) for it in versions]):
                         out.error("Versions in conandata.yml should be strings. Add quotes around the numbers")
 
+            def validate_one(e, name, allowed):
+                not_allowed = _not_allowed_entries(e, allowed)
+                if not_allowed:
+                    out.error("Additional entries %s not allowed in '%s':'%s' of "
+                              "conandata.yml" % (not_allowed, name, version))
+                    return False
+                return True
+
+            def validate_recursive(e, data, name, allowed):
+                if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
+                    for child in data[e]:
+                        if not validate_recursive(child, data[e], name, allowed):
+                            return False
+                    return True
+                else:
+                    return validate_one(e, name, allowed)
+
             if version not in conandata_yml[entry]:
                 continue
             for element in conandata_yml[entry][version]:
                 if entry == "patches":
-                    entries = _not_allowed_entries(element, allowed_patches)
-                    if entries:
-                        out.error("Additional entries %s not allowed in 'patches':'%s' of "
-                                  "conandata.yml" % (entries, version))
+                    if not validate_recursive(element, conandata_yml[entry][version], "patches",
+                                              allowed_patches):
                         return
                 if entry == "sources":
-                    entries = _not_allowed_entries(element, allowed_sources)
-                    if entries:
-                        out.error("Additional entry %s not allowed in 'sources':'%s' of "
-                                  "conandata.yml" % (entries, version))
+                    if not validate_recursive(element, conandata_yml[entry][version], "sources",
+                                              allowed_sources):
                         return
 
     @run_test("KB-H034", output)
@@ -618,7 +632,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H050", output)
     def test(out):
-        if conanfile.name in ["paho-mqtt-c", "tbb"]:
+        if conanfile.name in ["opencl-icd-loader", "paho-mqtt-c", "tbb", "pdal", "vulkan-loader"]:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
@@ -727,7 +741,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", ]:
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk"]:
             return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
@@ -760,7 +774,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H020", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["cmake", "msys2", "strawberryperl", "android-ndk"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.pc"])
         if bad_files:
@@ -801,6 +815,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H021", output)
     def test(out):
+        if conanfile.name in ["powershell"]:
+            return
         bad_files = _get_files_following_patterns(conanfile.package_folder,
                                                   ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
         if bad_files:
@@ -812,7 +828,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
 
     @run_test("KB-H019", output)
     def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl"]:
+        if conanfile.name in ["android-ndk", "cmake", "msys2", "strawberryperl"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
         build_dirs = [bd.replace("\\", "/") for bd in conanfile.cpp_info.builddirs]
@@ -836,6 +852,27 @@ def post_package_info(output, conanfile, reference, **kwargs):
             out.error("The *.cmake files have to be placed in a folder declared as "
                       "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
             out.error("Found files: {}".format("; ".join(files_missplaced)))
+
+
+    @run_test("KB-H054", output)
+    def test(out):
+        def _test_component(component):
+            libs_to_search = list(component.libs)
+            for p in component.libdirs:
+                libs_found = tools.collect_libs(conanfile, p)
+                if not libs_found:
+                    out.warn("Component %s::%s libdir \"%s\" does not contain any library" % (conanfile.name, component.name, p))
+                libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
+                if not libs_declared_and_found:
+                    out.warn("Component %s::%s libdir \"%s\" does not contain any declared library" % (conanfile.name, component.name, p))
+                for l in libs_declared_and_found:
+                    libs_to_search.remove(l)
+            for l in libs_to_search:
+                out.error("Component %s::%s library \"%s\" not found in libdirs" % (conanfile.name, component.name, l))
+
+        _test_component(conanfile.cpp_info)
+        for c in conanfile.cpp_info.components:
+            _test_component(conanfile.cpp_info.components[c])
 
 
 def _get_files_following_patterns(folder, patterns):

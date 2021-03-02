@@ -73,8 +73,43 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
 
-    def test_multiple_sources(self):
+    def _check_conandata(self, conandata):
         tools.save('conanfile.py', content=self.conanfile)
+        tools.save('conandata.yml', content=conandata)
+        export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
+
+    def test_single_source(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                            url: "url1_1.69.0"
+                            sha256: "sha1_1.69.0"
+                    patches:
+                      "1.69.0":
+                            patch_file: "001-1.69.0.patch"
+                            base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_single_source_mirror(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                            url: [
+                          "mirror1/url1_1.69.0",
+                          "mirror2/url1_1.69.0",
+                          ]
+                            sha256: "sha1_1.69.0"
+                    patches:
+                      "1.69.0":
+                            patch_file: "001-1.69.0.patch"
+                            base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_multiple_sources(self):
         conandata = textwrap.dedent("""
                     sources:
                       "1.69.0":
@@ -82,11 +117,137 @@ class ConanData(ConanClientTestCase):
                             sha256: "sha1_1.69.0"
                           - url: "url2_1.69.0"
                             sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                            patch_file: "001-1.69.0.patch"
+                            base_path: "source_subfolder/1.69.0"
                           """)
-        tools.save('conandata.yml', content=conandata)
-        export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
-        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
-        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
+        self._check_conandata(conandata)
+
+    def test_multiple_sources_mirror(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          - url: [
+                          "mirror1/url1_1.69.0",
+                          "mirror2/url1_1.69.0",
+                          ]
+                            sha256: "sha1_1.69.0"
+                          - url: [
+                          "mirror1/url2_1.69.0",
+                          "mirror2/url2_1.69.0",
+                          ]
+                            sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                            patch_file: "001-1.69.0.patch"
+                            base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_different_sources_per_config_level1(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          "Macos":
+                              - url: "url1_1.69.0"
+                                sha256: "sha1_1.69.0"
+                          "Linux":
+                              - url: "url2_1.69.0"
+                                sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                          "Macos":
+                                patch_file: "001-1.69.0-mac.patch"
+                                base_path: "source_subfolder/1.69.0"
+                          "Linux":
+                                patch_file: "001-1.69.0-lin.patch"
+                                base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_different_sources_per_config_level1_mirror(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          "Macos":
+                              - url: [
+                          "mirror1/url1_1.69.0",
+                          "mirror2/url1_1.69.0",
+                          ]
+                                sha256: "sha1_1.69.0"
+                          "Linux":
+                              - url: [
+                          "mirror1/url2_1.69.0",
+                          "mirror2/url2_1.69.0",
+                          ]
+                                sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                          "Macos":
+                                patch_file: "001-1.69.0-mac.patch"
+                                base_path: "source_subfolder/1.69.0"
+                          "Linux":
+                                patch_file: "001-1.69.0-lin.patch"
+                                base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_different_sources_per_config_level2(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          "Macos":
+                              "apple-clang":
+                                  - url: "url1_1.69.0"
+                                    sha256: "sha1_1.69.0"
+                          "Linux":
+                              "gcc":
+                                    url: "url2_1.69.0"
+                                    sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                          "Macos":
+                              "apple-clang":
+                                    patch_file: "001-1.69.0-mac.patch"
+                                    base_path: "source_subfolder/1.69.0"
+                          "Linux":
+                              "gcc":
+                                    patch_file: "001-1.69.0-lin.patch"
+                                    base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
+
+    def test_different_sources_per_config_level2_mirror(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                          "Macos":
+                              "apple-clang":
+                                  - url: [
+                          "mirror1/url1_1.69.0",
+                          "mirror2/url1_1.69.0",
+                          ]
+                                    sha256: "sha1_1.69.0"
+                          "Linux":
+                              "gcc":
+                                  - url: [
+                          "mirror1/url2_1.69.0",
+                          "mirror2/url2_1.69.0",
+                          ]
+                                    sha256: "sha2_1.69.0"
+                    patches:
+                      "1.69.0":
+                          "Macos":
+                              "apple-clang":
+                                    patch_file: "001-1.69.0-mac.patch"
+                                    base_path: "source_subfolder/1.69.0"
+                          "Linux":
+                              "gcc":
+                                    patch_file: "001-1.69.0-lin.patch"
+                                    base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)
 
     def test_sha1_md5(self):
         tools.save('conanfile.py', content=self.conanfile)
@@ -222,7 +383,7 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertNotIn("First level entries", output)
-        self.assertIn("Additional entry ['other'] not allowed in 'sources':'1.70.0' of "
+        self.assertIn("Additional entries ['other'] not allowed in 'sources':'1.70.0' of "
                       "conandata.yml", output)
 
     def test_unknown_subentry_patches(self):
