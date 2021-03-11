@@ -1035,3 +1035,41 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
         self.assertNotIn('does not contain any library', output)
+
+    def test_logging_level(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        import os
+
+        class FoobarConan(ConanFile):
+            author = "Foobar"
+
+            def package(self):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+        self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        for level in ["INFO", "20"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        for level in ["Warning", "30"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        for level in ["error", "40"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)

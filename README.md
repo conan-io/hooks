@@ -88,7 +88,16 @@ variable ``CONAN_HOOK_ERROR_LEVEL``:
    - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
    - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
 
+If you want to decrease logging level, you can adjust it by the environment variable
+``CONAN_HOOK_LOGGING_LEVEL``:
 
+  - ``CONAN_HOOK_LOGGING_LEVEL=40`` it will print out only error messages
+  - ``CONAN_HOOK_LOGGING_LEVEL=WARNING`` it will print out only warning and error messages
+
+It accepts both logging level names and logging level code:
+  - ERROR: 40
+  - WARNING/WARN: 30
+  - INFO: 20
 
 ### [Attribute checker](hooks/attribute_checker.py)
 

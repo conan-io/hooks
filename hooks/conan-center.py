@@ -2,7 +2,7 @@ import fnmatch
 import inspect
 import os
 import re
-from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
+from logging import WARNING, ERROR, INFO, DEBUG, NOTSET, _nameToLevel
 
 import yaml
 from conans import tools, Settings
@@ -67,6 +67,11 @@ class _HooksOutputErrorCollector(object):
         if self.kb_id:
             self.kb_url = kb_url(self.kb_id)
         self._error_level = int(os.getenv("CONAN_HOOK_ERROR_LEVEL", str(NOTSET)))
+        self._set_logging_level()
+
+    def _set_logging_level(self):
+        level = os.getenv("CONAN_HOOK_LOGGING_LEVEL", str(NOTSET))
+        self._logging_level = int(level) if level.isdigit() else _nameToLevel[level.upper()]
 
     def _get_message(self, message):
         if self._test_name:
@@ -76,22 +81,26 @@ class _HooksOutputErrorCollector(object):
             return message
 
     def success(self, message):
-        self._output.success(self._get_message(message))
+        if self._logging_level < WARNING:
+            self._output.success(self._get_message(message))
 
     def debug(self, message):
         if self._error_level and self._error_level <= DEBUG:
             self._error = True
-        self._output.debug(self._get_message(message))
+        if self._logging_level < INFO:
+            self._output.debug(self._get_message(message))
 
     def info(self, message):
         if self._error_level and self._error_level <= INFO:
             self._error = True
-        self._output.info(self._get_message(message))
+        if self._logging_level < WARNING:
+            self._output.info(self._get_message(message))
 
     def warn(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        self._output.warn(self._get_message(message))
+        if self._logging_level < ERROR:
+            self._output.warn(self._get_message(message))
 
     def error(self, message):
         self._error = True
