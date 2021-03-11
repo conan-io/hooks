@@ -2,7 +2,7 @@ import fnmatch
 import inspect
 import os
 import re
-from logging import WARNING, ERROR, INFO, DEBUG, NOTSET, _nameToLevel
+from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
 from conans import tools, Settings
@@ -71,7 +71,8 @@ class _HooksOutputErrorCollector(object):
 
     def _set_logging_level(self):
         level = os.getenv("CONAN_HOOK_LOGGING_LEVEL", str(NOTSET))
-        self._logging_level = int(level) if level.isdigit() else _nameToLevel[level.upper()]
+        name_level = {"ERROR": 40, "WARNING": 30, "WARN": 30, "INFO": 20, "DEBUG": 10, "NOTSET": 0}
+        self._logging_level = int(level) if level.isdigit() else name_level[level.upper()]
 
     def _get_message(self, message):
         if self._test_name:
