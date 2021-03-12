@@ -1034,4 +1034,4 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile_header_only)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
-        self.assertNotIn('does not contain any library', output)
+        self.assertNotIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)]', output)
