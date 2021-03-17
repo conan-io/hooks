@@ -19,6 +19,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -34,6 +35,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -52,6 +54,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -70,6 +73,7 @@ class ConanCenterTests(ConanClientTestCase):
             from conans import ConanFile
 
             class Fpic(ConanFile):
+                name = "name"
                 url = "fake_url.com"
                 license = "fake_license"
                 description = "whatever"
@@ -426,6 +430,7 @@ class ConanCenterTests(ConanClientTestCase):
             pass
         """)
         bad_recipe_output = [
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'name' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
