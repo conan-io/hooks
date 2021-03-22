@@ -450,6 +450,15 @@ class ConanCenterTests(ConanClientTestCase):
             self.assertNotIn(msg, output)
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
 
+        for before, after in [('"name" =', '"name"      = '),
+                              ('    "name" =', '\t"name"\t= ')]:
+            tools.save('conanfile.py',
+                    content=self.conanfile_header_only_with_settings.replace(before, after))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            for msg in bad_recipe_output:
+                self.assertNotIn(msg, output)
+            self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+
     def test_cci_url(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
