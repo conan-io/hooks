@@ -335,6 +335,10 @@ class ConanCenterTests(ConanClientTestCase):
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
+        output = self.conan(['create', '.', 'package/version@conan/test', '-o package:shared=True'])
+        self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
+                        "correctly. Please remove it for shared " \
+                        "option: del self.options.fpic", output)
 
     def test_fpic_remove_windows(self):
         conanfile = textwrap.dedent("""\
