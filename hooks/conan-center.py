@@ -713,10 +713,16 @@ def pre_build(output, conanfile, **kwargs):
     @run_test("KB-H007", output)
     def test(out):
         has_fpic = conanfile.options.get_safe("fPIC")
+        error = False
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
             out.error("'fPIC' option not managed correctly. Please remove it for Windows "
                       "configurations: del self.options.fpic")
-        elif has_fpic:
+            error = True
+        if has_fpic and conanfile.options.get_safe("shared"):
+            out.error("'fPIC' option not managed correctly. Please remove it for shared "
+                      "option: del self.options.fpic")
+            error = True
+        elif has_fpic and not error:
             out.success("OK. 'fPIC' option found and apparently well managed")
         else:
             out.info("'fPIC' option not found")
