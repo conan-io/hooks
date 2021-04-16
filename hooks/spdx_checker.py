@@ -4,7 +4,9 @@ import spdx_lookup
 
 
 def check_license(output, license_id):
-    if spdx_lookup.by_id(license_id):
+    license_value = spdx_lookup.by_id(license_id)
+    # use case-sensitive check
+    if license_value and license_value.id == license_id:
         output.info('license "%s" is a valid SPDX license identifier' % license_id)
     else:
         output.error('license "%s" is not a valid SPDX license identifier' % license_id)
