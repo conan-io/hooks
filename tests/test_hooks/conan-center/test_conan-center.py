@@ -19,6 +19,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -34,6 +35,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -52,6 +54,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -70,6 +73,7 @@ class ConanCenterTests(ConanClientTestCase):
             from conans import ConanFile
 
             class Fpic(ConanFile):
+                name = "name"
                 url = "fake_url.com"
                 license = "fake_license"
                 description = "whatever"
@@ -331,6 +335,10 @@ class ConanCenterTests(ConanClientTestCase):
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
+        output = self.conan(['create', '.', 'package/version@conan/test', '-o package:shared=True'])
+        self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
+                        "correctly. Please remove it for shared " \
+                        "option: del self.options.fpic", output)
 
     def test_fpic_remove_windows(self):
         conanfile = textwrap.dedent("""\
@@ -426,6 +434,7 @@ class ConanCenterTests(ConanClientTestCase):
             pass
         """)
         bad_recipe_output = [
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'name' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
@@ -444,6 +453,15 @@ class ConanCenterTests(ConanClientTestCase):
         for msg in bad_recipe_output:
             self.assertNotIn(msg, output)
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+
+        for before, after in [('"name" =', '"name"      = '),
+                              ('    "name" =', '\t"name"\t= ')]:
+            tools.save('conanfile.py',
+                    content=self.conanfile_header_only_with_settings.replace(before, after))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            for msg in bad_recipe_output:
+                self.assertNotIn(msg, output)
+            self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
 
     def test_cci_url(self):
         conanfile = textwrap.dedent("""\

@@ -184,6 +184,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if not field_value:
                     out_method("Conanfile doesn't have '%s' attribute. " % field)
 
+        if not re.search(r"(\s{4}|\t)name\s*=", conanfile_content):
+            out.error("Conanfile doesn't have 'name' attribute.")
         _message_attr(["url", "license", "description", "homepage", "topics"], out.error)
 
     @run_test("KB-H005", output)
@@ -721,10 +723,16 @@ def pre_build(output, conanfile, **kwargs):
     @run_test("KB-H007", output)
     def test(out):
         has_fpic = conanfile.options.get_safe("fPIC")
+        error = False
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
             out.error("'fPIC' option not managed correctly. Please remove it for Windows "
                       "configurations: del self.options.fpic")
-        elif has_fpic:
+            error = True
+        if has_fpic and conanfile.options.get_safe("shared"):
+            out.error("'fPIC' option not managed correctly. Please remove it for shared "
+                      "option: del self.options.fpic")
+            error = True
+        elif has_fpic and not error:
             out.success("OK. 'fPIC' option found and apparently well managed")
         else:
             out.info("'fPIC' option not found")
@@ -751,7 +759,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk"]:
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64"]:
             return
         known_folders = ["lib", "bin", "include", "res", "licenses"]
         for filename in os.listdir(conanfile.package_folder):
