@@ -868,11 +868,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
             libs_to_search = list(component.libs)
             for p in component.libdirs:
                 libs_found = tools.collect_libs(conanfile, p)
-                if not libs_found and not _is_recipe_header_only(conanfile):
-                    out.warn("Component %s::%s libdir \"%s\" does not contain any library" % (conanfile.name, component.name, p))
                 libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
-                if not libs_declared_and_found:
-                    out.warn("Component %s::%s libdir \"%s\" does not contain any declared library" % (conanfile.name, component.name, p))
                 for l in libs_declared_and_found:
                     libs_to_search.remove(l)
             for l in libs_to_search:
