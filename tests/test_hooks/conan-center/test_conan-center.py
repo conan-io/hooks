@@ -1016,14 +1016,10 @@ class ConanCenterTests(ConanClientTestCase):
 
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
-        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
-                      'name::name libdir "lib" does not contain any declared library', output)
 
         tools.save('conanfile.py', content=conanfile.replace("open", "# open"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
-        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
-                      'name::name libdir "lib" does not contain any library', output)
 
         tools.save('conanfile.py', content=conanfile.replace("[]", "['bar']"))
         output = self.conan(['create', '.', 'name/version@user/test'])
@@ -1033,15 +1029,11 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
-        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
-                      'name::fake libdir "lib" does not contain any declared library', output)
 
         tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs")
                                                     .replace("open", "# open"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
-        self.assertIn('WARN: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
-                      'name::fake libdir "lib" does not contain any library', output)
 
         tools.save('conanfile.py', content=conanfile.replace("libs = []",
                                                              "components['fake'].libs = ['bar']"))
