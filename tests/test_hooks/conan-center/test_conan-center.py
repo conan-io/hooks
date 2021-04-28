@@ -1044,3 +1044,37 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile_header_only)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+    def test_os_rename_warning(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                open("foobar.txt", "w")
+                os.rename("foobar.txt", "foo.txt")
+        """)
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class TestConan(ConanFile):
+            def test(self):
+                open("foo.txt", "w")
+                os.rename("foo.txt", "bar.txt")
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
+                      " permission error on Windows. Use 'tools.rename' instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
+                      " may cause permission error on Windows. Use 'tools.rename' instead.", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
+        tools.save('test_pacakage/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)

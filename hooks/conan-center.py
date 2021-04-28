@@ -54,6 +54,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H053": "PRIVATE IMPORTS",
              "KB-H054": "LIBRARY DOES NOT EXIST",
              "KB-H055": "SINGLE REQUIRES",
+             "KB-H057": "TOOLS RENAME",
              }
 
 
@@ -607,6 +608,18 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                callable(getattr(conanfile, "{}requirements".format(prefix), None)):
                 out.error("Both '{0}requires' attribute and '{0}requirements()' method should not "
                           "be declared at same recipe.".format(prefix))
+
+    @run_test("KB-H057", output)
+    def test(out):
+        def _check_content(content, path):
+            if "os.rename" in content:
+                out.warn("The 'os.rename' in {} may cause permission error on Windows."
+                         " Use 'tools.rename' instead.".format(path))
+        _check_content(conanfile_content, "conanfile.py")
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
+        if os.path.exists(test_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_content(test_package_content, "test_package/conanfile.py")
 
 
 @raise_if_error_output
