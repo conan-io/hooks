@@ -54,7 +54,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H053": "PRIVATE IMPORTS",
              "KB-H054": "LIBRARY DOES NOT EXIST",
              "KB-H055": "SINGLE REQUIRES",
-             "KB-H057": "TOOLS RENAME",
+             "KB-H056": "LICENSE PUBLIC DOMAIN",
+             "KB-H057": "TOOLS RENAME",             
              }
 
 
@@ -654,6 +655,11 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
         default_options = getattr(conanfile, "default_options")
         if default_options and isinstance(default_options, dict) and default_options.get("shared") is True:
             out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
+
+    @run_test("KB-H056", output)
+    def test(out):
+        if str(conanfile.license).lower() in ["public domain", "public-domain", "public_domain"]:
+            out.error("Public Domain is not a SPDX license. Use 'Unlicense' instead.")
 
 
 @raise_if_error_output
