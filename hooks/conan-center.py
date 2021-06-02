@@ -838,6 +838,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("Found files: {}".format("; ".join(bad_files)))
 
 
+@raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
 
     @run_test("KB-H019", output)
