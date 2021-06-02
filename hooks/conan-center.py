@@ -864,9 +864,9 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 files_missplaced.append(filename)
 
         if files_missplaced:
-            out.error("The *.cmake files have to be placed in a folder declared as "
-                      "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
-            out.error("Found files: {}".format("; ".join(files_missplaced)))
+            out.warn("The *.cmake files have to be placed in a folder declared as "
+                     "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
+            out.warn("Found files: {}".format("; ".join(files_missplaced)))
 
 
     @run_test("KB-H054", output)
