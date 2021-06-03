@@ -9,10 +9,10 @@ pipeline {
             }
         }
         stage('Linux') {
-            agent 'linux'
             failFast true
             parallel {
                 stage('Linux - conancurrent - py27') {
+                    agent 'linux'
                     environment {
                         PYVER = 'py27'
                         TOXENV = 'py27-conancurrent'
@@ -24,6 +24,7 @@ pipeline {
                     }
                 }
                 stage('Linux - conancurrent - py38') {
+                    agent 'linux'
                     environment {
                         PYVER = 'py38'
                         TOXENV = 'py38-conancurrent'
