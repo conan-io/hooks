@@ -20,6 +20,7 @@ pipeline {
                         TOXENV = 'py27-conancurrent'
                     }
                     steps {
+                        sh 'pip3 install --requirement .ci/requirements_linux.txt'
                         sh '.ci/install_linux.sh'
                         sh 'python .ci/last_conan_version.py'
                         sh 'tox'
@@ -34,6 +35,7 @@ pipeline {
                         TOXENV = 'py38-conancurrent'
                     }
                     steps {
+                        sh 'pip3 install --requirement .ci/requirements_linux.txt'
                         sh '.ci/install_linux.sh'
                         sh 'python .ci/last_conan_version.py'
                         sh 'tox'
