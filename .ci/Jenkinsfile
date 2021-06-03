@@ -2,24 +2,27 @@ pipeline {
     agent none
 
     stages {
-        stage('Clone sources') {
-            agent any
-            steps {
-                checkout scm
-            }
-        }
         stage('Linux - py38') {
             agent {
                 label 'Linux'
             }
             stages {
+                stage('Linux - py38 - Generate environment') {
+                    environment {
+                        PYVER = 'py38'
+                        TOXENV = 'py38-conandev'
+                    }
+                    steps {
+                        sh '.ci/generate_env_linux.sh'
+                    }
+                }
                 stage('Linux - py38 - conandev') {
                     environment {
                         PYVER = 'py38'
                         TOXENV = 'py38-conandev'
                     }
                     steps {
-                        sh '.ci/install_linux.sh'
+                        sh 'tox'
                     }
                 }
                 stage('Linux - py38 - conancurrent') {
@@ -28,7 +31,7 @@ pipeline {
                         TOXENV = 'py38-conancurrent'
                     }
                     steps {
-                        sh '.ci/install_linux.sh'
+                        sh 'tox'
                     }
                 }
             }

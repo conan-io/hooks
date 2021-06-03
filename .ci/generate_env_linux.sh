@@ -3,8 +3,6 @@
 set -e
 set -x
 
-if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
-if which pyenv > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
 if which pyenv > /dev/null; then eval "$(pyenv init --path)"; fi
 
 case "${PYVER}" in
@@ -44,4 +42,3 @@ pyenv activate conan
 python --version
 pip3 install --requirement .ci/requirements_linux.txt
 python .ci/last_conan_version.py
-tox
