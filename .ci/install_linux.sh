@@ -3,6 +3,9 @@
 set -e
 set -x
 
+pyenv init -
+pyenv virtualenv-init -
+
 case "${PYVER}" in
     py27)
         pyenv install 2.7.17
