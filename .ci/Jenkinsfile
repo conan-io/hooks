@@ -8,39 +8,19 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Linux') {
-            failFast true
-            parallel {
-                stage('Linux - conancurrent - py27') {
-                    agent {
-                        label 'Linux'
-                    }
-                    environment {
-                        PYVER = 'py27'
-                        TOXENV = 'py27-conancurrent'
-                    }
-                    steps {
-                        sh 'pip3 install --requirement .ci/requirements_linux.txt'
-                        sh '.ci/install_linux.sh'
-                        sh 'python .ci/last_conan_version.py'
-                        sh 'tox'
-                    }
-                }
-                stage('Linux - conancurrent - py38') {
-                    agent {
-                        label 'Linux'
-                    }
-                    environment {
-                        PYVER = 'py38'
-                        TOXENV = 'py38-conancurrent'
-                    }
-                    steps {
-                        sh 'pip3 install --requirement .ci/requirements_linux.txt'
-                        sh '.ci/install_linux.sh'
-                        sh 'python .ci/last_conan_version.py'
-                        sh 'tox'
-                    }
-                }
+        stage('Linux - conancurrent - py38') {
+            agent {
+                label 'Linux'
+            }
+            environment {
+                PYVER = 'py38'
+                TOXENV = 'py38-conancurrent'
+            }
+            steps {
+                sh 'pip3 install --requirement .ci/requirements_linux.txt'
+                sh '.ci/install_linux.sh'
+                sh 'python .ci/last_conan_version.py'
+                sh 'tox'
             }
         }
     }
