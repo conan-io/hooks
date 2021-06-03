@@ -13,7 +13,7 @@ pipeline {
             parallel {
                 stage('Linux - conancurrent - py27') {
                     agent {
-                        label 'linux'
+                        label 'Linux'
                     }
                     environment {
                         PYVER = 'py27'
@@ -27,7 +27,7 @@ pipeline {
                 }
                 stage('Linux - conancurrent - py38') {
                     agent {
-                        label 'linux'
+                        label 'Linux'
                     }
                     environment {
                         PYVER = 'py38'
