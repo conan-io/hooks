@@ -9,42 +9,31 @@ pipeline {
             }
         }
         stage('Linux') {
+            agent 'linux'
             failFast true
             parallel {
                 stage('Linux - conancurrent') {
                     failFast true
                     parallel {
                         stage('Linux - conancurrent - py27') {
-                            agent {
-                                dockerfile {
-                                    filename 'Dockerfile'
-                                    dir '.ci'
-                                    label 'conan-hooks'
-                                }
-                            }
                             environment {
                                 PYVER = 'py27'
                                 TOXENV = 'py27-conancurrent'
                             }
                             steps {
                                 sh 'install_linux.sh'
+                                sh 'python last_conan_version.py'
                                 sh 'tox'
                             }
                         }
                         stage('Linux - conancurrent - py38') {
-                            agent {
-                                dockerfile {
-                                    filename 'Dockerfile'
-                                    dir '.ci'
-                                    label 'conan-hooks'
-                                }
-                            }
                             environment {
                                 PYVER = 'py38'
                                 TOXENV = 'py38-conancurrent'
                             }
                             steps {
                                 sh 'install_linux.sh'
+                                sh 'python last_conan_version.py'
                                 sh 'tox'
                             }
                         }
