@@ -3,6 +3,12 @@
 set -e
 set -x
 
+pip3 install --requirement .ci/requirements_linux.txt
+
+if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
+if which pyenv > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
+if which pyenv > /dev/null; then eval "$(pyenv init --path)"; fi
+
 case "${PYVER}" in
     py27)
         pyenv install 2.7.17
@@ -34,3 +40,8 @@ case "${PYVER}" in
         ;;
 
 esac
+
+pyenv rehash
+pyenv activate conan
+python --version
+python .ci/last_conan_version.py

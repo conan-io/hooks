@@ -17,15 +17,7 @@ pipeline {
                 TOXENV = 'py38-conancurrent'
             }
             steps {
-                sh 'pip3 install --requirement .ci/requirements_linux.txt'
-                sh 'if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi'
-                sh 'if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi'
                 sh '.ci/install_linux.sh'
-                sh 'pyenv rehash'
-                sh 'pyenv activate conan'
-                sh 'python --version'
-                sh 'python .ci/last_conan_version.py'
-                sh 'tox'
             }
         }
     }
