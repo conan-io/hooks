@@ -10,7 +10,6 @@ pipeline {
                 stage('Linux - py38 - Generate environment') {
                     environment {
                         PYVER = 'py38'
-                        TOXENV = 'py38-conandev'
                     }
                     steps {
                         sh '.ci/generate_env_linux.sh'
@@ -18,7 +17,6 @@ pipeline {
                 }
                 stage('Linux - py38 - conandev') {
                     environment {
-                        PYVER = 'py38'
                         TOXENV = 'py38-conandev'
                     }
                     steps {
@@ -27,7 +25,6 @@ pipeline {
                 }
                 stage('Linux - py38 - conancurrent') {
                     environment {
-                        PYVER = 'py38'
                         TOXENV = 'py38-conancurrent'
                     }
                     steps {

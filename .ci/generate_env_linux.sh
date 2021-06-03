@@ -3,9 +3,9 @@
 set -e
 set -x
 
-if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
-if which pyenv > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
-if which pyenv > /dev/null; then eval "$(pyenv init --path)"; fi
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+eval "$(pyenv init --path)"
 
 case "${PYVER}" in
     py27)
