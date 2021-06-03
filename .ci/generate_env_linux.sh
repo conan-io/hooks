@@ -3,6 +3,8 @@
 set -e
 set -x
 
+if which pyenv > /dev/null; then eval "$(pyenv init -)"; fi
+if which pyenv > /dev/null; then eval "$(pyenv virtualenv-init -)"; fi
 if which pyenv > /dev/null; then eval "$(pyenv init --path)"; fi
 
 case "${PYVER}" in
