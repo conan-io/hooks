@@ -8,16 +8,29 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Linux - conancurrent - py38') {
+        stage('Linux - py38') {
             agent {
                 label 'Linux'
             }
-            environment {
-                PYVER = 'py38'
-                TOXENV = 'py38-conancurrent'
-            }
-            steps {
-                sh '.ci/install_linux.sh'
+            stages {
+                stage('Linux - py38 - conandev') {
+                    environment {
+                        PYVER = 'py38'
+                        TOXENV = 'py38-conandev'
+                    }
+                    steps {
+                        sh '.ci/install_linux.sh'
+                    }
+                }
+                stage('Linux - py38 - conancurrent') {
+                    environment {
+                        PYVER = 'py38'
+                        TOXENV = 'py38-conancurrent'
+                    }
+                    steps {
+                        sh '.ci/install_linux.sh'
+                    }
+                }
             }
         }
     }
