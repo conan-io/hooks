@@ -3,7 +3,6 @@
 set -e
 set -x
 
-pip3 install pyenv
 pip3 install pyenv-virtualenv
 
 #eval "$(pyenv init -)"
@@ -44,5 +43,6 @@ esac
 #pyenv rehash
 pyenv activate conan
 python --version
+pip install --upgrade pip
 pip3 install --requirement .ci/requirements_linux.txt
 python .ci/last_conan_version.py
