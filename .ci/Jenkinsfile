@@ -5,7 +5,7 @@ pipeline {
         stage("Windows") {
             failFast true
             parallel {
-                stage('Windows - py36') {
+                stage('Windows - py27') {
                     agent {
                         label 'Windows'
                     }

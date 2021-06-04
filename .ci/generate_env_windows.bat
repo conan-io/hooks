@@ -14,5 +14,5 @@ set TEST_FOLDER=D:/J/t/Hooks/%BUILD_NUMBER%/%PYVER%
 
 virtualenv --python "C:/%PYVER%/python.exe" %TEST_FOLDER% && %TEST_FOLDER%/Scripts/activate
 
-python --version 
+python --version
 python .ci/last_conan_version.py
