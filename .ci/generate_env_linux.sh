@@ -3,8 +3,6 @@
 set -e
 set -x
 
-pip3 install pyenv-virtualenv
-
 #eval "$(pyenv init -)"
 #eval "$(pyenv virtualenv-init -)"
 #eval "$(pyenv init --path)"
