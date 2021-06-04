@@ -90,7 +90,11 @@ pipeline {
                                 TOXENV = 'py35-conandev'
                             }
                             steps {
-                                sh 'pyenv activate conan && tox'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
                             }
                         }
                         stage('Linux - py35 - conancurrent') {
