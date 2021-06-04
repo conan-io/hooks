@@ -5,7 +5,7 @@ set -x
 
 #eval "$(pyenv init -)"
 #eval "$(pyenv virtualenv-init -)"
-#eval "$(pyenv init --path)"
+eval "$(pyenv init --path)"
 
 case "${PYVER}" in
     py27)
