@@ -2,33 +2,67 @@ pipeline {
     agent none
 
     stages {
-        stage('Linux - py38') {
-            agent {
-                label 'Linux'
+        parallel {
+            failFast  true
+            stage('Linux - py38') {
+                agent {
+                    label 'Linux'
+                }
+                stages {
+                    stage('Linux - py38 - Generate environment') {
+                        environment {
+                            PYVER = 'py38'
+                        }
+                        steps {
+                            sh '.ci/generate_env_linux.sh'
+                        }
+                    }
+                    stage('Linux - py38 - conandev') {
+                        environment {
+                            TOXENV = 'py38-conandev'
+                        }
+                        steps {
+                            sh 'tox'
+                        }
+                    }
+                    stage('Linux - py38 - conancurrent') {
+                        environment {
+                            TOXENV = 'py38-conancurrent'
+                        }
+                        steps {
+                            sh 'tox'
+                        }
+                    }
+                }
             }
-            stages {
-                stage('Linux - py38 - Generate environment') {
-                    environment {
-                        PYVER = 'py38'
-                    }
-                    steps {
-                        sh '.ci/generate_env_linux.sh'
-                    }
+            stage('Linux - py27') {
+                agent {
+                    label 'Linux'
                 }
-                stage('Linux - py38 - conandev') {
-                    environment {
-                        TOXENV = 'py38-conandev'
+                stages {
+                    stage('Linux - py27 - Generate environment') {
+                        environment {
+                            PYVER = 'py27'
+                        }
+                        steps {
+                            sh '.ci/generate_env_linux.sh'
+                        }
                     }
-                    steps {
-                        sh 'tox'
+                    stage('Linux - py27 - conandev') {
+                        environment {
+                            TOXENV = 'py27-conandev'
+                        }
+                        steps {
+                            sh 'tox'
+                        }
                     }
-                }
-                stage('Linux - py38 - conancurrent') {
-                    environment {
-                        TOXENV = 'py38-conancurrent'
-                    }
-                    steps {
-                        sh 'tox'
+                    stage('Linux - py27 - conancurrent') {
+                        environment {
+                            TOXENV = 'py27-conancurrent'
+                        }
+                        steps {
+                            sh 'tox'
+                        }
                     }
                 }
             }
