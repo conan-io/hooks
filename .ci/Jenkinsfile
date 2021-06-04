@@ -2,73 +2,73 @@ pipeline {
     agent none
 
     stages {
-        stage("Windows") {
-            failFast true
-            parallel {
-                stage('Windows - py27') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py27 - Generate environment') {
-                            environment {
-                                PYVER = 'py27'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py27 - conandev') {
-                            environment {
-                                TOXENV = 'py27-conandev'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                        stage('Windows - py27 - conancurrent') {
-                            environment {
-                                TOXENV = 'py27-conancurrent'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                    }
-                }
-                stage('Windows - py38') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py38 - Generate environment') {
-                            environment {
-                                PYVER = 'py38'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py38 - conanprev') {
-                            environment {
-                                TOXENV = 'py38-conanprev'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                        stage('Windows - py38 - conanprevprev') {
-                            environment {
-                                TOXENV = 'py38-conanprevprev'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // stage("Windows") {
+        //     failFast true
+        //     parallel {
+        //         stage('Windows - py27') {
+        //             agent {
+        //                 label 'Windows'
+        //             }
+        //             stages {
+        //                 stage('Windows - py27 - Generate environment') {
+        //                     environment {
+        //                         PYVER = 'py27'
+        //                     }
+        //                     steps {
+        //                         bat '.ci/generate_env_windows.bat'
+        //                     }
+        //                 }
+        //                 stage('Windows - py27 - conandev') {
+        //                     environment {
+        //                         TOXENV = 'py27-conandev'
+        //                     }
+        //                     steps {
+        //                         bat 'tox'
+        //                     }
+        //                 }
+        //                 stage('Windows - py27 - conancurrent') {
+        //                     environment {
+        //                         TOXENV = 'py27-conancurrent'
+        //                     }
+        //                     steps {
+        //                         bat 'tox'
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         stage('Windows - py38') {
+        //             agent {
+        //                 label 'Windows'
+        //             }
+        //             stages {
+        //                 stage('Windows - py38 - Generate environment') {
+        //                     environment {
+        //                         PYVER = 'py38'
+        //                     }
+        //                     steps {
+        //                         bat '.ci/generate_env_windows.bat'
+        //                     }
+        //                 }
+        //                 stage('Windows - py38 - conanprev') {
+        //                     environment {
+        //                         TOXENV = 'py38-conanprev'
+        //                     }
+        //                     steps {
+        //                         bat 'tox'
+        //                     }
+        //                 }
+        //                 stage('Windows - py38 - conanprevprev') {
+        //                     environment {
+        //                         TOXENV = 'py38-conanprevprev'
+        //                     }
+        //                     steps {
+        //                         bat 'tox'
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         stage("Linux") {
             failFast true
             parallel {
