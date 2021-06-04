@@ -3,9 +3,12 @@
 set -e
 set -x
 
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
-eval "$(pyenv init --path)"
+pip3 install pyenv
+pip3 install pyenv-virtualenv
+
+#eval "$(pyenv init -)"
+#eval "$(pyenv virtualenv-init -)"
+#eval "$(pyenv init --path)"
 
 case "${PYVER}" in
     py27)
@@ -36,10 +39,9 @@ case "${PYVER}" in
         pyenv install 3.8.1
         pyenv virtualenv 3.8.1 conan
         ;;
-
 esac
 
-pyenv rehash
+#pyenv rehash
 pyenv activate conan
 python --version
 pip3 install --requirement .ci/requirements_linux.txt
