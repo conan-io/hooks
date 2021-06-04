@@ -3,8 +3,8 @@ pipeline {
 
     stages {
         stage("Linux") {
+            failFast true
             parallel {
-                failFast  true
                 stage('Linux - py38') {
                     agent {
                         label 'Linux'
