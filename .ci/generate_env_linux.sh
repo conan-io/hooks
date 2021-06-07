@@ -4,8 +4,6 @@ set -e
 set -x
 
 eval "$(pyenv init -)"
-#eval "$(pyenv virtualenv-init -)"
-#eval "$(pyenv init --path)"
 
 case "${PYVER}" in
     py27)
@@ -38,7 +36,6 @@ case "${PYVER}" in
         ;;
 esac
 
-#pyenv rehash
 pyenv activate conan
 python --version
 pip install --upgrade pip
