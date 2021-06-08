@@ -1,6 +1,5 @@
 pipeline {
     agent none
-
     stages {
         stage("Windows") {
             failFast true
