@@ -55,7 +55,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H054": "LIBRARY DOES NOT EXIST",
              "KB-H055": "SINGLE REQUIRES",
              "KB-H056": "LICENSE PUBLIC DOMAIN",
-             "KB-H057": "TOOLS RENAME",             
+             "KB-H057": "TOOLS RENAME",
              }
 
 
@@ -616,6 +616,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if "os.rename" in content:
                 out.warn("The 'os.rename' in {} may cause permission error on Windows."
                          " Use 'tools.rename' instead.".format(path))
+            elif "tools.rename(" in content and not "tools.rename(self," in content:
+                out.warn("The 'tools.rename' in {} is outdated and may cause permission error on Windows."
+                         " Use 'tools.rename(self, src, dst)' instead.".format(path))
         _check_content(conanfile_content, "conanfile.py")
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.exists(test_package_path):
