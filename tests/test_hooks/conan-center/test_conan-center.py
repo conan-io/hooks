@@ -1057,6 +1057,7 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Can not use illegal name on Windows")
     def test_disallowed_filename(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
