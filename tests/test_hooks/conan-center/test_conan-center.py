@@ -1056,3 +1056,19 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile_header_only)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+    def test_disallowed_filename(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[ILLEGAL CHARACTERS (KB-H058)] OK", output)
+
+        tools.save('conanfile?.py', content=conanfile)
+        output = self.conan(['export', 'conanfile?.py', 'name/version@user/test'])
+        self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'conanfile?.py' uses illegal"
+                      " charecters (<>:\"/\\|?*) for its name. Please, rename that file.", output)
