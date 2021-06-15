@@ -56,6 +56,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H055": "SINGLE REQUIRES",
              "KB-H056": "LICENSE PUBLIC DOMAIN",
              "KB-H058": "ILLEGAL CHARACTERS",
+             "KB-H059": "CLASS NAME",
              }
 
 
@@ -622,6 +623,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if file.endswith("."):
                     out.error("The file '{}' ends with a dot. Please, remove the dot from the end."
                               .format(file, disallowed_chars))
+
+    @run_test("KB-H059", output)
+    def test(out):
+        class_name = type(conanfile).__name__
+        if class_name in ("LibnameConan", "ConanRecipe", "ConanFileDefault"):
+            out.error("Class name '{}' is not allowed. For example, use '{}Conan' instead.".format(class_name, conanfile.name))
 
 
 @raise_if_error_output
