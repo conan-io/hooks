@@ -757,7 +757,12 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "openjdk"]:
             return
-        known_folders = ["lib", "bin", "include", "res", "licenses"]
+
+        base_known_folders = ["lib", "bin", "include", "res", "licenses"]
+        known_folders = {
+            'icu': base_known_folders + ['config', ]
+        }.get(conanfile.name, base_known_folders)
+
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
                 if filename not in known_folders:
@@ -766,8 +771,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                 if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
                     out.error("Unknown file '{}' in the package".format(filename))
         if out.failed:
-            out.info("If you are trying to package a tool put all the contents under the 'bin' "
-                     "folder")
+            out.info("If you are trying to package a tool put all the contents under the 'bin' folder")
 
     @run_test("KB-H014", output)
     def test(out):
