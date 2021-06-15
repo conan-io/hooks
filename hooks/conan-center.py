@@ -615,10 +615,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         def _check_content(content, path):
             if "os.rename" in content:
                 out.warn("The 'os.rename' in {} may cause permission error on Windows."
-                         " Use 'tools.rename' instead.".format(path))
+                         " Use 'conan.tools.rename(self, src, dst)' instead.".format(path))
             elif "tools.rename(" in content and not "tools.rename(self," in content:
                 out.warn("The 'tools.rename' in {} is outdated and may cause permission error on Windows."
-                         " Use 'tools.rename(self, src, dst)' instead.".format(path))
+                         " Use 'conan.tools.rename(self, src, dst)' instead.".format(path))
         _check_content(conanfile_content, "conanfile.py")
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.exists(test_package_path):
