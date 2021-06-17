@@ -612,13 +612,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H058", output)
     def test(out):
-        disallowed_chars = '<>:"/\\|?*'
+        disallowed_chars = '<>:"/\\|?*%,; '
         recipe_folder = os.path.dirname(conanfile_path)
         for root, _, files in os.walk(recipe_folder):
             for file in files:
                 if any(it in disallowed_chars for it in file):
                     out.error("The file '{}' uses illegal charecters ({}) for its name."
                               " Please, rename that file.".format(file, disallowed_chars))
+                if file.endswith("."):
+                    out.error("The file '{}' ends with a dot. Please, remove the dot from the end."
+                              .format(file, disallowed_chars))
 
 
 @raise_if_error_output
