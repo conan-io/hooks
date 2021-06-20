@@ -1092,4 +1092,3 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'nameConan' instead.", output)
-
