@@ -56,6 +56,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H055": "SINGLE REQUIRES",
              "KB-H056": "LICENSE PUBLIC DOMAIN",
              "KB-H057": "TOOLS RENAME",
+             "KB-H058": "ILLEGAL CHARACTERS",
              }
 
 
@@ -625,6 +626,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             test_package_content = tools.load(test_package_path)
             _check_content(test_package_content, "test_package/conanfile.py")
 
+    @run_test("KB-H058", output)
+    def test(out):
+        disallowed_chars = '<>:"/\\|?*%,; '
+        recipe_folder = os.path.dirname(conanfile_path)
+        for root, _, files in os.walk(recipe_folder):
+            for file in files:
+                if any(it in disallowed_chars for it in file):
+                    out.error("The file '{}' uses illegal charecters ({}) for its name."
+                              " Please, rename that file.".format(file, disallowed_chars))
+                if file.endswith("."):
+                    out.error("The file '{}' ends with a dot. Please, remove the dot from the end."
+                              .format(file, disallowed_chars))
+
 
 @raise_if_error_output
 def post_export(output, conanfile, conanfile_path, reference, **kwargs):
@@ -771,9 +785,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64"]:
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "openjdk"]:
             return
-        known_folders = ["lib", "bin", "include", "res", "licenses"]
+
+        base_known_folders = ["lib", "bin", "include", "res", "licenses"]
+        known_folders = {
+            'icu': base_known_folders + ['config', ]
+        }.get(conanfile.name, base_known_folders)
+
         for filename in os.listdir(conanfile.package_folder):
             if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
                 if filename not in known_folders:
@@ -782,8 +801,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                 if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
                     out.error("Unknown file '{}' in the package".format(filename))
         if out.failed:
-            out.info("If you are trying to package a tool put all the contents under the 'bin' "
-                     "folder")
+            out.info("If you are trying to package a tool put all the contents under the 'bin' folder")
 
     @run_test("KB-H014", output)
     def test(out):
@@ -854,6 +872,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             out.error("Found files: {}".format("; ".join(bad_files)))
 
 
+@raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
 
     @run_test("KB-H019", output)
@@ -879,9 +898,9 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 files_missplaced.append(filename)
 
         if files_missplaced:
-            out.error("The *.cmake files have to be placed in a folder declared as "
-                      "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
-            out.error("Found files: {}".format("; ".join(files_missplaced)))
+            out.warn("The *.cmake files have to be placed in a folder declared as "
+                     "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
+            out.warn("Found files: {}".format("; ".join(files_missplaced)))
 
 
     @run_test("KB-H054", output)
@@ -940,7 +959,7 @@ def _shared_files_well_managed(conanfile, folder):
 def _files_match_settings(conanfile, folder, output):
     header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
     visual_extensions = ["lib", "dll", "exe", "bat"]
-    mingw_extensions = ["a", "a.dll", "dll", "exe", "sh"]
+    mingw_extensions = ["a", "lib", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
     linux_extensions = ["a", "so", "sh", ""]
     freebsd_extensions = ["a", "so", "sh", ""]
