@@ -1084,7 +1084,7 @@ class ConanCenterTests(ConanClientTestCase):
                       " Please, remove the dot from the end.", output)
 
     def test_no_crlf(self):
-        conanfile = "from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
+        conanfile = u"from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
