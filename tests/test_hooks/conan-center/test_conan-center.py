@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import io
 import platform
 import textwrap
 import pytest
@@ -1081,3 +1082,15 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', "conanfile.py", 'name/version@user/test'])
         self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'foo.' ends with a dot."
                       " Please, remove the dot from the end.", output)
+
+    def test_no_crlf(self):
+        conanfile = "from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H059)] OK", output)
+
+        with io.open('conanfile.py', 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO CRLF (KB-H059)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)

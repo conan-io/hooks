@@ -56,6 +56,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H055": "SINGLE REQUIRES",
              "KB-H056": "LICENSE PUBLIC DOMAIN",
              "KB-H058": "ILLEGAL CHARACTERS",
+             "KB-H059": "NO CRLF",
              }
 
 
@@ -622,6 +623,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if file.endswith("."):
                     out.error("The file '{}' ends with a dot. Please, remove the dot from the end."
                               .format(file, disallowed_chars))
+
+    @run_test("KB-H059", output)
+    def test(out):
+        recipe_folder = os.path.dirname(conanfile_path)
+        for root, _, files in os.walk(recipe_folder):
+            for filename in files:
+                lines = open(os.path.join(root, filename), 'rb').readlines()
+                if any(line.endswith(b'\r\n') for line in lines):
+                    out.error("The file '{}' uses CRLF. Please, replace by LF."
+                              .format(filename))
 
 
 @raise_if_error_output
