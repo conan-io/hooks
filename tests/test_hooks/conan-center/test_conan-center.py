@@ -1086,7 +1086,6 @@ class ConanCenterTests(ConanClientTestCase):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
         class LibnameConan(ConanFile):
-            {}
             pass
         """)
         tools.save('conanfile.py', content=conanfile)
