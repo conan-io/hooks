@@ -628,7 +628,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         class_name = type(conanfile).__name__
         if class_name in ("LibnameConan", "ConanFileDefault"):
-            out.error("Class name '{}' is not allowed. For example, use '{}Conan' instead.".format(class_name, conanfile.name))
+            camel_name = "".join(s.title() for s in re.split("[^a-zA-Z0-9]", conanfile.name))
+            out.error("Class name '{}' is not allowed. For example, use '{}Conan' instead.".format(class_name, camel_name))
 
 
 @raise_if_error_output
