@@ -1088,9 +1088,9 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
-        self.assertIn("[NO CRLF (KB-H059)] OK", output)
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
 
         with io.open('conanfile.py', 'w', newline='\r\n') as f_handle:
             f_handle.write(conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO CRLF (KB-H059)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
+        self.assertIn("ERROR: [NO CRLF (KB-H060)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
