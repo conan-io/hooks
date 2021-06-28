@@ -1081,3 +1081,23 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', "conanfile.py", 'name/version@user/test'])
         self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'foo.' ends with a dot."
                       " Please, remove the dot from the end.", output)
+
+    def test_class_name_disallowed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameConan' instead.", output)
+
+    def test_class_name_disallowed_dashed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name-sdk/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameSdkConan' instead.", output)
