@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import io
 import platform
 import textwrap
 import pytest
@@ -1101,3 +1102,15 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name-sdk/version@user/test'])
         self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameSdkConan' instead.", output)
+
+    def test_no_crlf(self):
+        conanfile = u"from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+        with io.open('conanfile.py', 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO CRLF (KB-H060)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
