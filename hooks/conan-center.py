@@ -643,7 +643,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if os.path.relpath(root, recipe_folder).replace("\\", "/").startswith("test_package/build"):
                 continue
             for filename in files:
-                if not any(filename.endswith(ext) for ext in ext_to_be_checked):
+                if not any(filename.lower().endswith(ext) for ext in ext_to_be_checked):
                     continue
                 lines = open(os.path.join(root, filename), 'rb').readlines()
                 if any(line.endswith(b'\r\n') for line in lines):
