@@ -1119,5 +1119,7 @@ class ConanCenterTests(ConanClientTestCase):
         tools.mkdir(os.path.join('test_package', 'build'))
         with io.open(os.path.join('test_package', 'build', 'conanfile.py'), 'w', newline='\r\n') as f_handle:
             f_handle.write(conanfile)
+        with io.open(os.path.join('conanfile.ttf'), 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("[NO CRLF (KB-H060)] OK", output)
