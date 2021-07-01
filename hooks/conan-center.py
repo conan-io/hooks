@@ -634,13 +634,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H060", output)
     def test(out):
-        allowed_ext = [".cmake", ".conf", ".cfg", ".diff", ".md", ".patch", ".py", ".txt", ".yml", ".am", ".xml", ".json", ".in", ".ac", ".tsx", ".tmx", ".proto", ".capnp", ".c", ".cc", ".c++", ".cpp", ".cxx", ".c++m", ".cppm", ".cxxm", ".h++", ".hh", ".hxx", ".hpp"]
+        ext_to_be_checked = [".cmake", ".conf", ".cfg", ".diff", ".md", ".patch", ".py", ".txt",
+                             ".yml", ".am", ".xml", ".json", ".in", ".ac", ".tsx", ".tmx"
+                             ".proto", ".capnp", ".c", ".cc", ".c++", ".cpp", ".cxx", ".c++m",
+                             ".cppm", ".cxxm", ".h++", ".hh", ".hxx", ".hpp", ".qrc", ".pro", ".build "]
         recipe_folder = os.path.dirname(conanfile_path)
         for root, _, files in os.walk(recipe_folder):
             if os.path.relpath(root, recipe_folder).replace("\\", "/").startswith("test_package/build"):
                 continue
             for filename in files:
-                if not any(filename.endswith(ext) for ext in allowed_ext):
+                if not any(filename.endswith(ext) for ext in ext_to_be_checked):
                     continue
                 lines = open(os.path.join(root, filename), 'rb').readlines()
                 if any(line.endswith(b'\r\n') for line in lines):
