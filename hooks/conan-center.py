@@ -634,7 +634,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H060", output)
     def test(out):
-        allowed_ext = [".cmake", ".conf", ".diff", ".md", ".patch", ".py", ".txt", ".yml", ".am"]
+        allowed_ext = [".cmake", ".conf", ".diff", ".md", ".patch", ".py", ".txt", ".yml", ".am", ".xml", ".json"]
         recipe_folder = os.path.dirname(conanfile_path)
         for root, _, files in os.walk(recipe_folder):
             if os.path.relpath(root, recipe_folder).replace("\\", "/").startswith("test_package/build"):
