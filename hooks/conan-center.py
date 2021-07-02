@@ -648,7 +648,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     continue
                 lines = open(os.path.join(root, filename), 'rb').readlines()
                 if any(line.endswith(b'\r\n') for line in lines):
-                    out.error("The file '{}' uses CRLF. Please, replace by LF."
+                    out.warn("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
 
 
