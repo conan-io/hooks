@@ -780,6 +780,8 @@ def pre_build(output, conanfile, **kwargs):
 def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H012", output)
     def test(out):
+        if conanfile.name in ["darwin-toolchain"]:
+            return
         if conanfile.version == "system":
             return
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
@@ -820,8 +822,9 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if conanfile.version == "system":
             return
 
-        # INFO: Whitelist for package names
-        if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config", "autoconf", "automake"]:
+        # INFO: Allowlist for package names
+        if conanfile.name in ["ms-gsl", "cccl", "poppler-data", "extra-cmake-modules", "gnu-config",
+                              "autoconf", "automake", "darwin-toolchain"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
