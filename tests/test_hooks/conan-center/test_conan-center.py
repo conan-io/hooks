@@ -1058,6 +1058,52 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
+    def test_os_rename_warning(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                open("foobar.txt", "w")
+                os.rename("foobar.txt", "foo.txt")
+        """)
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class TestConan(ConanFile):
+            def test(self):
+                open("foo.txt", "w")
+                os.rename("foo.txt", "bar.txt")
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
+                      " permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
+                      " may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
+                      " and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in test_package/conanfile.py"
+                      " is outdated and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.rename(", "tools.rename(self, "))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.rename(", "tools.rename(self, "))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertNotIn("WARN: [TOOLS RENAME (KB-H057)]", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
     @pytest.mark.skipif(platform.system() == "Windows", reason="Can not use illegal name on Windows")
     def test_disallowed_filename(self):
         conanfile = textwrap.dedent("""\
