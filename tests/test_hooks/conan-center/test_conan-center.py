@@ -1187,4 +1187,4 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
                                                              "tools.cross_building(self.settings)"))
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
-        self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H061)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
+        self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
