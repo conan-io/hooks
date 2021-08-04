@@ -1,16 +1,13 @@
-[![Build Status](https://travis-ci.org/conan-io/hooks.svg?branch=master)](https://travis-ci.org/conan-io/hooks)
-[![Build status](https://ci.appveyor.com/api/projects/status/54a25v53i3ldu8ro/branch/master?svg=true)](https://ci.appveyor.com/project/ConanOrgCI/hooks/branch/master)
-
-
 # Conan Hooks
 
 ![logo](images/logo.png)
+
+[![Build Status](https://ci.conan.io/job/Hooks/job/master/badge/icon)](https://ci.conan.io/job/Hooks/job/master/)
 
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
  * [Conan Center](#conan-center)
  * [Attribute checker](#attribute-checker)
- * [Bintray updater](#bintray-updater)
  * [Binary linter](#binary-linter)
  * [Github updater](#github-updater)
  * [Member typo checker](#members-typo-checker)
@@ -95,16 +92,6 @@ variable ``CONAN_HOOK_ERROR_LEVEL``:
 
 This hook checks that some important attributes are present in the ``ConanFile``: url,
 license and description, and will output a warning for the missing ones.
-
-### [Bintray Updater](hooks/bintray_updater.py)
-
-This Conan hook reads your recipe and updates its Bintray package info using the attributes.
-
-It's necessary pass Bintray login by environment variables:
-  - BINTRAY_LOGIN_USERNAME: Bintray login username
-  - BINTRAY_PASSWORD: Bintray API KEY
-
-The hook is automatically called when upload command is executed.
 
 ### [Binary Linter](hooks/binary_linter.py)
 
