@@ -668,7 +668,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
 
-    @run_test("KB-H061", output)
+    @run_test("KB-H062", output)
     def test(out):
         def _check_content(content, path):
             if "tools.cross_building(self.settings)" in content:
