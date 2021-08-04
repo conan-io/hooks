@@ -59,7 +59,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H058": "ILLEGAL CHARACTERS",
              "KB-H059": "CLASS NAME",
              "KB-H060": "NO CRLF",
-             "KB-H061": "TOOLS CROSS BUILDING"
+             "KB-H062": "TOOLS CROSS BUILDING"
              }
 
 
