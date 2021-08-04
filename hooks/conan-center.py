@@ -59,6 +59,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H058": "ILLEGAL CHARACTERS",
              "KB-H059": "CLASS NAME",
              "KB-H060": "NO CRLF",
+             "KB-H061": "TOOLS CROSS BUILDING"
              }
 
 
@@ -666,6 +667,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if any(line.endswith(b'\r\n') for line in lines):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
+
+    @run_test("KB-H061", output)
+    def test(out):
+        def _check_content(content, path):
+            if "tools.cross_building(self.settings)" in content:
+                out.warn("The 'tools.cross_building(self.settings)' syntax in {} may not work correctly "
+                         "in some scanarios. Consider using tools.cross_building(self.settings).".format(path))
+
+        _check_content(conanfile_content, "conanfile.py")
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package",
+                                         "conanfile.py")
+        if os.path.exists(test_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_content(test_package_content, "test_package/conanfile.py")
 
 
 @raise_if_error_output
