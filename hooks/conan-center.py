@@ -673,7 +673,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         def _check_content(content, path):
             if "tools.cross_building(self.settings)" in content:
                 out.warn("The 'tools.cross_building(self.settings)' syntax in {} may not work correctly "
-                         "in some scanarios. Consider using tools.cross_building(self).".format(path))
+                         "in some scenarios. Consider using tools.cross_building(self).".format(path))
 
         _check_content(conanfile_content, "conanfile.py")
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package",
