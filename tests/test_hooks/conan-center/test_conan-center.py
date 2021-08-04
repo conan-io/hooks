@@ -1182,7 +1182,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
-        self.assertIn("[TOOLS CROSS BUILDING (KB-H061)] OK", output)
+        self.assertIn("[TOOLS CROSS BUILDING (KB-H062)] OK", output)
 
         tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
                                                              "tools.cross_building(self.settings)"))
