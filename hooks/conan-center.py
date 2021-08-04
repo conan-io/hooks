@@ -680,7 +680,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                                          "conanfile.py")
         if os.path.exists(test_package_path):
             test_package_content = tools.load(test_package_path)
-            _check_content(test_package_content, "test_package/conanfile.py")
+            _check_content(test_package_content, test_package_path)
 
 
 @raise_if_error_output
