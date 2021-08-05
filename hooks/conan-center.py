@@ -59,6 +59,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H058": "ILLEGAL CHARACTERS",
              "KB-H059": "CLASS NAME",
              "KB-H060": "NO CRLF",
+             "KB-H063": "CMAKE REQUIRED VERSION - CXX_STD",
              }
 
 
@@ -666,6 +667,25 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if any(line.endswith(b'\r\n') for line in lines):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
+
+    @run_test("KB-H063", output)
+    def test(out):
+        def validate_cmake_cxx_std(cmakefile_path):
+            cmake_content = tools.load(cmakefile_path)
+            cxx_std = re.search(r"cxx_std_\w+", cmake_content)
+            if cxx_std:
+                match = re.search(r"cmake_minimum_required\(version [\"']?(\w\.\w+)", cmake_content.lower())
+                if match and tools.Version(match.group(1)) < "3.8":
+                    out.error("The CMAKE_CXX_KNOWN_FEATURES ({}) requires CMake 3.8 at least."
+                              " Update the CMakeLists.txt for minimum version required."
+                              .format(cxx_std.group(0)))
+
+        dir_path = os.path.dirname(conanfile_path)
+        test_package_path = os.path.join(dir_path, "test_package")
+        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
+                           os.path.join(test_package_path, "CMakeLists.txt")]:
+            if os.path.exists(cmake_path):
+                validate_cmake_cxx_std(cmake_path)
 
 
 @raise_if_error_output
