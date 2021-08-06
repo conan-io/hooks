@@ -672,9 +672,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         def validate_cmake_cxx_std(cmakefile_path):
             cmake_content = tools.load(cmakefile_path)
-            cxx_std = re.search(r"cxx_std_\w+", cmake_content)
+            cxx_std = re.search(r"cxx_std_\d+", cmake_content)
             if cxx_std:
-                match = re.search(r"cmake_minimum_required\(version [\"']?(\w\.\w+)", cmake_content.lower())
+                match = re.search(r"cmake_minimum_required\(version [\"']?(\d\.\d+)", cmake_content.lower())
                 if match and tools.Version(match.group(1)) < "3.8":
                     out.error("The CMAKE_CXX_KNOWN_FEATURES ({}) requires CMake 3.8 at least."
                               " Update the CMakeLists.txt for minimum version required."
