@@ -1047,9 +1047,8 @@ def _files_match_settings(conanfile, folder, output):
             return False
         else:
             return True
-
-    output.error("OS %s might not be supported" % settings_os)
-    return False
+    output.warn("OS %s might not be supported. Skipping..." % settings_os)
+    return True
 
 
 def _is_recipe_header_only(conanfile):
