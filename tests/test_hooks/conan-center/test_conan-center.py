@@ -1169,3 +1169,22 @@ class ConanCenterTests(ConanClientTestCase):
             f_handle.write(conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+    def test_tools_cross_building(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                tools.cross_building(self)
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[TOOLS CROSS BUILDING (KB-H062)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
+                                                             "tools.cross_building(self.settings)"))
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
