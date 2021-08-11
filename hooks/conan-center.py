@@ -690,7 +690,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H031", output)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
-        version = conanfile.version
+        version = str(conanfile.version)
 
         conandata_yml = load_yml(conandata_path)
         if not conandata_yml:
