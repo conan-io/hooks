@@ -2,7 +2,6 @@
 
 import os
 import textwrap
-import unittest
 
 from conans import tools
 from tests.utils.test_cases.conan_client import ConanClientTestCase
@@ -10,7 +9,7 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 here = os.path.dirname(__file__)
 
 
-class VersionRanges(ConanClientTestCase):
+class TestResDirsRanges(ConanClientTestCase):
     conanfile = textwrap.dedent("""\
         from conans import ConanFile, tools
         import os
@@ -24,7 +23,7 @@ class VersionRanges(ConanClientTestCase):
         """)
 
     def _get_environ(self, **kwargs):
-        kwargs = super(VersionRanges, self)._get_environ(**kwargs)
+        kwargs = super(TestResDirsRanges, self)._get_environ(**kwargs)
         kwargs.update({"CONAN_HOOKS": os.path.join(here, "..", "..", "..", "hooks", "conan-center")})
         return kwargs
 
