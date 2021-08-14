@@ -826,26 +826,6 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
                       "found at: %s\n"
                       "Files: %s" % (licenses_folder, ", ".join(licenses)))
 
-    @run_test("KB-H013", output)
-    def test(out):
-        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "openjdk"]:
-            return
-
-        base_known_folders = ["lib", "bin", "include", "res", "licenses"]
-        known_folders = {
-            'icu': base_known_folders + ['config', ]
-        }.get(conanfile.name, base_known_folders)
-
-        for filename in os.listdir(conanfile.package_folder):
-            if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
-                if filename not in known_folders:
-                    out.error("Unknown folder '{}' in the package".format(filename))
-            else:
-                if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
-                    out.error("Unknown file '{}' in the package".format(filename))
-        if out.failed:
-            out.info("If you are trying to package a tool put all the contents under the 'bin' folder")
-
     @run_test("KB-H014", output)
     def test(out):
         if conanfile.version == "system":
@@ -918,6 +898,26 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
+
+    @run_test("KB-H013", output)
+    def test(out):
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "openjdk"]:
+            return
+
+        base_known_folders = ["lib", "bin", "include", "res", "licenses"]
+        known_folders = {
+            'icu': base_known_folders + ['config', ]
+        }.get(conanfile.name, base_known_folders)
+
+        for filename in os.listdir(conanfile.package_folder):
+            if os.path.isdir(os.path.join(conanfile.package_folder, filename)):
+                if filename not in known_folders and filename not in conanfile.cpp_info.resdirs:
+                    out.error("Unknown folder '{}' in the package".format(filename))
+            else:
+                if filename not in ["conaninfo.txt", "conanmanifest.txt", "licenses"]:
+                    out.error("Unknown file '{}' in the package".format(filename))
+        if out.failed:
+            out.info("If you are trying to package a tool put all the contents under the 'bin' folder")
 
     @run_test("KB-H019", output)
     def test(out):
