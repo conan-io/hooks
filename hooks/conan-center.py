@@ -907,7 +907,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H021", output)
     def test(out):
-        if conanfile.name in ["powershell"]:
+        if conanfile.name in ["powershell", "android-ndk"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder,
                                                   ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
