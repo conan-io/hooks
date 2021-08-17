@@ -708,7 +708,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H050", output)
     def test(out):
-        ALLOWLIST = (
+        allowlist = (
             "onetbb",
             "opencl-icd-loader",
             "paho-mqtt-c",
@@ -716,7 +716,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
             "tbb",
             "vulkan-loader",
         )
-        if conanfile.name in ALLOWLIST:
+        if conanfile.name in allowlist:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
             return
 
