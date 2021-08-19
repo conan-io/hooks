@@ -59,7 +59,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H058": "ILLEGAL CHARACTERS",
              "KB-H059": "CLASS NAME",
              "KB-H060": "NO CRLF",
-             "KB-H062": "TOOLS CROSS BUILDING"
+             "KB-H062": "TOOLS CROSS BUILDING",
+             "KB-H064": "INVALID TOPICS",
              }
 
 
@@ -681,6 +682,16 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if os.path.exists(test_package_path):
             test_package_content = tools.load(test_package_path)
             _check_content(test_package_content, test_package_path)
+
+    @run_test("KB-H064", output)
+    def test(out):
+        topics = getattr(conanfile, "topics")
+        if topics and isinstance(topics, (list, tuple)):
+            invalid_topics = ["conan"]
+            for topic in topics:
+                if topic in invalid_topics:
+                    out.warn("The topic '{}' is invalid and should be removed from topics "
+                             "attribute.".format(topic))
 
 
 @raise_if_error_output
