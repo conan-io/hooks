@@ -58,8 +58,8 @@ These are the hooks currently available in this repository
 
 ### [Conan Center](hooks/conan-center.py)
 
-This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
-in [Conan Center](https://bintray.com/conan/conan-center).
+This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
+in [Conan Center](https://conan.io/center/).
 
 It is mostly intended for users who want to contribute packages to Conan Center. With this hook
 they will test some of the requirements in the guidelines, as this hook will check for recipe
