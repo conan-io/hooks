@@ -851,9 +851,10 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if conanfile.version == "system":
             return
 
-        # INFO: Whitelist for package names
+        # INFO: allowlist for package names
         if conanfile.name in ["autoconf", "autoconf-archive", "automake", "cccl", "extra-cmake-modules",
-                              "gnu-config", "ms-gsl", "poppler-data", "xorg-cf-files", "xorg-macros"]:
+                              "gnu-config", "ms-gsl", "poppler-data", "wayland-protocols",
+                              "xorg-cf-files", "xorg-macros"]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
