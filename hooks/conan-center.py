@@ -1,3 +1,5 @@
+import ast
+import collections
 import fnmatch
 import inspect
 import os
@@ -59,6 +61,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H058": "ILLEGAL CHARACTERS",
              "KB-H059": "CLASS NAME",
              "KB-H060": "NO CRLF",
+             "KB-H061": "NO BUILD SYSTEM FUNCTIONS",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
              }
@@ -668,6 +671,53 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if any(line.endswith(b'\r\n') for line in lines):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
+    @run_test("KB-H061", output)
+    def test(out):
+        Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
+        BuildInfo = collections.namedtuple("BuildInfo", ("loc", "what", "func"))
+        class BuildInfoVisitor(ast.NodeVisitor):
+            METHODS_NO_BUILDINFO = (
+                "build_requirements",
+                "config_options",
+                "configure",
+                "package_id",
+                "requirements",
+                "source",
+                "validate",
+            )
+
+            def __init__(self):
+                self.invalids = []
+                self.function_def_stack = []
+                ast.NodeVisitor.__init__(self)
+
+            def visit_FunctionDef(self, node):
+                self.function_def_stack.append(node.name)
+                self.generic_visit(node)
+                self.function_def_stack.pop()
+
+            def visit_Attribute(self, node):
+                methods_stack_no_build_info_allowed = [fdef for fdef in self.function_def_stack if fdef in self.METHODS_NO_BUILDINFO]
+                if methods_stack_no_build_info_allowed:
+                    if node.attr == "os_info" and isinstance(node.value, ast.Name) and node.value.id == "tools":
+                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, node.end_lineno, node.end_col_offset), "tools.os_info", methods_stack_no_build_info_allowed[0]))
+                    elif isinstance(node.value, ast.Name) and node.value.id == "platform":
+                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, node.end_lineno, node.end_col_offset), "platform", methods_stack_no_build_info_allowed[0]))
+                self.generic_visit(node)
+
+        to_test = [(conanfile_path, conanfile_content),]
+        test_conanfile_path = os.path.join(export_folder_path, "test_package", "conanfile.py")
+        if os.path.isfile(test_conanfile_path):
+            to_test.append((test_conanfile_path, tools.load(test_conanfile_path)))
+
+        for dut_conanfile_path, dut_conanfile_contents in to_test:
+            node = ast.parse(dut_conanfile_contents)
+            visitor = BuildInfoVisitor()
+            visitor.visit(node)
+            for build_info in visitor.invalids:
+                out.error("{}:{} Build system dependent functions detected. (Use of {} is forbidden in {})".format(
+                    dut_conanfile_path, build_info.loc.line, build_info.what, build_info.func))
+
 
     @run_test("KB-H062", output)
     def test(out):
