@@ -61,6 +61,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H060": "NO CRLF",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
+             "KB-H065": "CMAKE CXX STANDARD"
              }
 
 
@@ -692,6 +693,20 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if topic in invalid_topics:
                     out.warn("The topic '{}' is invalid and should be removed from topics "
                              "attribute.".format(topic))
+
+    @run_test("KB-H065", output)
+    def test(out):
+        def check_for_cxx_standard_flag(cmakelists_path):
+            cmake_content = tools.load(cmakelists_path)
+            if "CMAKE_CXX_STANDARD" in cmake_content.lower():
+                out.error("The CMake definition 'set(CMAKE_CXX_STANDARD ...)' is not allowed. "
+                          "Remove it from {}.".format(os.path.relpath(cmakelists_path)))
+
+        dir_path = os.path.dirname(conanfile_path)
+        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
+                           os.path.join(dir_path, "test_package", "CMakeLists.txt")]:
+            if os.path.exists(cmake_path):
+                check_for_cxx_standard_flag(cmake_path)
 
 
 @raise_if_error_output
