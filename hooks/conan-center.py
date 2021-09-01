@@ -700,7 +700,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             cmake_content = tools.load(cmakelists_path)
             if "CMAKE_CXX_STANDARD" in cmake_content.lower():
                 out.error("The CMake definition 'set(CMAKE_CXX_STANDARD ...)' is not allowed. "
-                          "Remove it from {}.".format(os.path.relpath(cmakelists_path)))
+                          "Remove it from {}. "
+                          "Indead, raise ConanInvalidConfiguration if self.settings.compiler.cppstd "
+                          "is not supported.".format(os.path.relpath(cmakelists_path)))
 
         dir_path = os.path.dirname(conanfile_path)
         for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
