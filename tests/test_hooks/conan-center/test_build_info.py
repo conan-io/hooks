@@ -112,10 +112,6 @@ class TestBuildInfo(ConanClientTestCase):
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def config_options(self):
                     if tools.os_info.is_windows:
                         del self.options.fPIC
@@ -123,7 +119,7 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of tools.os_info is forbidden in config_options", output)
-        self.assertIn("conanfile.py:9 Build system dependent", output)
+        self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_configopts_platform(self):
         tools.save("conanfile.py", textwrap.dedent("""\
@@ -131,10 +127,6 @@ class TestBuildInfo(ConanClientTestCase):
             import platform
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def config_options(self):
                     if platform.system == "Windows":
                         del self.options.fPIC
@@ -142,17 +134,13 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of platform is forbidden in config_options", output)
-        self.assertIn("conanfile.py:10 Build system dependent", output)
+        self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_config_toolsosinfo(self):
         tools.save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def configure(self):
                     if tools.os_info.is_windows:
                         del self.options.fPIC
@@ -160,7 +148,7 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of tools.os_info is forbidden in configure", output)
-        self.assertIn("conanfile.py:9 Build system dependent", output)
+        self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_config_platform(self):
         tools.save("conanfile.py", textwrap.dedent("""\
@@ -168,10 +156,6 @@ class TestBuildInfo(ConanClientTestCase):
             import platform
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def configure(self):
                     if platform.system == "Windows":
                         del self.options.fPIC
@@ -179,7 +163,7 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of platform is forbidden in configure", output)
-        self.assertIn("conanfile.py:10 Build system dependent", output)
+        self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_validate_toolsosinfo(self):
         tools.save("conanfile.py", textwrap.dedent("""\
@@ -187,10 +171,6 @@ class TestBuildInfo(ConanClientTestCase):
             from conans.errors import ConanInvalidConfiguration
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def validate(self):
                     if tools.os_info.is_windows:
                         raise ConanInvalidConfiguration("I refuse to build on Windows")
@@ -198,7 +178,7 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of tools.os_info is forbidden in validate", output)
-        self.assertIn("conanfile.py:10 Build system dependent", output)
+        self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_validate_platform(self):
         tools.save("conanfile.py", textwrap.dedent("""\
@@ -207,10 +187,6 @@ class TestBuildInfo(ConanClientTestCase):
             import platform
 
             class AConan(ConanFile):
-                options = {
-                    "fPIC": [True, False],
-                }
-
                 def validate(self):
                     if platform.system == "Windows":
                         raise ConanInvalidConfiguration("I refuse to build on Windows")
@@ -218,4 +194,4 @@ class TestBuildInfo(ConanClientTestCase):
         output = self.conan(["export", ".", "name/version@user/channel"])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of platform is forbidden in validate", output)
-        self.assertIn("conanfile.py:11 Build system dependent", output)
+        self.assertIn("conanfile.py:7 Build system dependent", output)
