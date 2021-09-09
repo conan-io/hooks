@@ -681,6 +681,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 "config_options",
                 "configure",
                 "package_id",
+                "package_info",
                 "requirements",
                 "source",
                 "validate",
