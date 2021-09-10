@@ -713,7 +713,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             to_test.append((test_conanfile_path, tools.load(test_conanfile_path)))
 
         for dut_conanfile_path, dut_conanfile_contents in to_test:
-            node = ast.parse(dut_conanfile_contents)
+            try:
+                node = ast.parse(dut_conanfile_contents)
+            except SyntaxError:
+                out.error("A SyntaxError was thrown while parsing '{}'".format(dut_conanfile_path))
+                continue
             visitor = BuildInfoVisitor()
             visitor.visit(node)
             for build_info in visitor.invalids:
