@@ -143,8 +143,8 @@ def run_test(kb_id, output):
                 out.success("OK")
             return ret
         except Exception as e:
-            out.error("Exception raised from hook: {}".format(e))
-            raise e
+            out.error("Exception raised from hook: {} (type={})".format(e, type(e).__name__))
+            raise
 
     return tmp
 
