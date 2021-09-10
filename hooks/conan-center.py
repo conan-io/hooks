@@ -700,11 +700,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             def visit_Attribute(self, node):
                 methods_stack_no_build_info_allowed = [fdef for fdef in self.function_def_stack if fdef in self.METHODS_NO_BUILDINFO]
                 if methods_stack_no_build_info_allowed:
-                    # FIXME: Not all python 2.7 interpretors have node.end_lineno
+                    # FIXME: Not all python 2.7 interpretors have node.end_lineno or node.end_col_offset
                     if node.attr == "os_info" and isinstance(node.value, ast.Name) and node.value.id == "tools":
-                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), node.end_col_offset), "tools.os_info", methods_stack_no_build_info_allowed[0]))
+                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), getattr(node, "end_col_offset", node.col_offset)), "tools.os_info", methods_stack_no_build_info_allowed[0]))
                     elif isinstance(node.value, ast.Name) and node.value.id == "platform":
-                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), node.end_col_offset), "platform", methods_stack_no_build_info_allowed[0]))
+                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), getattr(node, "end_col_offset", node.col_offset)), "platform", methods_stack_no_build_info_allowed[0]))
                 self.generic_visit(node)
 
         to_test = [(conanfile_path, conanfile_content),]
