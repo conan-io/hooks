@@ -748,6 +748,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if topic in invalid_topics:
                     out.warn("The topic '{}' is invalid and should be removed from topics "
                              "attribute.".format(topic))
+                if topic != topic.lower():
+                    out.warn("The topic '{}' is invalid; even names and acronyms should be formatted "
+                             "entirely in lowercase.".format(topic))
 
 
 @raise_if_error_output
