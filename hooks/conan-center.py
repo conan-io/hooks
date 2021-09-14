@@ -88,7 +88,7 @@ class _HooksOutputErrorCollector(object):
             return message
 
     def success(self, message):
-        if self._logging_level < WARNING:
+        if self._logging_level <= INFO:
             self._output.success(self._get_message(message))
 
     def debug(self, message):
