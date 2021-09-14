@@ -1,5 +1,6 @@
 # coding=utf-8
 import os
+import io
 import platform
 import textwrap
 import pytest
@@ -997,6 +998,18 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
+    def test_public_domain_license(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            license = "Public Domain"
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [LICENSE PUBLIC DOMAIN (KB-H056)] " \
+                      "Public Domain is not a SPDX license. Use 'Unlicense' instead.", output)
+
     def test_library_doesnot_exist(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
@@ -1083,3 +1096,134 @@ class ConanCenterTests(ConanClientTestCase):
                 self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
                 self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
                 self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+    def test_os_rename_warning(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                open("foobar.txt", "w")
+                os.rename("foobar.txt", "foo.txt")
+        """)
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class TestConan(ConanFile):
+            def test(self):
+                open("foo.txt", "w")
+                os.rename("foo.txt", "bar.txt")
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
+                      " permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
+                      " may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
+                      " and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in test_package/conanfile.py"
+                      " is outdated and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.rename(", "tools.rename(self, "))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.rename(", "tools.rename(self, "))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertNotIn("WARN: [TOOLS RENAME (KB-H057)]", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Can not use illegal name on Windows")
+    def test_disallowed_filename(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            exports = "foo."
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[ILLEGAL CHARACTERS (KB-H058)] OK", output)
+
+        for filename in ["conanfile?.py", "conan file.py", "conanfile%.py"]:
+            tools.save(filename, content=conanfile)
+            output = self.conan(['export', filename, 'name/version@user/test'])
+            self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file '{}' uses illegal"
+                          " charecters (<>:\"/\\|?*%,; ) for its name. Please, rename that file."
+                          .format(filename), output)
+
+        tools.save("conanfile.py", content=conanfile)
+        tools.save("foo.", content="")
+        output = self.conan(['export', "conanfile.py", 'name/version@user/test'])
+        self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'foo.' ends with a dot."
+                      " Please, remove the dot from the end.", output)
+
+    def test_class_name_disallowed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameConan' instead.", output)
+
+    def test_class_name_disallowed_dashed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name-sdk/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameSdkConan' instead.", output)
+
+    def test_no_crlf(self):
+        conanfile = u"from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+        with io.open('conanfile.py', 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO CRLF (KB-H060)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.mkdir(os.path.join('test_package', 'build'))
+        with io.open(os.path.join('test_package', 'build', 'conanfile.py'), 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        with io.open(os.path.join('conanfile.ttf'), 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+    def test_tools_cross_building(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                tools.cross_building(self)
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[TOOLS CROSS BUILDING (KB-H062)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
+                                                             "tools.cross_building(self.settings)"))
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)

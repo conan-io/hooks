@@ -40,7 +40,7 @@ def update_tox(last_version):
 
     with open(tox_file, 'w') as f:
         f.write(content)
-    
+
 
 
 if __name__ == '__main__':

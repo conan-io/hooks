@@ -1,10 +1,8 @@
-[![Build Status](https://travis-ci.org/conan-io/hooks.svg?branch=master)](https://travis-ci.org/conan-io/hooks)
-[![Build status](https://ci.appveyor.com/api/projects/status/54a25v53i3ldu8ro/branch/master?svg=true)](https://ci.appveyor.com/project/ConanOrgCI/hooks/branch/master)
-
-
 # Conan Hooks
 
 ![logo](images/logo.png)
+
+[![Build Status](https://ci.conan.io/job/Hooks/job/master/badge/icon)](https://ci.conan.io/job/Hooks/job/master/)
 
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
@@ -60,8 +58,8 @@ These are the hooks currently available in this repository
 
 ### [Conan Center](hooks/conan-center.py)
 
-This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
-in [Conan Center](https://bintray.com/conan/conan-center).
+This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
+in [Conan Center](https://conan.io/center/).
 
 It is mostly intended for users who want to contribute packages to Conan Center. With this hook
 they will test some of the requirements in the guidelines, as this hook will check for recipe
