@@ -94,7 +94,7 @@ class _HooksOutputErrorCollector(object):
     def debug(self, message):
         if self._error_level and self._error_level <= DEBUG:
             self._error = True
-        if self._logging_level < INFO:
+        if self._logging_level <= DEBUG:
             self._output.debug(self._get_message(message))
 
     def info(self, message):
