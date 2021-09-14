@@ -72,7 +72,13 @@ class _HooksOutputErrorCollector(object):
     def _set_logging_level(self):
         level = os.getenv("CONAN_HOOK_LOGGING_LEVEL", str(NOTSET))
         name_level = {"ERROR": 40, "WARNING": 30, "WARN": 30, "INFO": 20, "DEBUG": 10, "NOTSET": 0}
-        self._logging_level = int(level) if level.isdigit() else name_level[level.upper()]
+        if level.isdigit():
+            self._logging_level = int(level)
+        elif level in name_level:
+            self._logging_level = name_level[level.upper()]
+        else:
+            self._logging_level = NOTSET
+            self.error("CONAN_HOOK_LOGGING_LEVEL is set to an incorrect value")
 
     def _get_message(self, message):
         if self._test_name:
