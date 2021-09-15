@@ -110,7 +110,7 @@ class _HooksOutputErrorCollector(object):
     def info(self, message):
         if self._error_level and self._error_level <= INFO:
             self._error = True
-        if self._logging_level < WARNING:
+        if self._logging_level <= INFO:
             self._output.info(self._get_message(message))
 
     def warn(self, message):
