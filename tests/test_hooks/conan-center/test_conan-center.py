@@ -1062,13 +1062,9 @@ class ConanCenterTests(ConanClientTestCase):
     def test_logging_level(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
-        import os
 
         class FoobarConan(ConanFile):
-            author = "Foobar"
-
-            def package(self):
-                pass
+            pass
         """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
