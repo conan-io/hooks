@@ -84,7 +84,7 @@ class _HooksOutputErrorCollector(object):
         name_level = {"ERROR": 40, "WARNING": 30, "WARN": 30, "INFO": 20, "DEBUG": 10, "NOTSET": 0}
         if level.isdigit():
             self._logging_level = int(level)
-        elif level in name_level:
+        elif level.upper() in name_level:
             self._logging_level = name_level[level.upper()]
         else:
             self._logging_level = NOTSET
