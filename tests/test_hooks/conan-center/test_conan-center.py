@@ -1076,6 +1076,10 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
         self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
 
+        with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": "oops"}):
+           output = self.conan(['create', '.', 'name/version@user/test'])
+           self.assertIn("ERROR: CONAN_HOOK_LOGGING_LEVEL is set to an incorrect value", output)
+
         for level in ["INFO", "20"]:
             with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
                 output = self.conan(['create', '.', 'name/version@user/test'])
