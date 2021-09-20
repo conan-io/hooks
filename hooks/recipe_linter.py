@@ -59,7 +59,8 @@ def pre_export(output, conanfile_path, *args, **kwargs):
         # Remove ANSI escape sequences from Pylint output (fails in Windows)
         ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
         pylint_stdout = ansi_escape.sub('', pylint_stdout.decode('utf-8'))
-        pylint_stderr = pylint_stderr.getvalues() if isinstance(pylint_stderr, io.StringIO) else str(pylint_stderr)
+        pylint_stderr = pylint_stderr.getvalue() if isinstance(pylint_stderr, io.StringIO) else str(pylint_stderr)
+        pylint_stdout = pylint_stdout.getvalue() if isinstance(pylint_stdout, io.StringIO) else str(pylint_stdout)
     except Exception as exc:
         output.error("Unexpected error running linter: {}".format(exc))
     else:
@@ -70,7 +71,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
             logger.error(
                 "Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
             logger.error(" - linter arguments: {}".format(lint_args))
-            logger.error(" - output: {}".format(pylint_stdout.getvalue()))
+            logger.error(" - output: {}".format(pylint_stdout))
             logger.error(" - stderr: {}".format(pylint_stderr))
         else:
             errors = 0
