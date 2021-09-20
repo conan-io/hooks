@@ -1083,6 +1083,7 @@ class ConanCenterTests(ConanClientTestCase):
                 self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
                 self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
 
+
         for level in ["Warning", "30"]:
             with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
                 output = self.conan(['create', '.', 'name/version@user/test'])
@@ -1094,14 +1095,14 @@ class ConanCenterTests(ConanClientTestCase):
             with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
                 output = self.conan(['create', '.', 'name/version@user/test'])
                 self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
-                self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
                 self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
 
         with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": "9001"}):  # Over 9000
             output = self.conan(['create', '.', 'name/version@user/test'])
-            self.assertNotIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
             self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
             self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+            self.assertNotIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
 
     def test_os_rename_warning(self):
         conanfile = textwrap.dedent("""\

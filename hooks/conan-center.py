@@ -116,13 +116,14 @@ class _HooksOutputErrorCollector(object):
     def warn(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        if self._logging_level <= ERROR:
+        if self._logging_level <= WARNING:
             self._output.warn(self._get_message(message))
 
     def error(self, message):
         self._error = True
-        url_str = '({})'.format(self.kb_url) if self.kb_id else ""
-        self._output.error(self._get_message(message) + " " + url_str)
+        if self._logging_level <= ERROR:
+            url_str = '({})'.format(self.kb_url) if self.kb_id else ""
+            self._output.error(self._get_message(message) + " " + url_str)
 
     def __str__(self):
         return self._output._stream.getvalue()
