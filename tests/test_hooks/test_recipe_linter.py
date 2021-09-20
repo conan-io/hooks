@@ -18,13 +18,13 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 class RecipeLinterTests(ConanClientTestCase):
     conanfile = textwrap.dedent(r"""
         from conans import ConanFile, tools
-        
+
         class TestConan(ConanFile):
             name = "name"
             version = "version"
-            
+
             def build(self):
-                print("Hello world")    
+                print("Hello world")
                 for k, v in {}.iteritems():
                     pass
                 tools.msvc_build_command(self.settings, "path")
@@ -112,32 +112,32 @@ class RecipeLinterTests(ConanClientTestCase):
     def test_dynamic_fields(self):
         conanfile = textwrap.dedent("""
             from conans import ConanFile
-            
+
             class TestConan(ConanFile):
                 name = "consumer"
                 version = "version"
-                
+
                 def build(self):
                     self.output.info(self.source_folder)
                     self.output.info(self.package_folder)
                     self.output.info(self.build_folder)
                     self.output.info(self.install_folder)
-                    
+
                 def package(self):
                     self.copy("*")
-                    
+
                 def package_id(self):
                     self.info.header_only()
-                    
+
                 def build_id(self):
                     self.output.info(str(self.info_build))
-                    
+
                 def build_requirements(self):
                     self.build_requires("name/version")
-                    
+
                 def requirements(self):
                     self.requires("name/version")
-                    
+
                 def deploy(self):
                     self.copy_deps("*.dll")
             """)
@@ -174,9 +174,9 @@ class RecipeLinterTests(ConanClientTestCase):
     def test_conan_data(self):
         conanfile = textwrap.dedent("""
             from conans import ConanFile
-        
+
             class ExampleConan(ConanFile):
-    
+
                 def build(self):
                     _ = self.conan_data["sources"][float(self.version)]
             """)
