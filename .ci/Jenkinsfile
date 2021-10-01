@@ -2,7 +2,7 @@ pipeline {
     agent none
     stages {
         stage("Windows") {
-            failFast true
+            //failFast true
             parallel {
                 stage('Windows - py27') {
                     agent {
@@ -69,7 +69,7 @@ pipeline {
             }
         }
         stage("Linux") {
-            failFast true
+            //failFast true
             parallel {
                 stage('Linux - py35') {
                     agent {
