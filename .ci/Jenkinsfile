@@ -71,22 +71,22 @@ pipeline {
         stage("Linux") {
             failFast true
             parallel {
-                stage('Linux - py35') {
+                stage('Linux - py36') {
                     agent {
                         label 'Linux'
                     }
                     stages {
-                        stage('Linux - py35 - Generate environment') {
+                        stage('Linux - py36 - Generate environment') {
                             environment {
-                                PYVER = 'py35'
+                                PYVER = 'py36'
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                             }
                         }
-                        stage('Linux - py35 - conandev') {
+                        stage('Linux - py36 - conandev') {
                             environment {
-                                TOXENV = 'py35-conandev'
+                                TOXENV = 'py36-conandev'
                             }
                             steps {
                                 sh '''
@@ -96,9 +96,9 @@ pipeline {
                                 '''
                             }
                         }
-                        stage('Linux - py35 - conancurrent') {
+                        stage('Linux - py36 - conancurrent') {
                             environment {
-                                TOXENV = 'py35-conancurrent'
+                                TOXENV = 'py36-conancurrent'
                             }
                             steps {
                                 sh '''
