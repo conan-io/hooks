@@ -53,7 +53,7 @@ pipeline {
                                 TOXENV = 'py38-conanprev'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox -vv'
                             }
                         }
                         stage('Windows - py38 - conanprevprev') {
