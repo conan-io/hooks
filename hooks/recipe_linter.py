@@ -65,6 +65,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
             messages = json.loads(pylint_stdout)
         except Exception as exc:
             output.error("Error parsing JSON output: {}".format(exc))
+            output.error("JSON output was: {}".format(pylint_stdout))
             logger.error(
                 "Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
             logger.error(" - linter arguments: {}".format(lint_args))
