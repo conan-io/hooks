@@ -64,6 +64,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H061": "NO BUILD SYSTEM FUNCTIONS",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
+             "KB-H065": "OLD TARGETS",
              }
 
 
@@ -748,6 +749,26 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if topic in invalid_topics:
                     out.warn("The topic '{}' is invalid and should be removed from topics "
                              "attribute.".format(topic))
+
+    @run_test("KB-H065", output)
+    def test(out):
+
+        def check_old_integrations(cmakelists_path):
+            cmake_content = tools.load(cmakelists_path)
+            if "CONAN_PKG::" in cmake_content:
+                out.error("The usage of CONAN_PKG:: targets in {} is deprecated and will not be supported "
+                          "in future (conan 2.0). Replace these targets with ones provided by the "
+                          "cmake_find_package_multi generator.".format(os.path.relpath(cmakelists_path)))
+            if "CONAN_LIBS" in cmake_content:
+                out.error("The usage of CONAN_LIBS in {} is deprecated and will not be supported "
+                          "in future (conan 2.0). Replace these variables with targets provided by the "
+                          "cmake_find_package_multi generator.".format(os.path.relpath(cmakelists_path)))
+
+        dir_path = os.path.dirname(conanfile_path)
+        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
+                           os.path.join(dir_path, "test_package", "CMakeLists.txt")]:
+            if os.path.exists(cmake_path):
+                check_old_integrations(cmake_path)
 
 
 @raise_if_error_output

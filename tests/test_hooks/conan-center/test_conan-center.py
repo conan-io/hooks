@@ -1188,3 +1188,34 @@ class ConanCenterTests(ConanClientTestCase):
                                                              "tools.cross_building(self.settings)"))
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
+
+    def test_old_targets(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[OLD TARGETS (KB-H065)] OK", output)
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                message(STATUS "CONAN_LIBS ${CONAN_LIBS})
+                """)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [OLD TARGETS (KB-H065)]", output)
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                if(TARGET CONAN_PKG::boost)
+                endif()
+                """)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [OLD TARGETS (KB-H065)]", output)
