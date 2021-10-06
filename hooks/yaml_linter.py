@@ -22,7 +22,6 @@ def pre_export(output, conanfile_path, *args, **kwargs):
         "new-lines": "level: warning",
         "empty-lines": "level: warning",
         "indentation": "level: warning"
-        "comments": "level: warning",
         "trailing-spaces": "level: warning",
     }
 
