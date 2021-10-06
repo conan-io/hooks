@@ -15,9 +15,20 @@ def pre_export(output, conanfile_path, *args, **kwargs):
     output.info("Lint yaml '{}'".format(conanfile_path))
     conanfile_dirname = os.path.dirname(conanfile_path)
     conandata_file = os.path.join(conanfile_dirname, 'conadata.yaml')
+    
+    rules = {
+        "document-start": "disable",
+        "line-length": "disable",
+        "new-lines": "level: warning",
+        "empty-lines": "level: warning",
+        "indentation": "level: warning"
+        "comments": "level: warning",
+        "trailing-spaces": "level: warning",
+    }
 
     lint_args = ['-f', 'parsable',
-                 '-d', '"{extends: default, rules: {document-start: disable}}"']
+                 '-d', '"{extends: default, rules: {%s}}"' %
+                 ", ".join("%s: %s" % (r, rules[r]) for r in rules)]
 
     try:
         command = ['yamllint'] + lint_args + [conandata_file.replace('\\', '/')]
