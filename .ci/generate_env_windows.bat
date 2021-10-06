@@ -1,5 +1,5 @@
 set PATH=%PATH%;C:/Python36/Scripts/
-pip install tox==3.7.0 tox-venv==0.3.1 requests virtualenv
+pip install tox==3.7.0 tox-venv==0.3.1 requests virtualenv yamllint
 python .ci/last_conan_version.py
 
 IF "%PYVER%"=="py39" (
