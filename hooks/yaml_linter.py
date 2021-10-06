@@ -14,7 +14,7 @@ CONAN_HOOK_YAMLLINT_WERR = "CONAN_YAMLLINT_WERR"
 def pre_export(output, conanfile_path, *args, **kwargs):
     output.info("Lint yaml '{}'".format(conanfile_path))
     conanfile_dirname = os.path.dirname(conanfile_path)
-    conandata_file = os.path.join(conanfile_dirname, 'conandata.yaml')
+    conandata_file = os.path.join(conanfile_dirname, 'conandata.yml')
     
     rules = {
         "document-start": "disable",
