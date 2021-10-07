@@ -11,9 +11,6 @@ IF "%PYVER%"=="py38" (
 IF "%PYVER%"=="py36" (
     set PYVER="Python36"
 )
-IF "%PYVER%"=="py27" (
-    set PYVER="Python27"
-)
 set TEST_FOLDER=D:/J/t/Hooks/%BUILD_NUMBER%/%PYVER%
 
 virtualenv --python "C:/%PYVER%/python.exe" %TEST_FOLDER% && %TEST_FOLDER%/Scripts/activate && python --version

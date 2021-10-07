@@ -24,9 +24,9 @@ def check_non_ascii(filename, content, output):
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     conanfile_content = tools.load(conanfile_path)
-    check_non_ascii("conanfile.py", conanfile_content, conanfile.output)
+    check_non_ascii(conanfile_path, conanfile_content, conanfile.output)
     test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
     test_package_path = os.path.join(test_package_dir, "conanfile.py")
     if os.path.exists(test_package_path):
         test_package_content = tools.load(test_package_path)
-        check_non_ascii("test_package/conanfile.py", test_package_content)
+        check_non_ascii(test_package_path, test_package_content)
