@@ -170,6 +170,12 @@ There several environment variables you can use to configure it:
 
 This hook requires additional dependencies to work: `pip install pylint astroid`.
 
+### [Non ASCII](hooks/non_ascii.py)
+
+Separate KB-H047 from Conan Center, which is no longer required due Python 2.7 deprecation.
+
+Validates if `conanfile.py` and `test_package/conanfile.py` contain a non-ascii present, when there is a character, it logs an error.
+
 ## License
 
 [MIT License](LICENSE)
