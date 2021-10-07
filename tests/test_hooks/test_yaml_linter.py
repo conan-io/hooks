@@ -41,7 +41,7 @@ class YAMLLinterTests(ConanClientTestCase):
             patches:
             """)
         tools.save('conanfile.py', content=self.conanfile)
-        tools.save('conandata.yaml', content=self.conandatafile)
+        tools.save('conandata.yml', content=self.conandatafile)
         yamllint_werr_value = "1" if yamllint_werr else None
         with environment_append({"CONAN_YAMLLINT_WERR": yamllint_werr_value}):
             return_code = ERROR_GENERAL if yamllint_werr else SUCCESS
@@ -51,7 +51,7 @@ class YAMLLinterTests(ConanClientTestCase):
                 self.assertIn("pre_export(): Package recipe has linter errors."
                               " Please fix them.", output)
 
-            self.assertIn("pre_export(): conandata.yaml:9:1:"
+            self.assertIn("pre_export(): conandata.yml:9:1:"
                           " [error] duplication of key \"patches\" in mapping (key-duplicates)",
                             output)
 
