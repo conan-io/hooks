@@ -1,10 +1,7 @@
-import conans.client.output
 import ast
 import collections
-import contextlib
 import fnmatch
 import inspect
-import io
 import os
 import re
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
@@ -1042,8 +1039,9 @@ def post_package_info(output, conanfile, reference, **kwargs):
         def _test_component(component):
             libs_to_search = list(component.libs)
             for p in component.libdirs:
-                with _redirect_output(conanfile):
-                    libs_found = tools.collect_libs(conanfile, p)
+                if not os.path.isdir(p):
+                    continue
+                libs_found = tools.collect_libs(conanfile, p)
                 libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
                 for l in libs_declared_and_found:
                     libs_to_search.remove(l)
@@ -1178,15 +1176,3 @@ def _get_os(conanfile):
     if not settings:
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
-
-
-@contextlib.contextmanager
-def _redirect_output(conanfile, output=None):
-    if not output:
-        stdout = io.StringIO()
-        stderr = io.StringIO()
-        output = conans.client.output.ConanOutput(stdout, stderr)
-
-    output, conanfile.output = conanfile.output, output
-    yield
-    output, conanfile.output = conanfile.output, output
