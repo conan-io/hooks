@@ -18,13 +18,12 @@ class NonASCIITests(ConanClientTestCase):
 
     def _get_environ(self, **kwargs):
         kwargs = super(NonASCIITests, self)._get_environ(**kwargs)
-        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
-                                                   'hooks', 'non_ascii')})
+        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', 'hooks', 'non_ascii')})
         return kwargs
 
     def test_with_non_ascii(self):
         tools.save('conanfile.py', content=self.conanfile)
-        output = self.conan(['create', '.', 'name/version@user/channel'])
+        output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: The file \'conanfile.py\' contains a non-ascii character at line (5)."
                       " Only ASCII characters are allowed, please remove it.", output)
 
@@ -32,5 +31,5 @@ class NonASCIITests(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile
             .replace("Юрий Алексеевич Гагарин", "Yuri Alekseyevich Gagarin")
             .replace("A Terra é Azul", "The Earth is Blue"))
-        output = self.conan(['create', '.', 'name/version@user/channel'])
+        output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR:", output)
