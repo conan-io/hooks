@@ -37,7 +37,7 @@ class YAMLLinterTests(ConanClientTestCase):
             patches:
             "version":
                 - patch_file: "patches/abcdef.diff"
-                base_path: "source"
+                  base_path: "source"
             patches:
             """)
         tools.save('conanfile.py', content=self.conanfile)
@@ -64,9 +64,9 @@ class YAMLLinterTests(ConanClientTestCase):
             patches:
             "version":
                 - patch_file: "patches/abcdef.diff"
-                base_path: "source"
+                  base_path: "source"
             """)
-        tools.save(os.path.join("path spaces", "conanfile.py"), content=conanfile)
+        tools.save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
         tools.save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
