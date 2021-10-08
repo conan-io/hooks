@@ -28,6 +28,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
     conanfile_dirname = os.path.dirname(conanfile_path)
 
     lint_args = ['--output-format=json',  # JSON output fails in Windows (parsing)
+                 '--py3k',
                  '--enable=all',
                  '--reports=no',
                  '--disable=no-absolute-import',
