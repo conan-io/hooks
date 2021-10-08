@@ -41,7 +41,7 @@ class YAMLLinterTests(ConanClientTestCase):
             patches:
             """)
         tools.save('conanfile.py', content=self.conanfile)
-        tools.save('conandata.yml', content=self.conandatafile)
+        tools.save('conandata.yml', content=conandatafile)
         yamllint_werr_value = "1" if yamllint_werr else None
         with environment_append({"CONAN_YAMLLINT_WERR": yamllint_werr_value}):
             return_code = ERROR_GENERAL if yamllint_werr else SUCCESS
