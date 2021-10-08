@@ -36,7 +36,7 @@ def pre_export(output, conanfile_path, *args, **kwargs):
                  '-d', '"{extends: default, rules: {%s}}"' %
                  ", ".join("%s: %s" % (r, rules[r]) for r in rules)]
     lint_args.append('"%s"' % conanfile_dirname.replace('\\', '/'))
-    configfile = os.path.join(conanfile_dirname), "..", "config.yml")
+    configfile = os.path.join(conanfile_dirname, "..", "config.yml")
     if os.path.isfile(configfile):
         lint_args.append('"%s"' % configfile.replace('\\', '/'))
 
