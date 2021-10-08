@@ -70,5 +70,5 @@ class YAMLLinterTests(ConanClientTestCase):
         tools.save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
-        self.assertIn("pre_export(): Lint recipe '{}'".format(recipe_path), output)
-        self.assertIn("pre_export(): Linter detected '0' errors", output)
+        self.assertIn("pre_export(): Lint yaml '{}'".format(recipe_path), output)
+        self.assertIn("pre_export(): YAML Linter detected '0' errors", output)
