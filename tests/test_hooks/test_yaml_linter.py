@@ -48,10 +48,10 @@ class YAMLLinterTests(ConanClientTestCase):
             output = self.conan(['export', '.', 'name/version@'], expected_return_code=return_code)
 
             if yamllint_werr:
-                self.assertIn("pre_export(): Package recipe has linter errors."
+                self.assertIn("pre_export(): Package recipe has YAML linter errors."
                               " Please fix them.", output)
 
-            self.assertIn("pre_export(): conandata.yml:9:1:"
+            self.assertIn("conandata.yml:10:1:"
                           " [error] duplication of key \"patches\" in mapping (key-duplicates)",
                             output)
 
