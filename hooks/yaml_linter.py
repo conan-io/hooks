@@ -35,9 +35,13 @@ def pre_export(output, conanfile_path, *args, **kwargs):
     lint_args = ['-f', 'parsable',
                  '-d', '"{extends: default, rules: {%s}}"' %
                  ", ".join("%s: %s" % (r, rules[r]) for r in rules)]
+    lint_args.append('"%s"' % conanfile_dirname.replace('\\', '/'))
+    configfile = os.path.join(conanfile_dirname), "..", "config.yml")
+    if os.path.isfile(configfile):
+        lint_args.append('"%s"' % configfile.replace('\\', '/'))
 
     try:
-        command = ['yamllint'] + lint_args + ['"%s"' % conanfile_dirname.replace('\\', '/')]
+        command = ['yamllint'] + lint_args
         command = " ".join(command)
         shell = bool(platform.system() != "Windows")
         p = subprocess.Popen(command, shell=shell, bufsize=10,
