@@ -47,7 +47,6 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H044": "NO REQUIRES.ADD()",
              "KB-H045": "DELETE OPTIONS",
              "KB-H046": "CMAKE VERBOSE MAKEFILE",
-             "KB-H047": "NO ASCII CHARACTERS",
              "KB-H048": "CMAKE VERSION REQUIRED",
              "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
              "KB-H050": "DEFAULT SHARED OPTION VALUE",
@@ -469,33 +468,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         if "self.options.remove" in conanfile_content:
             out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
-
-    @run_test("KB-H047", output)
-    def test(out):
-
-        def _check_non_ascii(filename, content):
-            import unicodedata
-            for num, line in enumerate(content.splitlines(), 1):
-                bad_chars = {num: char for num, char in enumerate(line, 1) if ord(char) >= 128}
-                if bad_chars:
-                    out.error("The file '{}' contains a non-ascii character at line ({})."
-                              " Only ASCII characters are allowed, please remove it.".format(filename, num))
-                    indexes = bad_chars.keys()
-                    draw = ['^' if i in indexes else ' ' for i in range(1, len(line))]
-                    draw = ''.join(draw)
-                    bad_chars = bad_chars.values()
-                    bad_chars = ["\\x%s (%s)" % (format(ord(c), 'x'), unicodedata.name(c)) for c in bad_chars]
-                    message = "bad characters: " + ' '.join(bad_chars)
-                    output.info(message)
-                    output.info(line)
-                    output.info(draw)
-
-        _check_non_ascii("conanfile.py", conanfile_content)
-        test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
-        test_package_path = os.path.join(test_package_dir, "conanfile.py")
-        if os.path.exists(test_package_path):
-            test_package_content = tools.load(test_package_path)
-            _check_non_ascii("test_package/conanfile.py", test_package_content)
 
     @run_test("KB-H046", output)
     def test(out):
