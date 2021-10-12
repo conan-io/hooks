@@ -35,3 +35,11 @@ class TestInvalidTopics(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("WARN: [INVALID TOPICS (KB-H064)] The topic 'conan' is invalid and should be"
                       " removed from topics attribute.", output)
+
+    def test_uppercase_topics(self):
+        tools.save('conanfile.py', content=self.conanfile.replace('"foobar",', '"foobar", "Baz", "QUX"'))
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("WARN: [INVALID TOPICS (KB-H064)] The topic 'Baz' is invalid; even names "
+                      "and acronyms should be formatted entirely in lowercase.", output)
+        self.assertIn("WARN: [INVALID TOPICS (KB-H064)] The topic 'QUX' is invalid; even names "
+                      "and acronyms should be formatted entirely in lowercase.", output)
