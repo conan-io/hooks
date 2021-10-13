@@ -915,6 +915,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "wayland-protocols",
             "xorg-cf-files",
             "xorg-macros",
+            "opentelemetry-proto",
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
