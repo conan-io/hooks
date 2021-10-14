@@ -8,8 +8,6 @@ from conans.errors import ConanException
 from conans.tools import logger
 
 
-
-
 CONAN_HOOK_YAMLLINT_WERR = "CONAN_YAMLLINT_WERR"
 
 
