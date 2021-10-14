@@ -3,7 +3,6 @@
 import os
 import platform
 import subprocess
-import sys
 
 from conans.errors import ConanException
 from conans.tools import logger
