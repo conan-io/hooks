@@ -9,17 +9,17 @@ from conans.errors import ConanException
 from conans.tools import logger
 
 
-try:
-    import yamllint
-except ImportError as e:
-    sys.stderr.write("Install yamllint to use 'yaml_linter' hook: 'pip install yamllint'")
-    sys.exit(1)
 
 
 CONAN_HOOK_YAMLLINT_WERR = "CONAN_YAMLLINT_WERR"
 
 
 def pre_export(output, conanfile_path, *args, **kwargs):
+    try:
+        import yamllint
+    except ImportError as e:
+        output.error("Install yamllint to use 'yaml_linter' hook: 'pip install yamllint'")
+        return
     output.info("Lint yaml '{}'".format(conanfile_path))
     conanfile_dirname = os.path.dirname(conanfile_path)
     
