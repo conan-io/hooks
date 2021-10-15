@@ -31,7 +31,7 @@ Only copying hook files will not activate them.
 
 To install all hooks from Conan repository in Github:
 
-``$ conan config install https://github.com/conan*io/hooks.git``
+``$ conan config install https://github.com/conan-io/hooks.git``
 
 If you are using Conan >=1.14 you can specify the source and destination folder to avoid copying
 undesired files to your local cache:
