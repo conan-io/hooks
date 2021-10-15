@@ -6,10 +6,6 @@ set -x
 eval "$(pyenv init -)"
 
 case "${PYVER}" in
-    py27)
-        pyenv install 2.7.18
-        pyenv virtualenv 2.7.18 conan
-        ;;
     py36)
         pyenv install 3.6.12
         pyenv virtualenv 3.6.12 conan

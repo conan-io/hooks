@@ -13,6 +13,7 @@ Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan
  * [Member typo checker](#members-typo-checker)
  * [SPDX checker](#spdx-checker)
  * [Recipe linter](#recipe-linter)
+ * [Non ASCII](#non-ascii)
  * [YAML linter](#yaml-linter)
 
 
@@ -170,6 +171,12 @@ There several environment variables you can use to configure it:
  together with Conan, this file contains the declaration of some extra fields that are valid in the `ConanFile` class.
 
 This hook requires additional dependencies to work: `pip install pylint astroid`.
+
+### [Non ASCII](hooks/non_ascii.py)
+
+Separate KB-H047 from Conan Center, which is no longer required due Python 2.7 deprecation.
+
+Validates if `conanfile.py` and `test_package/conanfile.py` contain a non-ascii present, when there is a character, it logs an error.
 
 ### [YAML linter](hooks/yaml_linter.py)
 
