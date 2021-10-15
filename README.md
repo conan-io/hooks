@@ -173,7 +173,7 @@ This hook requires additional dependencies to work: `pip install pylint astroid`
 
 ### [YAML linter](hooks/yaml_linter.py)
 
-This hooks runs [yamllint ](https://yamllint.readthedocs.io/) over the yaml files
+This hook runs [yamllint](https://yamllint.readthedocs.io/) over the yaml files
 in a recipe before exporting them (it runs in the `pre_export` hook), it can be
 really useful to check for typos.
 
