@@ -13,6 +13,7 @@ Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan
  * [Member typo checker](#members-typo-checker)
  * [SPDX checker](#spdx-checker)
  * [Recipe linter](#recipe-linter)
+ * [YAML linter](#yaml-linter)
 
 
 ## Hook setup
@@ -29,7 +30,7 @@ Only copying hook files will not activate them.
 
 To install all hooks from Conan repository in Github:
 
-``$ conan config install https://github.com/conan-io/hooks.git``
+``$ conan config install https://github.com/conan*io/hooks.git``
 
 If you are using Conan >=1.14 you can specify the source and destination folder to avoid copying
 undesired files to your local cache:
@@ -169,6 +170,14 @@ There several environment variables you can use to configure it:
  together with Conan, this file contains the declaration of some extra fields that are valid in the `ConanFile` class.
 
 This hook requires additional dependencies to work: `pip install pylint astroid`.
+
+### [YAML linter](hooks/yaml_linter.py)
+
+This hooks runs [yamllint ](https://yamllint.readthedocs.io/) over the yaml files
+in a recipe before exporting them (it runs in the `pre_export` hook), it can be
+really useful to check for typos.
+
+This hook requires additional dependencies to work: `pip install yamllint`.
 
 ## License
 
