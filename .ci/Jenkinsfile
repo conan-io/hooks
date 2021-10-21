@@ -22,7 +22,7 @@ pipeline {
                                 TOXENV = 'py36-conancurrent'
                             }
                             steps {
-                                bat 'tox -v'
+                                bat 'tox'
                             }
                         }
                         stage('Windows - py36 - conanprev') {
@@ -30,7 +30,7 @@ pipeline {
                                 TOXENV = 'py36-conanprev'
                             }
                             steps {
-                                bat 'tox -v'
+                                bat 'tox'
                             }
                         }
                     }
@@ -53,7 +53,7 @@ pipeline {
                                 TOXENV = 'py39-conancurrent'
                             }
                             steps {
-                                bat 'tox -v'
+                                bat 'tox'
                             }
                         }
                         stage('Windows - py39 - conanprev') {
@@ -61,7 +61,7 @@ pipeline {
                                 TOXENV = 'py39-conanprev'
                             }
                             steps {
-                                bat 'tox -v'
+                                bat 'tox'
                             }
                         }
                     }
@@ -92,7 +92,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
@@ -104,7 +104,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
@@ -131,7 +131,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
@@ -143,7 +143,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
@@ -155,7 +155,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
@@ -167,7 +167,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox -v
+                                    tox
                                 '''
                             }
                         }
