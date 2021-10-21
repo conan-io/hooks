@@ -26,6 +26,6 @@ esac
 
 pyenv activate conan
 python --version
-pip install --upgrade pip
-pip3 install --requirement .ci/requirements_linux.txt
+pip install --no-cache-dir --upgrade pip
+pip3 install --no-cache-dir --requirement .ci/requirements_linux.txt
 python .ci/last_conan_version.py
