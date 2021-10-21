@@ -14,3 +14,4 @@ IF "%PYVER%"=="py36" (
 set TEST_FOLDER=D:/J/t/Hooks/%BUILD_NUMBER%/%PYVER%
 
 virtualenv --python "C:/%PYVER%/python.exe" %TEST_FOLDER% && %TEST_FOLDER%/Scripts/activate && python --version
+python -m pip install pip --upgrade
