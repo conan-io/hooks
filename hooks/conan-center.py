@@ -751,6 +751,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H050", output)
     def test(out):
         allowlist = (
+            "libgphoto2",
             "onetbb",
             "opencl-icd-loader",
             "paho-mqtt-c",
