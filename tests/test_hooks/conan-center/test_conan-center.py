@@ -1060,18 +1060,18 @@ class ConanCenterTests(ConanClientTestCase):
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
-                      " permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+                      " permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
-                      " may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+                      " may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
 
         tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
         tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
-                      " and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
                       " instead.", output)
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in test_package/conanfile.py"
-                      " is outdated and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " is outdated and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
                       " instead.", output)
         self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
 
