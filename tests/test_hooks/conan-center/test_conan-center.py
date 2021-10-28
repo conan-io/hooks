@@ -332,14 +332,14 @@ class ConanCenterTests(ConanClientTestCase):
         if tools.os_info.is_windows:
             self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
                           "correctly. Please remove it for Windows " \
-                          "configurations: del self.options.fpic", output)
+                          "configurations: del self.options.fPIC", output)
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
         output = self.conan(['create', '.', 'package/version@conan/test', '-o package:shared=True'])
         self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
                         "correctly. Please remove it for shared " \
-                        "option: del self.options.fpic", output)
+                        "option: del self.options.fPIC", output)
 
     def test_fpic_remove_windows(self):
         conanfile = textwrap.dedent("""\
@@ -1060,18 +1060,18 @@ class ConanCenterTests(ConanClientTestCase):
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
-                      " permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+                      " permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
-                      " may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)' instead.", output)
+                      " may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
 
         tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
         tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
-                      " and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
                       " instead.", output)
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in test_package/conanfile.py"
-                      " is outdated and may cause permission error on Windows. Use 'conan.tools.rename(self, src, dst)'"
+                      " is outdated and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
                       " instead.", output)
         self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
 

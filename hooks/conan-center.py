@@ -595,10 +595,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         def _check_content(content, path):
             if "os.rename" in content:
                 out.warn("The 'os.rename' in {} may cause permission error on Windows."
-                         " Use 'conan.tools.rename(self, src, dst)' instead.".format(path))
+                         " Use 'conan.tools.files.rename(self, src, dst)' instead.".format(path))
             elif "tools.rename(" in content and not "tools.rename(self," in content:
                 out.warn("The 'tools.rename' in {} is outdated and may cause permission error on Windows."
-                         " Use 'conan.tools.rename(self, src, dst)' instead.".format(path))
+                         " Use 'conan.tools.files.rename(self, src, dst)' instead.".format(path))
         _check_content(conanfile_content, "conanfile.py")
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.exists(test_package_path):
@@ -846,11 +846,11 @@ def pre_build(output, conanfile, **kwargs):
         error = False
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
             out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                      "configurations: del self.options.fpic")
+                      "configurations: del self.options.fPIC")
             error = True
         if has_fpic and conanfile.options.get_safe("shared"):
             out.error("'fPIC' option not managed correctly. Please remove it for shared "
-                      "option: del self.options.fpic")
+                      "option: del self.options.fPIC")
             error = True
         elif has_fpic and not error:
             out.success("OK. 'fPIC' option found and apparently well managed")
