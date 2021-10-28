@@ -332,14 +332,14 @@ class ConanCenterTests(ConanClientTestCase):
         if tools.os_info.is_windows:
             self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
                           "correctly. Please remove it for Windows " \
-                          "configurations: del self.options.fpic", output)
+                          "configurations: del self.options.fPIC", output)
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
         output = self.conan(['create', '.', 'package/version@conan/test', '-o package:shared=True'])
         self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
                         "correctly. Please remove it for shared " \
-                        "option: del self.options.fpic", output)
+                        "option: del self.options.fPIC", output)
 
     def test_fpic_remove_windows(self):
         conanfile = textwrap.dedent("""\
