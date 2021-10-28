@@ -846,11 +846,11 @@ def pre_build(output, conanfile, **kwargs):
         error = False
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
             out.error("'fPIC' option not managed correctly. Please remove it for Windows "
-                      "configurations: del self.options.fpic")
+                      "configurations: del self.options.fPIC")
             error = True
         if has_fpic and conanfile.options.get_safe("shared"):
             out.error("'fPIC' option not managed correctly. Please remove it for shared "
-                      "option: del self.options.fpic")
+                      "option: del self.options.fPIC")
             error = True
         elif has_fpic and not error:
             out.success("OK. 'fPIC' option found and apparently well managed")
