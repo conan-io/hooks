@@ -728,7 +728,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H065", output)
     def test(out):
         def _find_required_conan_version(conanfile_content):
-            match = re.search(r"^\s*required_conan_version\s*=\s*\["']>=\s*([\d\.]+)\["']",
+            match = re.search(r"^\s*required_conan_version\s*=\s*\[\"']>=\s*([\d\.]+)\[\"']",
                               conanfile_content, re.MULTILINE)
             if match:
                 return tools.Version(match.group(1))
