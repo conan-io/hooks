@@ -63,6 +63,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H061": "NO BUILD SYSTEM FUNCTIONS",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
+             "KB-H065": "NO REQUIRED_CONAN_VERSION",
              }
 
 
@@ -723,6 +724,31 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if topic != topic.lower():
                     out.warn("The topic '{}' is invalid; even names and acronyms should be formatted "
                              "entirely in lowercase.".format(topic))
+
+    @run_test("KB-H065", output)
+    def test(out):
+        def _find_required_conan_version(conanfile_content):
+            match = re.search(r"^\s*required_conan_version\s*=\s*\">=\s*([\d\.]+)\"",
+                              conanfile_content, re.MULTILINE)
+            if match:
+                return tools.Version(match.group(1))
+            return None
+
+        conanfile_content = tools.load(conanfile_path)
+
+        found_strip_root = False
+        lines = conanfile_content.splitlines()
+        for idx, line in enumerate(lines):
+            # check current and next line
+            if 'tools.get' in line and any('strip_root=True' in l for l in lines[idx:idx+2]):
+                found_strip_root = True
+
+        version = _find_required_conan_version(conanfile_content)
+        required_version = tools.Version('1.33.0')
+        if found_strip_root and (not version or version < required_version):
+            out.warn("tools.get with strip_root=True is available since Conan {0}. "
+                     "Please add `required_conan_version >= \"{0}\"`"
+                     "".format(str(required_version)))
 
 
 @raise_if_error_output
