@@ -63,6 +63,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H061": "NO BUILD SYSTEM FUNCTIONS",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
+             "KB-H065": "DEPRECATED NAMES, FILENAMES AND BUILD_MODULES",
              }
 
 
@@ -723,6 +724,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if topic != topic.lower():
                     out.warn("The topic '{}' is invalid; even names and acronyms should be formatted "
                              "entirely in lowercase.".format(topic))
+
+    @run_test("KB-H065", output)
+    def test(out):
+        pattern = re.compile(r"self\.cpp_info.*\.(names\[|filenames\[|build_modules)")
+        if pattern.search(conanfile_content):
+            out.error("Using 'names', 'filenames' and 'build_modules' is deprecated from Conan 1.42. "
+                      "Use 'set_property' and 'get_property' methods of the cpp_info object instead.")
 
 
 @raise_if_error_output
