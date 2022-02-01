@@ -4,6 +4,7 @@ import fnmatch
 import inspect
 import os
 import re
+import sys
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
@@ -65,6 +66,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H064": "INVALID TOPICS",
              }
 
+
+this = sys.modules[__name__]
 
 class _HooksOutputErrorCollector(object):
 
@@ -156,6 +159,7 @@ def load_yml(path):
 
 @raise_if_error_output
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
+    this.reference = str(reference)
     conanfile_content = tools.load(conanfile_path)
     export_folder_path = os.path.dirname(conanfile_path)
     settings = _get_settings(conanfile)
@@ -983,6 +987,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
+    if str(reference) != this.reference:
+        return
 
     @run_test("KB-H019", output)
     def test(out):
