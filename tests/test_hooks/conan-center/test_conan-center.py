@@ -1165,3 +1165,16 @@ class ConanCenterTests(ConanClientTestCase):
                                                              "tools.cross_building(self.settings)"))
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
+
+    def test_no_collect_libs_warning(self):
+        conanfile = textwrap.dedent("""\
+            from conans import ConanFile
+
+            class AConan(ConanFile):
+                def package_info(self):
+                    pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
+        self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)

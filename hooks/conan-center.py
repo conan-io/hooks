@@ -1017,6 +1017,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
         def _test_component(component):
             libs_to_search = list(component.libs)
             for p in component.libdirs:
+                if not os.path.isdir(p):
+                    continue
                 libs_found = tools.collect_libs(conanfile, p)
                 libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
                 for l in libs_declared_and_found:
