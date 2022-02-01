@@ -989,13 +989,15 @@ def post_package_info(output, conanfile, reference, **kwargs):
         if conanfile.name in ["android-ndk", "cmake", "msys2", "strawberryperl"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["*.cmake"])
-        build_dirs = [bd.replace("\\", "/") for bd in conanfile.cpp_info.builddirs]
+        build_dirs = {bd.replace("\\", "/") for bd in conanfile.cpp_info.build_paths}
         for component in conanfile.cpp_info.components.values():
-            build_dirs.extend([bd.replace("\\", "/") for bd in component.builddirs])
+            build_dirs.update({bd.replace("\\", "/") for bd in component.build_paths})
         files_missplaced = []
 
         for filename in bad_files:
             for bdir in build_dirs:
+                bdir = os.path.relpath(bdir, conanfile.package_folder)
+                bdir = "" if bdir == "." else bdir
                 bdir = "./{}".format(bdir)
                 # https://github.com/conan-io/conan/issues/5401
                 if bdir == "./":
