@@ -1166,6 +1166,74 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
 
+    def test_strip_root_required_conan_version(self):
+        # no required_conan_version
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+
+        class TestConan(ConanFile):
+            def source(self):
+                tools.get({}, strip_root=True)
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/all@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # handle multiline call (for now only two lines)
+        conanfile = textwrap.dedent("""\
+               from conans import ConanFile, tools
+
+               class TestConan(ConanFile):
+                   def source(self):
+                       tools.get({}, 
+                                 strip_root=True)
+               """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # wrong required_conan_version
+        conanfile = textwrap.dedent("""\
+               from conans import ConanFile, tools
+
+               required_conan_version = ">=1.28.0"
+
+               class TestConan(ConanFile):
+                   def source(self):
+                       tools.get({}, strip_root=True)
+               """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # proper required_conan_version
+        conanfile = textwrap.dedent("""\
+                from conans import ConanFile, tools
+
+                required_conan_version = ">=1.33.0"
+
+                class TestConan(ConanFile):
+                    def source(self):
+                        tools.get({}, strip_root=True)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+
+        # short version, spacing
+        conanfile = textwrap.dedent("""\
+                from conans import ConanFile, tools
+
+                required_conan_version= ">= 1.33"
+
+                class TestConan(ConanFile):
+                    def source(self):
+                        tools.get({}, strip_root=True)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+
     def test_no_collect_libs_warning(self):
         conanfile = textwrap.dedent("""\
             from conans import ConanFile
@@ -1178,3 +1246,4 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
         self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)
+
