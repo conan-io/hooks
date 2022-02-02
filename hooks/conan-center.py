@@ -7,7 +7,11 @@ import re
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
-from conans import tools, Settings
+from conans import tools
+try:
+    from conans import Settings
+except ImportError:
+    from conans.model.settings import Settings
 
 kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H002": "REFERENCE LOWERCASE",
@@ -100,7 +104,10 @@ class _HooksOutputErrorCollector(object):
     def warn(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        self._output.warn(self._get_message(message))
+        if hasattr(self._output, "warn"):
+            self._output.warn(self._get_message(message))
+        else:
+            self._output.warning(self._get_message(message))
 
     def error(self, message):
         self._error = True
@@ -172,7 +179,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         if reference.name != reference.name.lower():
             out.error("The library name has to be lowercase")
-        if reference.version != reference.version.lower():
+        if reference.version != str(reference.version).lower():
             out.error("The library version has to be lowercase")
 
     @run_test("KB-H003", output)
@@ -1060,7 +1067,10 @@ def _get_files_with_extensions(folder, extensions):
 def _shared_files_well_managed(conanfile, folder):
     shared_extensions = ["dll", "so", "dylib"]
     shared_name = "shared"
-    options_dict = {key: value for key, value in conanfile.options.values.as_list()}
+    try:
+        options_dict = {key: value for key, value in conanfile.options.values.as_list()}
+    except Exception:
+        options_dict = {key: value for key, value in conanfile.options.items()}
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
         if not _get_files_with_extensions(folder, shared_extensions):
             return False
