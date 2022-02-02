@@ -1233,3 +1233,17 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+
+    def test_no_collect_libs_warning(self):
+        conanfile = textwrap.dedent("""\
+            from conans import ConanFile
+
+            class AConan(ConanFile):
+                def package_info(self):
+                    pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
+        self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)
+

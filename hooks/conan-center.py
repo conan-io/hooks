@@ -905,7 +905,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H013", output)
     def test(out):
-        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "openjdk", "mono"]:
+        if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "mingw-builds",
+                              "openjdk", "mono"]:
             return
 
         base_known_folders = ["lib", "bin", "include", "res", "licenses"]
@@ -1042,6 +1043,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
         def _test_component(component):
             libs_to_search = list(component.libs)
             for p in component.libdirs:
+                if not os.path.isdir(p):
+                    continue
                 libs_found = tools.collect_libs(conanfile, p)
                 libs_declared_and_found = [l for l in libs_found if l in libs_to_search]
                 for l in libs_declared_and_found:
