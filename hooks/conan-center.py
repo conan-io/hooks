@@ -864,6 +864,7 @@ def pre_build(output, conanfile, **kwargs):
 
 @raise_if_error_output
 def post_package(output, conanfile, conanfile_path, **kwargs):
+    this.reference = str(conanfile)
     @run_test("KB-H012", output)
     def test(out):
         if conanfile.version == "system":
@@ -987,7 +988,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
 @raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
-    if str(reference) != this.reference:
+    if not hasattr(this, "reference") or str(reference) != this.reference:
         return
 
     @run_test("KB-H019", output)
