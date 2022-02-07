@@ -69,6 +69,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
+             "KB-H066": "NO OS_INFO",
              }
 
 
@@ -760,6 +761,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.warn("tools.get with strip_root=True is available since Conan {0}. "
                      "Please add `required_conan_version >= \"{0}\"`"
                      "".format(str(required_version)))
+
+    @run_test("KB-H066", output)
+    def test(out):
+        for method in ["config_options", "configure"]:
+            method_obj = getattr(conanfile, method)
+            if "os_info." in inspect.getsource(method_obj):
+                out.error("tools.os_info must not be used in 'config_options' and 'configure'."
+                          " Replace by 'self.settings.os'.")
 
 
 @raise_if_error_output
