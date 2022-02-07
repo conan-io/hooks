@@ -195,3 +195,40 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
         self.assertIn("Use of platform is forbidden in validate", output)
         self.assertIn("conanfile.py:7 Build system dependent", output)
+
+    def test_config_options(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        class AConan(ConanFile):
+            def config_options(self):
+                if tools.os_info.is_windows:
+                    pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
+
+    def test_configure(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        class AConan(ConanFile):
+            def configure(self):
+                if tools.os_info.is_linux:
+                    pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
+
+    def test_import(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        from conans.tools import os_info
+        class AConan(ConanFile):
+            def configure(self):
+                if os_info.is_macos:
+                    pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
