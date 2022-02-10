@@ -1024,9 +1024,9 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         conanfile_content = tools.load(conanfile_path)
         if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
-            # INFO: Need to reserve around 120 characters for package folder path
+            # INFO: Need to reserve around 160 characters for package folder path
             short_paths_name_length = 12
-            include_max_length_path = 120
+            include_max_length_path = 96
             if len(conanfile.name) >= short_paths_name_length:
                 out.warn(f"The package name '{conanfile.name}' is too long and may exceed Windows max path length. "
                           "Add 'short_paths = True' in your recipe.")

@@ -19,7 +19,7 @@ class ShortPathsTests(ConanClientTestCase):
             class AConan(ConanFile):
                 # short_paths = True
                 def package(self):
-                    includedir = os.path.join(self.package_folder, "include", "another-include-folder", "subdir", "another", "include", "folde", "another-one")
+                    includedir = os.path.join(self.package_folder, "include", "another-include-folder", "another-subfolder")
                     tools.mkdir(includedir)
                     tools.save(os.path.join(includedir, "a-very-very-very-long-header-file-which-may-trigger-hook-66.h"), "")
             """)
@@ -52,8 +52,7 @@ class ShortPathsTests(ConanClientTestCase):
     def test_include_folder(self):
         tools.save('conanfile.py', content=self.conanfile_long)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("WARN: [SHORT_PATHS USAGE (KB-H066)] The header file './include/another-include-folder/subdir/"
-                      "another/include/folde/another-one/a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
+        self.assertIn("WARN: [SHORT_PATHS USAGE (KB-H066)] The header file './include/another-include-folder/another-subfolder/a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
                       " has a very long path and may exceed Windows max path length. Add 'short_paths = True' in your "
                       "recipe.", output)
 
@@ -68,8 +67,7 @@ class ShortPathsTests(ConanClientTestCase):
         self.assertIn("WARN: [SHORT_PATHS USAGE (KB-H066)] The package name 'a-very-very-long-package-name' "
                       "is too long and may exceed Windows max path length. Add 'short_paths = True' in your recipe.",
                       output)
-        self.assertIn("WARN: [SHORT_PATHS USAGE (KB-H066)] The header file './include/another-include-folder/subdir/"
-                      "another/include/folde/another-one/a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
+        self.assertIn("WARN: [SHORT_PATHS USAGE (KB-H066)] The header file './include/another-include-folder/another-subfolder/a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
                       " has a very long path and may exceed Windows max path length. Add 'short_paths = True' in your "
                       "recipe.", output)
 
