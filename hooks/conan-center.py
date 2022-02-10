@@ -1025,17 +1025,16 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         conanfile_content = tools.load(conanfile_path)
         if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
             # INFO: Need to reserve around 160 characters for package folder path
-            short_paths_name_length = 12
-            include_max_length_path = 96
-            if len(conanfile.name) >= short_paths_name_length:
-                out.warn(f"The package name '{conanfile.name}' is too long and may exceed Windows max path length. "
-                          "Add 'short_paths = True' in your recipe.")
-            headers = _get_files_following_patterns(conanfile.package_folder, ["*.h", "*.hpp"])
-            for h in headers:
-                if len(h) >= include_max_length_path:
-                    out.warn(f"The header file '{h}' has a very long path and may exceed Windows max path length. "
-                              "Add 'short_paths = True' in your recipe.")
-                    break
+            windows_max_path = 256
+            file_max_length_path = windows_max_path - 160
+            with tools.chdir(conanfile.package_folder):
+                for (root, _, filenames) in os.walk("."):
+                    for filename in filenames:
+                        filepath = os.path.join(root, filename).replace("\\", "/")
+                        if len(filepath) >= file_max_length_path:
+                            out.warn(f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
+                                     "Add 'short_paths = True' in your recipe.")
+                            break
 
 
 @raise_if_error_output
