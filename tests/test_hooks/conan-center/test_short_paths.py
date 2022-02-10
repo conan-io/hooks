@@ -1,6 +1,5 @@
 import os
 import textwrap
-import tempfile
 
 from conans import tools
 
@@ -26,11 +25,9 @@ class ShortPathsTests(ConanClientTestCase):
             """)
 
     def _get_environ(self, **kwargs):
-        dirpath = tempfile.mkdtemp()
         kwargs = super(ShortPathsTests, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
-                                                   'hooks', 'conan-center'),
-                       'CONAN_USER_HOME_SHORT': dirpath})
+                                                   'hooks', 'conan-center')})
         return kwargs
 
     def test_not_needed_short_path(self):
