@@ -69,6 +69,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H062": "TOOLS CROSS BUILDING",
              "KB-H064": "INVALID TOPICS",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
+             "KB-H066": "SHORT_PATHS USAGE",
              }
 
 
@@ -1018,6 +1019,23 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if bad_files:
             out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
             out.error("Found files: {}".format("; ".join(bad_files)))
+
+    @run_test("KB-H066", output)
+    def test(out):
+        conanfile_content = tools.load(conanfile_path)
+        if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
+            # INFO: Need to reserve around 120 characters for package folder path
+            short_paths_name_length = 12
+            include_max_length_path = 120
+            if len(conanfile.name) >= short_paths_name_length:
+                out.warn(f"The package name '{conanfile.name}' is too long and may exceed Windows max path length. "
+                          "Add 'short_paths = True' in your recipe.")
+            headers = _get_files_following_patterns(conanfile.package_folder, ["*.h", "*.hpp"])
+            for h in headers:
+                if len(h) >= include_max_length_path:
+                    out.warn(f"The header file '{h}' has a very long path and may exceed Windows max path length. "
+                              "Add 'short_paths = True' in your recipe.")
+                    break
 
 
 @raise_if_error_output
