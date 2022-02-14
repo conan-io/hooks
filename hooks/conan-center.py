@@ -1024,10 +1024,10 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     def test(out):
         conanfile_content = tools.load(conanfile_path)
         if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
-            # INFO: Need to reserve around 160 characters for package folder path
             windows_max_path = 256
-            file_max_length_path = windows_max_path - 160
-            for folder in [conanfile.source_folder, conanfile.package_folder]:
+            # INFO: Need to reserve around 160 characters for package folder path
+            for folder, length in [(conanfile.source_folder, 80), (conanfile.package_folder, 160)]:
+                file_max_length_path = windows_max_path - length
                 with tools.chdir(folder):
                     for (root, _, filenames) in os.walk("."):
                         for filename in filenames:
