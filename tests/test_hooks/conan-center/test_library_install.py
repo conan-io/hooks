@@ -58,9 +58,7 @@ class TestInstalledLibraries(ConanClientTestCase):
         tools.save('conanfile.py', content=self.conanfile.replace("libs = []",
                                                              "components['fake'].libs = ['bar']"))
         output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component name::fake library 'bar' is listed in the recipe, "
-                      "but not found installed in self.cpp_info.libdirs. Make sure you compiled the library correctly. "
-                      "If yes, then the library name must probably be fixed. Otherwise, then the component should be removed.", output)
+        self.assertIn("ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component name::fake library 'bar'", output)
 
     def test_header_only(self):
         conanfile = textwrap.dedent("""\
