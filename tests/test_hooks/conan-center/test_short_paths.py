@@ -30,7 +30,7 @@ class ShortPathsTests(ConanClientTestCase):
                         class AConan(ConanFile):
                             # short_paths = True
                             def source(self):
-                                includedir = os.path.join(self.source_folder, "include", "another-include-folder", "another-subfolder", "very-very-very-long-folder-subfolder-another-folder", "another-include-include-include-folder")
+                                includedir = os.path.join(self.source_folder, "include", "another-include-folder", "another-subfolder", "very-very-very-long-folder-subfolder-another-folder")
                                 tools.mkdir(includedir)
                                 tools.save(os.path.join(includedir, "a-very-very-very-long-header-file-which-may-trigger-hook-66.h"), "")
                         """)
@@ -65,7 +65,7 @@ class ShortPathsTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn(
             "WARN: [SHORT_PATHS USAGE (KB-H066)] The file './include/another-include-folder/another-subfolder/very-very-very-long-folder-subfolder-another-folder/"
-            "another-include-include-include-folder/a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
+            "a-very-very-very-long-header-file-which-may-trigger-hook-66.h'"
             " has a very long path and may exceed Windows max path length. Add 'short_paths = True' in your "
             "recipe.", output)
 
