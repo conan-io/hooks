@@ -875,6 +875,10 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
+    @run_test("KB-H066", output)
+    def test(out):
+        _check_short_paths(conanfile_path, conanfile.source_folder, 120, out)
+
 
 @raise_if_error_output
 def pre_build(output, conanfile, **kwargs):
@@ -1022,20 +1026,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H066", output)
     def test(out):
-        conanfile_content = tools.load(conanfile_path)
-        if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
-            windows_max_path = 256
-            # INFO: Need to reserve around 160 characters for package folder path
-            for folder, length in [(conanfile.source_folder, 140), (conanfile.package_folder, 160)]:
-                file_max_length_path = windows_max_path - length
-                with tools.chdir(folder):
-                    for (root, _, filenames) in os.walk("."):
-                        for filename in filenames:
-                            filepath = os.path.join(root, filename).replace("\\", "/")
-                            if len(filepath) >= file_max_length_path:
-                                out.warn(f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
-                                         "Add 'short_paths = True' in your recipe.")
-                                break
+        _check_short_paths(conanfile_path, conanfile.package_folder, 160, out)
 
 
 @raise_if_error_output
@@ -1218,3 +1209,20 @@ def _get_os(conanfile):
     if not settings:
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
+
+
+def _check_short_paths(conanfile_path, folder_path, max_length_path, output):
+    conanfile_content = tools.load(conanfile_path)
+    if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
+        windows_max_path = 256
+        # INFO: Need to reserve around 160 characters for package folder path
+        file_max_length_path = windows_max_path - max_length_path
+        with tools.chdir(folder_path):
+            for (root, _, filenames) in os.walk("."):
+                for filename in filenames:
+                    filepath = os.path.join(root, filename).replace("\\", "/")
+                    if len(filepath) >= file_max_length_path:
+                        output.warn(
+                            f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
+                            "Add 'short_paths = True' in your recipe.")
+                        break
