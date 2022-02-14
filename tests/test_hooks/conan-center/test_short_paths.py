@@ -8,10 +8,10 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 class ShortPathsTests(ConanClientTestCase):
     conanfile = textwrap.dedent("""\
-        from conans import ConanFile
-        class AConan(ConanFile):
-            pass
-        """)
+            from conans import ConanFile
+            class AConan(ConanFile):
+                pass
+            """)
 
     conanfile_long = textwrap.dedent("""\
             from conans import ConanFile, tools
@@ -25,15 +25,16 @@ class ShortPathsTests(ConanClientTestCase):
             """)
 
     conanfile_source = textwrap.dedent("""\
-                        from conans import ConanFile, tools
-                        import os
-                        class AConan(ConanFile):
-                            # short_paths = True
-                            def source(self):
-                                includedir = os.path.join(self.source_folder, "include", "another-include-folder", "another-subfolder", "very-very-very-long-folder-subfolder")
-                                tools.mkdir(includedir)
-                                tools.save(os.path.join(includedir, "a-very-very-very-long-header-file-which-may-trigger-hook-66.h"), "")
-                        """)
+            from conans import ConanFile, tools
+            import os
+            class AConan(ConanFile):
+                no_copy_source = True
+                # short_paths = True
+                def source(self):
+                    includedir = os.path.join(self.source_folder, "include", "another-include-folder", "another-subfolder", "very-very-very-long-folder-subfolder"  )
+                    tools.mkdir(includedir)
+                    tools.save(os.path.join(includedir, "a-very-very-very-long-header-file-which-may-trigger-hook-66.h"), "")
+            """)
 
     def _get_environ(self, **kwargs):
         kwargs = super(ShortPathsTests, self)._get_environ(**kwargs)
