@@ -1027,14 +1027,15 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             # INFO: Need to reserve around 160 characters for package folder path
             windows_max_path = 256
             file_max_length_path = windows_max_path - 160
-            with tools.chdir(conanfile.package_folder):
-                for (root, _, filenames) in os.walk("."):
-                    for filename in filenames:
-                        filepath = os.path.join(root, filename).replace("\\", "/")
-                        if len(filepath) >= file_max_length_path:
-                            out.warn(f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
-                                     "Add 'short_paths = True' in your recipe.")
-                            break
+            for folder in [conanfile.source_folder, conanfile.package_folder]:
+                with tools.chdir(folder):
+                    for (root, _, filenames) in os.walk("."):
+                        for filename in filenames:
+                            filepath = os.path.join(root, filename).replace("\\", "/")
+                            if len(filepath) >= file_max_length_path:
+                                out.warn(f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
+                                         "Add 'short_paths = True' in your recipe.")
+                                break
 
 
 @raise_if_error_output
