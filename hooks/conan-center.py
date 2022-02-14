@@ -1026,7 +1026,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if not re.search(r"(\s{4}|\t)short_paths\s*=", conanfile_content):
             windows_max_path = 256
             # INFO: Need to reserve around 160 characters for package folder path
-            for folder, length in [(conanfile.source_folder, 100), (conanfile.package_folder, 160)]:
+            for folder, length in [(conanfile.source_folder, 140), (conanfile.package_folder, 160)]:
                 file_max_length_path = windows_max_path - length
                 with tools.chdir(folder):
                     for (root, _, filenames) in os.walk("."):
