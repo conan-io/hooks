@@ -1,14 +1,21 @@
-[![Build Status](https://travis-ci.org/conan-io/hooks.svg?branch=master)](https://travis-ci.org/conan-io/hooks)
-[![Build status](https://ci.appveyor.com/api/projects/status/54a25v53i3ldu8ro/branch/master?svg=true)](https://ci.appveyor.com/project/ConanOrgCI/hooks/branch/master)
-
-
 # Conan Hooks
 
 ![logo](images/logo.png)
 
+[![Build Status](https://ci.conan.io/job/Hooks/job/master/badge/icon)](https://ci.conan.io/job/Hooks/job/master/)
+
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
-**WARNING**: Hooks were originally named "Plugins"
+ * [Conan Center](#conan-center)
+ * [Attribute checker](#attribute-checker)
+ * [Binary linter](#binary-linter)
+ * [Github updater](#github-updater)
+ * [Member typo checker](#members-typo-checker)
+ * [SPDX checker](#spdx-checker)
+ * [Recipe linter](#recipe-linter)
+ * [Non ASCII](#non-ascii)
+ * [YAML linter](#yaml-linter)
+
 
 ## Hook setup
 
@@ -53,8 +60,8 @@ These are the hooks currently available in this repository
 
 ### [Conan Center](hooks/conan-center.py)
 
-This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/bintray/conan_center_guide.html#inclusion-guidelines-for-third-party-libraries)
-in [Conan Center](https://bintray.com/conan/conan-center).
+This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
+in [Conan Center](https://conan.io/center/).
 
 It is mostly intended for users who want to contribute packages to Conan Center. With this hook
 they will test some of the requirements in the guidelines, as this hook will check for recipe
@@ -87,16 +94,6 @@ variable ``CONAN_HOOK_ERROR_LEVEL``:
 
 This hook checks that some important attributes are present in the ``ConanFile``: url,
 license and description, and will output a warning for the missing ones.
-
-### [Bintray Updater](hooks/bintray_updater.py)
-
-This Conan hook reads your recipe and updates its Bintray package info using the attributes.
-
-It's necessary pass Bintray login by environment variables:
-  - BINTRAY_LOGIN_USERNAME: Bintray login username
-  - BINTRAY_PASSWORD: Bintray API KEY
-
-The hook is automatically called when upload command is executed.
 
 ### [Binary Linter](hooks/binary_linter.py)
 
@@ -159,6 +156,35 @@ The hook uses [spdx_lookup](https://pypi.org/project/spdx-lookup/) python module
 Use `pip install spdx_lookup` in order to install required dependency.
 
 The hook is automatically called when *export* command is executed.
+
+### [Recipe linter](hooks/recipe_linter.py)
+
+This hook runs [Pylint](https://www.pylint.org/) over the recipes before exporting
+them (it runs in the `pre_export` hook), it can be really useful to check for
+typos, code flaws or company standards.
+
+There several environment variables you can use to configure it:
+ * `CONAN_PYLINTRC`: path to a configuration file to fully customize Pylint behavior.
+ * `CONAN_PYLINT_WERR`: if set, linting errors will trigger a `ConanException`.
+ * `CONAN_PYLINT_RECIPE_PLUGINS`: list of modules (comma separated list) to load. They are used to register additional checker or dynamic fields before running
+ the linter. By default it points to the `conans.pylint_plugin` module distributed
+ together with Conan, this file contains the declaration of some extra fields that are valid in the `ConanFile` class.
+
+This hook requires additional dependencies to work: `pip install pylint astroid`.
+
+### [Non ASCII](hooks/non_ascii.py)
+
+Separate KB-H047 from Conan Center, which is no longer required due Python 2.7 deprecation.
+
+Validates if `conanfile.py` and `test_package/conanfile.py` contain a non-ascii present, when there is a character, it logs an error.
+
+### [YAML linter](hooks/yaml_linter.py)
+
+This hook runs [yamllint](https://yamllint.readthedocs.io/) over the yaml files
+in a recipe before exporting them (it runs in the `pre_export` hook), it can be
+really useful to check for typos.
+
+This hook requires additional dependencies to work: `pip install yamllint`.
 
 ## License
 

@@ -1,4 +1,8 @@
 pytest>=3.6
 parameterized
 responses
-pluggy==0.11.0
+pluggy
+pylint==2.10.2
+astroid
+spdx_lookup
+yamllint
