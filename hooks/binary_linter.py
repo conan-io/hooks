@@ -53,7 +53,6 @@ class BinaryLinter(object):
         self._binary = lief.parse(filename)
 
         if not self._binary:
-            self._output.info('file "%s" is not a executable, skipping...' % filename)
             return
 
         if self._binary.format != self._expected_format:
@@ -151,7 +150,7 @@ class BinaryLinter(object):
             return 'msvcr%s0' % version if version < 14 else 'vcruntime140'
 
         return {str(version): {'MDd': runtime_name(version) + 'd.dll',
-                               'MD': runtime_name(version) + '.dll'} for version in range(8, 16)}
+                               'MD': runtime_name(version) + '.dll'} for version in range(8, 17)}
 
     def _verify_runtime(self):
         for version in self._runtime_libraries:

@@ -4,18 +4,10 @@ import json
 import os
 import platform
 import subprocess
-import sys
 import re
 
 from conans.errors import ConanException
 from conans.tools import logger
-
-try:
-    import astroid  # Conan 'pylint_plugin.py' uses astroid
-    from pylint import epylint as lint
-except ImportError as e:
-    sys.stderr.write("Install pylint to use 'recipe_linter' hook: 'pip install pylint astroid'")
-    sys.exit(1)
 
 
 CONAN_HOOK_PYLINT_RCFILE = "CONAN_PYLINTRC"
@@ -24,6 +16,12 @@ CONAN_HOOK_PYLINT_RECIPE_PLUGINS = "CONAN_PYLINT_RECIPE_PLUGINS"
 
 
 def pre_export(output, conanfile_path, *args, **kwargs):
+    try:
+        import astroid  # Conan 'pylint_plugin.py' uses astroid
+        from pylint import epylint as lint
+    except ImportError as e:
+        output.error("Install pylint to use 'recipe_linter' hook: 'pip install pylint astroid'")
+        return
     output.info("Lint recipe '{}'".format(conanfile_path))
     conanfile_dirname = os.path.dirname(conanfile_path)
 
