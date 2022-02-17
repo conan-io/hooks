@@ -1071,7 +1071,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
             for p in component.libdirs:
                 if not os.path.isdir(p):
                     continue
-                libs_to_search = [l for l in libs_to_search if l not in tools.collect_libs(conanfile, p)]
+                libs_found = tools.collect_libs(conanfile, p)
+                libs_to_search = [l for l in libs_to_search if l not in libs_found]
                 libs_to_search = [l for l in libs_to_search if not os.path.isfile(os.path.join(p, l))]
             for l in libs_to_search:
                 out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
