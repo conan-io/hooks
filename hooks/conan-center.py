@@ -1067,7 +1067,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 for l in libs_declared_and_found:
                     libs_to_search.remove(l)
             for l in libs_to_search:
-                out.error("Component %s::%s library \"%s\" not found in libdirs" % (conanfile.name, component.name, l))
+                out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
+                           "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
 
         _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
