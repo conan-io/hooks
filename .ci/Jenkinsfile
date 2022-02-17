@@ -1,0 +1,179 @@
+pipeline {
+    agent none
+    stages {
+        stage("Windows") {
+            failFast true
+            parallel {
+                stage('Windows - py36') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py36 - Generate environment') {
+                            environment {
+                                PYVER = 'py36'
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                            }
+                        }
+                        stage('Windows - py36 - conancurrent') {
+                            environment {
+                                TOXENV = 'py36-conancurrent'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                        stage('Windows - py36 - conanprev') {
+                            environment {
+                                TOXENV = 'py36-conanprev'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                    }
+                }
+                stage('Windows - py39') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py39 - Generate environment') {
+                            environment {
+                                PYVER = 'py39'
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conancurrent') {
+                            environment {
+                                TOXENV = 'py39-conancurrent'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                        stage('Windows - py39 - conanprev') {
+                            environment {
+                                TOXENV = 'py39-conanprev'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage("Linux") {
+            failFast true
+            parallel {
+                stage('Linux - py36') {
+                    agent {
+                        label 'Linux'
+                    }
+                    stages {
+                        stage('Linux - py36 - Generate environment') {
+                            environment {
+                                PYVER = 'py36'
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                            }
+                        }
+                        stage('Linux - py36 - conandev') {
+                            environment {
+                                TOXENV = 'py36-conandev'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                        stage('Linux - py36 - conancurrent') {
+                            environment {
+                                TOXENV = 'py36-conancurrent'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                    }
+                }
+                stage('Linux - py39') {
+                    agent {
+                        label 'Linux'
+                    }
+                    stages {
+                        stage('Linux - py39 - Generate environment') {
+                            environment {
+                                PYVER = 'py39'
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                            }
+                        }
+                        stage('Linux - py39 - conandev') {
+                            environment {
+                                TOXENV = 'py39-conandev'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                        stage('Linux - py39 - conancurrent') {
+                            environment {
+                                TOXENV = 'py39-conancurrent'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                        stage('Linux - py39 - conanprev') {
+                            environment {
+                                TOXENV = 'py39-conanprev'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                        stage('Linux - py39 - conanprevprev') {
+                            environment {
+                                TOXENV = 'py39-conanprevprev'
+                            }
+                            steps {
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate conan
+                                    tox
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

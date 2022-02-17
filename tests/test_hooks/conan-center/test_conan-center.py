@@ -1,9 +1,11 @@
 # coding=utf-8
 import os
+import io
 import platform
 import textwrap
 import pytest
 import six
+from parameterized import parameterized
 
 from conans import tools
 from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
@@ -18,6 +20,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -33,6 +36,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -51,6 +55,7 @@ class ConanCenterTests(ConanClientTestCase):
         from conans import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
             url = "fake_url.com"
             license = "fake_license"
             description = "whatever"
@@ -69,6 +74,7 @@ class ConanCenterTests(ConanClientTestCase):
             from conans import ConanFile
 
             class Fpic(ConanFile):
+                name = "name"
                 url = "fake_url.com"
                 license = "fake_license"
                 description = "whatever"
@@ -113,6 +119,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
     def test_conanfile_header_only(self):
         tools.save('conanfile.py', content=self.conanfile_header_only)
@@ -325,10 +332,14 @@ class ConanCenterTests(ConanClientTestCase):
         if tools.os_info.is_windows:
             self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
                           "correctly. Please remove it for Windows " \
-                          "configurations: del self.options.fpic", output)
+                          "configurations: del self.options.fPIC", output)
         else:
             self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK. 'fPIC' option found and apparently " \
                         "well managed", output)
+        output = self.conan(['create', '.', 'package/version@conan/test', '-o package:shared=True'])
+        self.assertIn("ERROR: [FPIC MANAGEMENT (KB-H007)] 'fPIC' option not managed " \
+                        "correctly. Please remove it for shared " \
+                        "option: del self.options.fPIC", output)
 
     def test_fpic_remove_windows(self):
         conanfile = textwrap.dedent("""\
@@ -424,6 +435,7 @@ class ConanCenterTests(ConanClientTestCase):
             pass
         """)
         bad_recipe_output = [
+            "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'name' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'url' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'license' attribute.",
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'description' attribute.",
@@ -442,6 +454,15 @@ class ConanCenterTests(ConanClientTestCase):
         for msg in bad_recipe_output:
             self.assertNotIn(msg, output)
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
+
+        for before, after in [('"name" =', '"name"      = '),
+                              ('    "name" =', '\t"name"\t= ')]:
+            tools.save('conanfile.py',
+                    content=self.conanfile_header_only_with_settings.replace(before, after))
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            for msg in bad_recipe_output:
+                self.assertNotIn(msg, output)
+            self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
 
     def test_cci_url(self):
         conanfile = textwrap.dedent("""\
@@ -750,29 +771,6 @@ class ConanCenterTests(ConanClientTestCase):
                       " Remove it from {}."
                       .format(os.path.join("test_package", "CMakeLists.txt")), output)
 
-    @pytest.mark.skipif(six.PY2, reason="Python2 doesn't support utf-8 by default")
-    def test_non_ascii_characters(self):
-        conanfile = textwrap.dedent("""\
-        from conans import ConanFile
-        class AConan(ConanFile):
-            {}
-            pass
-        """)
-        tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, the barbarian"))
-        tools.save(os.path.join('test_package', 'conanfile.py'),
-                                 content=conanfile.replace("{}", "def test(self): # Conan, the barbarian").replace("pass", "    pass"))
-        output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("[NO ASCII CHARACTERS (KB-H047)] OK", output)
-
-        tools.save('conanfile.py', content=conanfile.replace("{}", "# Conan, o bárbaro"))
-        tools.save(os.path.join('test_package', 'conanfile.py'),
-                   content=conanfile.replace("{}", "def test(self): # Conan, o bárbaro").replace("pass", "    pass"))
-        output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'conanfile.py' contains a non-ascii character at line (3)." \
-                      " Only ASCII characters are allowed, please remove it.", output)
-        self.assertIn("ERROR: [NO ASCII CHARACTERS (KB-H047)] The file 'test_package/conanfile.py' contains a non-ascii character at line (3)." \
-                      " Only ASCII characters are allowed, please remove it.", output)
-
     def test_delete_option(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
@@ -790,3 +788,409 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [DELETE OPTIONS (KB-H045)] Found 'self.options.remove'."
                       " Replace it by 'del self.options.<opt>'.", output)
+
+    def test_cmake_version_required(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 2.8.11)
+                project(test)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
+
+        for pair in [("", ""), ("2.8.11", '"2.8.11"'), ("2.8.11", "'2.8.11'")]:
+            tools.save('test_package/CMakeLists.txt', content=cmake.replace(*pair))
+            output = self.conan(['export', '.', 'name/version@user/test'])
+            self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
+                            "requires CMake 3.1 at least."
+                            " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
+
+        cmake += "set(CMAKE_CXX_STANDARD 11)"
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
+                      "requires CMake 3.1 at least."
+                      " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
+
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 3.1)
+                project(test)
+                set(CMAKE_CXX_STANDARD 11)
+                """)
+        tools.save('CMakeLists.txt', content=cmake)
+        tools.save('test_package/CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
+
+
+    def test_cmake_export_all_symbols_version_required(self):
+        conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
+        cmake = textwrap.dedent("""
+                cmake_minimum_required(VERSION 3.4)
+                project(test)
+                set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=cmake)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
+
+        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "2.8.12"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
+                      "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
+
+        tools.save('CMakeLists.txt',
+                   content=cmake.replace("3.4", "3")
+                                .replace("CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS",
+                                         "WINDOWS_EXPORT_ALL_SYMBOLS"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
+                      "WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
+                      "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
+
+        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
+
+    def test_default_option_value(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            options = {"shared": [True, False]}
+            default_options = {"shared": False}
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("False}", "True}"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [DEFAULT SHARED OPTION VALUE (KB-H050)] The option 'shared' must be "
+                      "'False' by default. Update 'default_options'.", output)
+
+    def test_missing_version_in_config(self):
+        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile_base.format(placeholder=''))
+        conandata = textwrap.dedent("""
+                    sources:
+                        1.0:
+                           url: fakeurl
+                           md5: 12323423423
+                        2.0:
+                           url: fakeurl
+                           md5: 12323423423
+        """)
+        config = textwrap.dedent("""
+        versions:
+          1.0:
+            folder:all
+        """)
+        tools.save("config.yml", content=config)
+        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
+                      output)
+
+        config = textwrap.dedent("""
+        versions:
+          1.0:
+            folder:all
+          2.0:
+            folder:all
+        """)
+        tools.save("config.yml", content=config)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertNotIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
+                         output)
+
+    def test_private_import(self):
+        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.errors import ConanInvalidConfiguration\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.tools import Version\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+        tools.save('conanfile.py', content="from conans.client.tools import msvs_toolset\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
+
+        tools.save('conanfile.py', content="from conans.model.version import Version\n" +
+                                           self.conanfile_base.format(placeholder=''))
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
+
+        tools.save('conanfile.py', content="from conans.model import Generator\n" +
+                                           self.conanfile_base.format(placeholder=''))
+        output = self.conan(['export', '.', 'name/version@'])
+        self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
+
+    @parameterized.expand([("",), ("build_",)])
+    def test_duplicated_requires(self, prefix):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class MockRecipe(ConanFile):
+            {0}requires = "foo/0.1.0"
+
+            def {0}requirements(self):
+                self.{0}requires("bar/0.1.0")
+        """.format(prefix))
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] Both '{0}requires' attribute and '{0}requirements()' "
+                      "method should not be declared at same recipe.".format(prefix), output)
+
+        tools.save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
+                                                    .replace('self.{}requires("bar/0.1.0")'.format(prefix), ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
+
+    def test_public_domain_license(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            license = "Public Domain"
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [LICENSE PUBLIC DOMAIN (KB-H056)] " \
+                      "Public Domain is not a SPDX license. Use 'Unlicense' instead.", output)
+
+    def test_os_rename_warning(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                open("foobar.txt", "w")
+                os.rename("foobar.txt", "foo.txt")
+        """)
+        conanfile_tp = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class TestConan(ConanFile):
+            def test(self):
+                open("foo.txt", "w")
+                os.rename("foo.txt", "bar.txt")
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('test_package/conanfile.py', content=conanfile_tp)
+
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
+                      " permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
+                      " may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
+                      " and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in test_package/conanfile.py"
+                      " is outdated and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
+                      " instead.", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("os.rename(", "tools.rename(self, "))
+        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.rename(", "tools.rename(self, "))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertNotIn("WARN: [TOOLS RENAME (KB-H057)]", output)
+        self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
+
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Can not use illegal name on Windows")
+    def test_disallowed_filename(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            exports = "foo."
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[ILLEGAL CHARACTERS (KB-H058)] OK", output)
+
+        for filename in ["conanfile?.py", "conan file.py", "conanfile%.py"]:
+            tools.save(filename, content=conanfile)
+            output = self.conan(['export', filename, 'name/version@user/test'])
+            self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file '{}' uses illegal"
+                          " charecters (<>:\"/\\|?*%,; ) for its name. Please, rename that file."
+                          .format(filename), output)
+
+        tools.save("conanfile.py", content=conanfile)
+        tools.save("foo.", content="")
+        output = self.conan(['export', "conanfile.py", 'name/version@user/test'])
+        self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'foo.' ends with a dot."
+                      " Please, remove the dot from the end.", output)
+
+    def test_class_name_disallowed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameConan' instead.", output)
+
+    def test_class_name_disallowed_dashed(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class LibnameConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name-sdk/version@user/test'])
+        self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameSdkConan' instead.", output)
+
+    def test_no_crlf(self):
+        conanfile = u"from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+        with io.open('conanfile.py', 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("ERROR: [NO CRLF (KB-H060)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
+
+        tools.save('conanfile.py', content=conanfile)
+        tools.mkdir(os.path.join('test_package', 'build'))
+        with io.open(os.path.join('test_package', 'build', 'conanfile.py'), 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        with io.open(os.path.join('conanfile.ttf'), 'w', newline='\r\n') as f_handle:
+            f_handle.write(conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[NO CRLF (KB-H060)] OK", output)
+
+    def test_tools_cross_building(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+        import os
+
+        class AConan(ConanFile):
+            def source(self):
+                tools.cross_building(self)
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("[TOOLS CROSS BUILDING (KB-H062)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
+                                                             "tools.cross_building(self.settings)"))
+        output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
+        self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
+
+    def test_strip_root_required_conan_version(self):
+        # no required_conan_version
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile, tools
+
+        class TestConan(ConanFile):
+            def source(self):
+                tools.get({}, strip_root=True)
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/all@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # handle multiline call (for now only two lines)
+        conanfile = textwrap.dedent("""\
+               from conans import ConanFile, tools
+
+               class TestConan(ConanFile):
+                   def source(self):
+                       tools.get({},
+                                 strip_root=True)
+               """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # wrong required_conan_version
+        conanfile = textwrap.dedent("""\
+               from conans import ConanFile, tools
+
+               required_conan_version = ">=1.28.0"
+
+               class TestConan(ConanFile):
+                   def source(self):
+                       tools.get({}, strip_root=True)
+               """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
+        # proper required_conan_version
+        conanfile = textwrap.dedent("""\
+                from conans import ConanFile, tools
+
+                required_conan_version = ">=1.33.0"
+
+                class TestConan(ConanFile):
+                    def source(self):
+                        tools.get({}, strip_root=True)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+
+        # short version, spacing
+        conanfile = textwrap.dedent("""\
+                from conans import ConanFile, tools
+
+                required_conan_version= ">= 1.33"
+
+                class TestConan(ConanFile):
+                    def source(self):
+                        tools.get({}, strip_root=True)
+                """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+
+    def test_no_collect_libs_warning(self):
+        conanfile = textwrap.dedent("""\
+            from conans import ConanFile
+
+            class AConan(ConanFile):
+                def package_info(self):
+                    pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
+        self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)
