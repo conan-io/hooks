@@ -83,6 +83,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
 
 this = sys.modules[__name__]
 
+
 class _HooksOutputErrorCollector(object):
 
     def __init__(self, output, kb_id=None):
@@ -676,6 +677,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if any(line.endswith(b'\r\n') for line in lines):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
+
     @run_test("KB-H061", output)
     def test(out):
         Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
@@ -1279,6 +1281,7 @@ def _check_short_paths(conanfile_path, folder_path, max_length_path, output):
                             "Add 'short_paths = True' in your recipe.")
                         break
 
+
 def _get_compiler(conanfile):
     settings = _get_settings(conanfile)
     if not settings:
@@ -1305,11 +1308,11 @@ def _deplibs_from_shlibs(conanfile, out):
     libraries = _get_files_with_extensions(conanfile.package_folder, [shlext])
     if not libraries:
         return deplibs
-    if os_ == "Linux" or tools.is_apple_os(os_) or _get_compiler(conanfile) != "Visual Studio":
+    if os_ == "Linux" or tools.is_apple_os(os_) or _get_compiler(conanfile) not in ["Visual Studio", "msvc"]:
         objdump = tools.get_env("OBJDUMP") or tools.which("objdump")
         if not objdump:
             out.warn("objdump not found")
-            return
+            return deplibs
         for library in libraries:
             if _get_os(conanfile) == "Windows":
                 cmd = [objdump, "--section=.idata", "-x", library]
@@ -1333,15 +1336,14 @@ def _deplibs_from_shlibs(conanfile, out):
                         out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(dep_lib_fn, library))
                         continue
                     deplibs.setdefault(dep_lib_match.group(1), []).append(library)
-    elif _get_compiler(conanfile) == "Visual Studio" or _get_os == "Windows":
-        with tools.vcvars(conanfile.settings):
+    elif _get_compiler(conanfile) in ["Visual Studio", "msvc"] or _get_os == "Windows":
+        with tools.vcvars(conanfile):
             for library in libraries:
                 try:
                     dumpbin_output = subprocess.check_output(["dumpbin", "-dependents", library], cwd=conanfile.package_folder).decode()
                 except subprocess.CalledProcessError:
                     out.warn("Running dumpbin on '{}' failed.".format(library))
                     continue
-                print("OUTPUT:", dumpbin_output)
                 for l in re.finditer(r"([a-z0-9\-_]+)\.dll", dumpbin_output, re.IGNORECASE):
                     dep_lib_base = l.group(1).lower()
                     deplibs.setdefault(dep_lib_base, []).append(library)
