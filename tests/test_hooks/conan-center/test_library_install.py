@@ -71,3 +71,8 @@ class TestInstalledLibraries(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+    def test_full_library(self):
+        tools.save('conanfile.py', content=self.conanfile.replace("[]", "['libfoo.a']"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
