@@ -4,64 +4,64 @@ pipeline {
         stage("Windows") {
             failFast true
             parallel {
-                stage('Windows - py27') {
+                stage('Windows - py36') {
                     agent {
                         label 'Windows'
                     }
                     stages {
-                        stage('Windows - py27 - Generate environment') {
+                        stage('Windows - py36 - Generate environment') {
                             environment {
-                                PYVER = 'py27'
+                                PYVER = 'py36'
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
                             }
                         }
-                        stage('Windows - py27 - conandev') {
+                        stage('Windows - py36 - conancurrent') {
                             environment {
-                                TOXENV = 'py27-conandev'
+                                TOXENV = 'py36-conancurrent'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
-                        stage('Windows - py27 - conancurrent') {
+                        stage('Windows - py36 - conanprev') {
                             environment {
-                                TOXENV = 'py27-conancurrent'
+                                TOXENV = 'py36-conanprev'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                     }
                 }
-                stage('Windows - py38') {
+                stage('Windows - py39') {
                     agent {
                         label 'Windows'
                     }
                     stages {
-                        stage('Windows - py38 - Generate environment') {
+                        stage('Windows - py39 - Generate environment') {
                             environment {
-                                PYVER = 'py38'
+                                PYVER = 'py39'
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
                             }
                         }
-                        stage('Windows - py38 - conanprev') {
+                        stage('Windows - py39 - conancurrent') {
                             environment {
-                                TOXENV = 'py38-conanprev'
+                                TOXENV = 'py39-conancurrent'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
-                        stage('Windows - py38 - conanprevprev') {
+                        stage('Windows - py39 - conanprev') {
                             environment {
-                                TOXENV = 'py38-conanprevprev'
+                                TOXENV = 'py39-conanprev'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                     }
@@ -71,22 +71,22 @@ pipeline {
         stage("Linux") {
             failFast true
             parallel {
-                stage('Linux - py35') {
+                stage('Linux - py36') {
                     agent {
                         label 'Linux'
                     }
                     stages {
-                        stage('Linux - py35 - Generate environment') {
+                        stage('Linux - py36 - Generate environment') {
                             environment {
-                                PYVER = 'py35'
+                                PYVER = 'py36'
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                             }
                         }
-                        stage('Linux - py35 - conandev') {
+                        stage('Linux - py36 - conandev') {
                             environment {
-                                TOXENV = 'py35-conandev'
+                                TOXENV = 'py36-conandev'
                             }
                             steps {
                                 sh '''
@@ -96,9 +96,9 @@ pipeline {
                                 '''
                             }
                         }
-                        stage('Linux - py35 - conancurrent') {
+                        stage('Linux - py36 - conancurrent') {
                             environment {
-                                TOXENV = 'py35-conancurrent'
+                                TOXENV = 'py36-conancurrent'
                             }
                             steps {
                                 sh '''
@@ -110,22 +110,22 @@ pipeline {
                         }
                     }
                 }
-                stage('Linux - py38') {
+                stage('Linux - py39') {
                     agent {
                         label 'Linux'
                     }
                     stages {
-                        stage('Linux - py38 - Generate environment') {
+                        stage('Linux - py39 - Generate environment') {
                             environment {
-                                PYVER = 'py38'
+                                PYVER = 'py39'
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                             }
                         }
-                        stage('Linux - py38 - conandev') {
+                        stage('Linux - py39 - conandev') {
                             environment {
-                                TOXENV = 'py38-conandev'
+                                TOXENV = 'py39-conandev'
                             }
                             steps {
                                 sh '''
@@ -135,9 +135,9 @@ pipeline {
                                 '''
                             }
                         }
-                        stage('Linux - py38 - conancurrent') {
+                        stage('Linux - py39 - conancurrent') {
                             environment {
-                                TOXENV = 'py38-conancurrent'
+                                TOXENV = 'py39-conancurrent'
                             }
                             steps {
                                 sh '''
@@ -147,9 +147,9 @@ pipeline {
                                 '''
                             }
                         }
-                        stage('Linux - py38 - conanprev') {
+                        stage('Linux - py39 - conanprev') {
                             environment {
-                                TOXENV = 'py38-conanprev'
+                                TOXENV = 'py39-conanprev'
                             }
                             steps {
                                 sh '''
@@ -159,9 +159,9 @@ pipeline {
                                 '''
                             }
                         }
-                        stage('Linux - py38 - conanprevprev') {
+                        stage('Linux - py39 - conanprevprev') {
                             environment {
-                                TOXENV = 'py38-conanprevprev'
+                                TOXENV = 'py39-conanprevprev'
                             }
                             steps {
                                 sh '''
