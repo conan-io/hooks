@@ -92,7 +92,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
             class Recipe(ConanFile):
                 def build(self):
-                    self.output.info(self.source_folder)
+                    self.output.info(self.conan_data)
         """)
         tools.save('conanfile.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
