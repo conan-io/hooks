@@ -4,37 +4,6 @@ pipeline {
         stage("Windows") {
             failFast true
             parallel {
-                stage('Windows - py27') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py27 - Generate environment') {
-                            environment {
-                                PYVER = 'py27'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py27 - conandev') {
-                            environment {
-                                TOXENV = 'py27-conandev'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                        stage('Windows - py27 - conancurrent') {
-                            environment {
-                                TOXENV = 'py27-conancurrent'
-                            }
-                            steps {
-                                bat 'tox'
-                            }
-                        }
-                    }
-                }
                 stage('Windows - py36') {
                     agent {
                         label 'Windows'
@@ -53,7 +22,7 @@ pipeline {
                                 TOXENV = 'py36-conancurrent'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                         stage('Windows - py36 - conanprev') {
@@ -61,7 +30,7 @@ pipeline {
                                 TOXENV = 'py36-conanprev'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                     }
@@ -84,7 +53,7 @@ pipeline {
                                 TOXENV = 'py39-conancurrent'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                         stage('Windows - py39 - conanprev') {
@@ -92,7 +61,7 @@ pipeline {
                                 TOXENV = 'py39-conanprev'
                             }
                             steps {
-                                bat 'tox'
+                                bat 'tox --recreate'
                             }
                         }
                     }
