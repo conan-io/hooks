@@ -1,6 +1,95 @@
 pipeline {
     agent none
     stages {
+        stage("Macos") {
+            failFast true
+            parallel {
+                stage('Macos - py36') {
+                    agent {
+                        label 'Macos'
+                    }
+                    stages {
+                        stage('Macos - py36 - Generate environment') {
+                            environment {
+                                PYVER = 'py36'
+                            }
+                            steps {
+                                sh '.ci/generate_env_macos.sh'
+                            }
+                        }
+                        stage('Macos - py36 - conandev') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py36-conandev'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                        stage('Macos - py36 - conancurrent') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py36-conancurrent'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                    }
+                }
+                stage('Macos - py39') {
+                    agent {
+                        label 'Macos'
+                    }
+                    stages {
+                        stage('Macos - py39 - Generate environment') {
+                            environment {
+                                PYVER = 'py39'
+                            }
+                            steps {
+                                sh '.ci/generate_env_macos.sh'
+                            }
+                        }
+                        stage('Macos - py39 - conandev') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py39-conandev'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                        stage('Macos - py39 - conancurrent') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py39-conancurrent'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                        stage('Macos - py39 - conanprev') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py39-conanprev'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                        stage('Macos - py39 - conanprevprev') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py39-conanprevprev'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
+                    }
+                }
+            }
+        }
         stage("Windows") {
             failFast true
             parallel {
