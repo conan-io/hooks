@@ -7,8 +7,9 @@ import re
 import sys
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
+
+from conans import tools, ConanFile
 import yaml
-from conans import tools
 try:
     from conans import Settings
 except ImportError:
@@ -46,6 +47,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H031": "CONANDATA.YML REDUCE",
              "KB-H032": "SYSTEM REQUIREMENTS",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
+             "KB-H036": "CUSTOM METHODS",             
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
              "KB-H041": "NO FINAL ENDLINE",
@@ -420,6 +422,31 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         test_package_conanfile = tools.load(os.path.join(test_package_path, "conanfile.py"))
         if "def imports" in test_package_conanfile:
             out.error("The method `imports` is not allowed in test_package/conanfile.py")
+
+    @run_test("KB-H036", output)
+    def test(out):
+        def get_methods(conanfile):
+            methods = []
+            for member in dir(conanfile):
+
+                try:
+                    if callable(getattr(conanfile, member)):
+                        methods.append(str(member))
+                except:
+                    methods.append(str(member))
+            return methods
+
+        mock = ConanFile(conanfile.output, None)
+        valid_attrs = get_methods(mock)
+        current_attrs = get_methods(conanfile)
+        invalid_attrs = re.findall(r"def (__.*[^_])\s?\(", conanfile_content, re.MULTILINE)
+        for attr in current_attrs:
+            if not attr.startswith("_") and attr not in valid_attrs:
+                invalid_attrs.append(attr)
+
+        if invalid_attrs:
+            out.error("Custom methods must be declared as protected. " \
+                      "The follow methods are invalid: '{}'".format("', '".join(invalid_attrs)))
 
     @run_test("KB-H037", output)
     def test(out):
