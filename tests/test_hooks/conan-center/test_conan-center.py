@@ -536,6 +536,7 @@ class ConanCenterTests(ConanClientTestCase):
         # validate residual cmake files in test_package/build
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+
         self.assertNotIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
 
         cmake = textwrap.dedent("""CMAKE_MINIMUM_REQUIRED (VERSION 2.8.11)
@@ -603,6 +604,30 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'libusb/version@user/test'])
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] 'libusb' is part of the allowlist.", output)
         self.assertNotIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)]", output)
+
+    def test_apple_frameworks(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            url = "https://github.com/conan-io/conan-center-index"
+            license = "fake_license"
+            description = "whatever"
+            exports_sources = "header.h"
+            def package(self):
+                self.copy("*", dst="include")
+            def cpp_info(self):
+                self.cpp_info.""")
+
+        inv_conanfile = conanfile + 'shared_link_flags.append("-framework CoreAudio")'
+        tools.save('conanfile.py', content=inv_conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [APPLE FRAMEWORK (KB-H033)] Apple Frameworks should be packaged " \
+                      "using 'self.cpp_info.frameworks'", output)
+
+        val_conanfile = conanfile + 'frameworks.append("CoreAudio")'
+        tools.save('conanfile.py', content=val_conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[APPLE FRAMEWORK (KB-H033)] OK", output)
 
     def test_imports_not_allowed(self):
         conanfile_tp = textwrap.dedent("""\

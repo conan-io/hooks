@@ -45,6 +45,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H030": "CONANDATA.YML FORMAT",
              "KB-H031": "CONANDATA.YML REDUCE",
              "KB-H032": "SYSTEM REQUIREMENTS",
+             "KB-H033": "APPLE FRAMEWORK",
              "KB-H034": "TEST PACKAGE - NO IMPORTS()",
              "KB-H037": "NO AUTHOR",
              "KB-H040": "NO TARGET NAME",
@@ -345,6 +346,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if ("SystemPackageTool().install" in conanfile_content) or \
                (match and "{}.install".format(match.group(1)) in conanfile_content):
                 out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+
+    @run_test("KB-H033", output)
+    def test(out):
+        if "cpp_info.shared_link_flags" in conanfile_content and "-framework" in conanfile_content:
+            out.error("Apple Frameworks should be packaged using 'self.cpp_info.frameworks'")
 
     @run_test("KB-H030", output)
     def test(out):
