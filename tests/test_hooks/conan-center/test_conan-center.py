@@ -118,6 +118,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
@@ -141,6 +142,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
@@ -162,6 +164,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[CUSTOM ATTRIBUTES (KB-H035)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_settings_clear_with_settings(self):
@@ -603,6 +606,42 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'libusb/version@user/test'])
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] 'libusb' is part of the allowlist.", output)
         self.assertNotIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)]", output)
+
+    def test_invalid_recipe_attributes(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            url = "fake_url.com"
+            license = "fake_license"
+            description = "whatever"
+            homepage = "homepage.com"
+            topics = ("fake_topic", "another_fake_topic")
+            exports_sources = "header.h"
+            options = {"foo": [True, False], "bar": [True, False]}
+            default_options = {"foo": False, "bar": True}
+            _source_subfolder = "source_subfolder"
+            _build_subfolder = "build_subfolder"
+            __my_private = "secret"
+            __attribute__ = "foobar"
+            __qux= "baz"
+            foobar = "package"
+            package_subfolder = "package"
+
+            def package(self):
+                self.copy("*", dst="include")
+
+            def _foobar(self):
+                pass
+
+            def __private(self):
+                pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [CUSTOM ATTRIBUTES (KB-H035)] Custom attributes must be declared as "
+                      "protected. The follow attributes are invalid: '__my_private ', "
+                      "'__attribute__ ', '__qux', 'foobar', 'package_subfolder'", output)
 
     def test_imports_not_allowed(self):
         conanfile_tp = textwrap.dedent("""\
