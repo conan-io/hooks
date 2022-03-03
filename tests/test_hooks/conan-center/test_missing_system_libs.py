@@ -10,7 +10,6 @@ from conans import __version__ as conan_version
 
 
 @unittest.skipUnless(conan_version >= "1.19.0", "Conan >= 1.19.0 needed")
-@unittest.skipIf(tools.is_apple_os(tools.detected_os()), "Apple os'es are not supported")
 class ConanMissingSystemLibs(ConanClientTestCase):
     cmakelists = textwrap.dedent("""\
         cmake_minimum_required(VERSION 2.8)
@@ -80,6 +79,7 @@ class ConanMissingSystemLibs(ConanClientTestCase):
                     self.cpp_info.system_libs = {system_libs_shared}
                 else:
                     self.cpp_info.system_libs = {system_libs_static}
+                self.cpp_info.frameworks = {frameworks}
         """)
 
     conanfile_test = textwrap.dedent("""\
@@ -91,26 +91,32 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         """)
 
     class OSBuildInfo(object):
-        def __init__(self, includes, link_libs, shlibs_bases, function):
+        def __init__(self, includes, link_libs, shlibs_bases, frameworks, function):
             self.includes = includes
             self.libs = link_libs
             self.shlibs_bases = shlibs_bases
+            self.frameworks = frameworks
             self.function = function
 
     @property
     def _os_build_info(self):
         return {
-            "Linux": self.OSBuildInfo(["dlfcn.h"], ["libdl.so"], ["dl"], "dlclose((void*)0)"),
-            "Windows": self.OSBuildInfo(["winsock.h"], ["ws2_32.lib"], ["ws2_32"], "ntohs(0x4200)"),
-            # "Macos": self.OSBuildInfo([], ["m"], "(int)tan(42.)"),
+            "Linux": self.OSBuildInfo(["dlfcn.h"], ["libdl.so"], ["dl"], [], "dlclose((void*)0)"),
+            "Windows": self.OSBuildInfo(["winsock.h"], ["ws2_32.lib"], ["ws2_32"], [], "ntohs(0x4200)"),
+            "Macos": self.OSBuildInfo(["CoreServices/CoreServices.h"], ["CoreServices"], [],
+                                      ["CoreServices"],
+                                      "FSEventStreamCopyDescription(0)"),
         }[tools.detected_os()]
 
     @property
     def _os_build_info2(self):
         return {
-            "Linux": self.OSBuildInfo(["mqueue.h"], ["librt.so"], ["rt"], "mq_open(0, 0)"),
-            "Windows": self.OSBuildInfo(["shlwapi.h"], ["shlwapi.lib"], ["shlwapi"], "PathIsDirectory(\"C:\\Windows\")"),
-            # "Macos": self.OSBuildInfo([], ["m"], "(int)tan(42.)"),
+            "Linux": self.OSBuildInfo(["mqueue.h"], ["librt.so"], ["rt"], [], "mq_open(0, 0)"),
+            "Windows": self.OSBuildInfo(["shlwapi.h"], ["shlwapi.lib"], ["shlwapi"], [],
+                                        "PathIsDirectory(\"C:\\Windows\")"),
+            "Macos": self.OSBuildInfo(["CoreFoundation/CoreFoundation.h"], ["CoreFoundation"], [],
+                                      ["CoreFoundation"],
+                                      "CFNumberCreate(kCFAllocatorDefault, 0, 0)"),
         }[tools.detected_os()]
 
     @property
@@ -118,7 +124,7 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         return {
             "Windows": "",
             "Linux": "lib",
-            # "Macos": "lib",
+            "Macos": "lib",
         }[tools.detected_os()]
 
     @property
@@ -126,7 +132,15 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         return {
             "Windows": "dll",
             "Linux": "so",
-            # "Macos": "dylib",
+            "Macos": "dylib",
+        }[tools.detected_os()]
+
+    @property
+    def _attribute(self):
+        return {
+            "Windows": "system_lib",
+            "Linux": "system_lib",
+            "Macos": "frameworks",
         }[tools.detected_os()]
 
     @property
@@ -134,7 +148,7 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         return {
             "Windows": "bin",
             "Linux": "lib",
-            # "Macos": "lib",
+            "Macos": "lib",
         }[tools.detected_os()]
 
     def _get_environ(self, **kwargs):
@@ -143,70 +157,117 @@ class ConanMissingSystemLibs(ConanClientTestCase):
                                                    'hooks', 'conan-center')})
         return kwargs
 
-    def _write_files(self, osbuildinfo, system_libs_shared, system_libs_static, requires=(), name="simplelib", subdir="."):
-        tools.save(os.path.join(subdir, "conanfile.py"), content=self.conanfile.format(name=name, system_libs_shared=repr(system_libs_shared), system_libs_static=repr(system_libs_static), requires=repr(requires)))
-        tools.save(os.path.join(subdir, "CMakeLists.txt"), content=self.cmakelists.format(name=name, link_lib=" ".join(osbuildinfo.libs)))
-        tools.save(os.path.join(subdir, "simplelib.c"), content=self.source_c.format(name=name, includes="\n".join("#include <{}>".format(include) for include in osbuildinfo.includes), function_call=osbuildinfo.function))
-        tools.save(os.path.join(subdir, "test_package", "conanfile.py"), content=self.conanfile_test)
+    def _write_files(self, osbuildinfo, system_libs_shared, frameworks, system_libs_static,
+                     requires=(), name="simplelib", subdir="."):
+        tools.save(os.path.join(subdir, "conanfile.py"),
+                   content=self.conanfile.format(name=name,
+                                                 system_libs_shared=repr(system_libs_shared),
+                                                 system_libs_static=repr(system_libs_static),
+                                                 frameworks=repr(frameworks),
+                                                 requires=repr(requires)))
+        tools.save(os.path.join(subdir, "CMakeLists.txt"),
+                   content=self.cmakelists.format(name=name,
+                                                  link_lib=" ".join(osbuildinfo.libs)))
+        tools.save(os.path.join(subdir, "simplelib.c"),
+                   content=self.source_c.format(name=name,
+                                                includes="\n".join("#include <{}>".format(include) for include in osbuildinfo.includes),
+                                                function_call=osbuildinfo.function))
+        tools.save(os.path.join(subdir, "test_package", "conanfile.py"),
+                   content=self.conanfile_test)
 
     def test_no_system_lib(self):
-        osbuildinfo = self.OSBuildInfo([], [], [], "42")
-        self._write_files(osbuildinfo=osbuildinfo, system_libs_static=[], system_libs_shared=[])
+        osbuildinfo = self.OSBuildInfo([], [], [], [], "42")
+        self._write_files(osbuildinfo=osbuildinfo, system_libs_static=[], system_libs_shared=[],
+                          frameworks=[])
         output = self.conan(["create", ".", "name/version@user/channel", "-o", "name:shared=True"])
         self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] OK", output)
         for lib in self._os_build_info.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}simplelib.{}".format(self._prefix, self._shlext))
-            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                             "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                             format(library=library, shlext=self._shlext, syslib=lib,
+                                    attribute=self._attribute), output)
 
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     def test_system_lib_correct(self):
-        self._write_files(osbuildinfo=self._os_build_info, system_libs_static=self._os_build_info.shlibs_bases, system_libs_shared=[])
+        self._write_files(osbuildinfo=self._os_build_info,
+                          system_libs_static=self._os_build_info.shlibs_bases,
+                          system_libs_shared=[], frameworks=[])
         output = self.conan(["create", ".", "name/version@user/channel", "-o", "name:shared=True"])
         self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] OK", output)
         for lib in self._os_build_info.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}simplelib.{}".format(self._prefix, self._shlext))
-            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                             "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                             format(library=library, shlext=self._shlext, syslib=lib,
+                                    attribute=self._attribute), output)
 
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     def test_system_lib_missing(self):
-        self._write_files(osbuildinfo=self._os_build_info, system_libs_static=[], system_libs_shared=[])
+        self._write_files(osbuildinfo=self._os_build_info, system_libs_static=[],
+                          system_libs_shared=[], frameworks=[])
         output = self.conan(["create", ".", "name/version@user/channel", "-o", "name:shared=True"])
         for lib in self._os_build_info.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}simplelib.{}".format(self._prefix, self._shlext))
-            self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                          "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                          format(library=library, shlext=self._shlext, syslib=lib,
+                                 attribute=self._attribute), output)
 
     @parameterized.expand([
         (True,),
         (False,),
     ])
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     def test_dep_system_lib_ok(self, dep_shared):
-        self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info, system_libs_static=self._os_build_info.shlibs_bases, system_libs_shared=[])
+        self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info,
+                          system_libs_static=self._os_build_info.shlibs_bases,
+                          system_libs_shared=[], frameworks=[])
         self.conan(["create", "dep", "dep/version@user/channel", "-o", "dep:shared={}".format(dep_shared)])
-        self._write_files(subdir="lib", name="lib", requires=("dep/version@user/channel", ), osbuildinfo=self._os_build_info2, system_libs_static=self._os_build_info2.shlibs_bases, system_libs_shared=[])
-        output = self.conan(["create", "lib", "lib/version@user/channel", "-o", "lib:shared=True", "-o", "dep:shared={}".format(dep_shared)])
+        self._write_files(subdir="lib", name="lib", requires=("dep/version@user/channel", ),
+                          osbuildinfo=self._os_build_info2,
+                          system_libs_static=self._os_build_info2.shlibs_bases,
+                          system_libs_shared=[], frameworks=[])
+        output = self.conan(["create", "lib", "lib/version@user/channel", "-o", "lib:shared=True",
+                             "-o", "dep:shared={}".format(dep_shared)])
         self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] OK", output)
         for lib in self._os_build_info.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}lib.{}".format(self._prefix, self._shlext))
-            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                             "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                             format(library=library, shlext=self._shlext, syslib=lib,
+                                    attribute=self._attribute), output)
         for lib in self._os_build_info2.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}lib.{}".format(self._prefix, self._shlext))
-            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                             "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                             format(library=library, shlext=self._shlext, syslib=lib,
+                                    attribute=self._attribute), output)
 
     @parameterized.expand([
         ("shared_dependency", True),
         ("static_dependency", False),
     ])
-    @unittest.skipUnless(not tools.is_apple_os(tools.detected_os()), "Macos is not supported")
     def test_dep_system_lib_missing(self, name, dep_shared):
-        self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info, system_libs_static=self._os_build_info.shlibs_bases, system_libs_shared=[])
+        self._write_files(subdir="dep", name="dep", osbuildinfo=self._os_build_info,
+                          frameworks=self._os_build_info.frameworks,
+                          system_libs_static=self._os_build_info.shlibs_bases,
+                          system_libs_shared=[])
         self.conan(["create", "dep", "dep/version@user/channel", "-o", "dep:shared={}".format(dep_shared)])
-        self._write_files(subdir="lib", name="lib", requires=("dep/version@user/channel", ), osbuildinfo=self._os_build_info2, system_libs_static=[], system_libs_shared=[])
-        output = self.conan(["create", "lib", "lib/version@user/channel", "-o", "lib:shared=True", "-o", "dep:shared={}".format(dep_shared)])
+        self._write_files(subdir="lib", name="lib", requires=("dep/version@user/channel", ),
+                          osbuildinfo=self._os_build_info2,
+                          frameworks=self._os_build_info.frameworks,
+                          system_libs_static=[],
+                          system_libs_shared=[])
+        output = self.conan(["create", "lib", "lib/version@user/channel", "-o", "lib:shared=True",
+                             "-o", "dep:shared={}".format(dep_shared)])
         self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] OK", output)
         for lib in self._os_build_info.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}lib.{}".format(self._prefix, self._shlext))
-            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertNotIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                             "library '{syslib}' but it is not in cpp_info.{attribute}.".
+                             format(library=library, shlext=self._shlext, syslib=lib,
+                                    attribute=self._attribute), output)
         for lib in self._os_build_info2.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}lib.{}".format(self._prefix, self._shlext))
-            self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system library '{syslib}' but it is not in cpp_info.system_libs.".format(library=library, shlext=self._shlext, syslib=lib), output)
+            self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
+                          "library '{syslib}' but it is not in cpp_info.{attribute}}.".
+                          format(library=library, shlext=self._shlext, syslib=lib,
+                                 attribute=self._attribute), output)

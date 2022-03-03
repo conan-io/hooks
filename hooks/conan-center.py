@@ -1065,23 +1065,25 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H043", output)
     def test(out):
-        if tools.is_apple_os(_get_os(conanfile)):
-            return
         dict_deplibs_libs = _deplibs_from_shlibs(conanfile, out)
         all_system_libs = _all_system_libs(_get_os(conanfile))
 
         needed_system_libs = set(dict_deplibs_libs.keys()).intersection(all_system_libs)
 
-        deps_system_libs = set(conanfile.deps_cpp_info.system_libs)
+        if _get_os(conanfile) == "Macos":
+            deps_system_libs = set(conanfile.deps_cpp_info.frameworks)
+        else:
+            deps_system_libs = set(conanfile.deps_cpp_info.system_libs)
 
         conanfile_system_libs = set(m.group(2) for m in re.finditer(r"""(["'])([a-zA-Z0-9._-]+)(\1)""", tools.load(conanfile_path))).intersection(all_system_libs)
 
         missing_system_libs = needed_system_libs.difference(deps_system_libs.union(conanfile_system_libs))
 
+        attribute = 'frameworks' if _get_os(conanfile) else 'system_libs'
         for missing_system_lib in missing_system_libs:
             libs = dict_deplibs_libs[missing_system_lib]
             for lib in libs:
-                out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.system_libs.".format(lib, missing_system_lib))
+                out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.{}.".format(lib, missing_system_lib, attribute))
 
 
 @raise_if_error_output
@@ -1295,7 +1297,7 @@ def _all_system_libs(os_):
     elif os_ == "Windows":
         return _WIN32_LIBS
     else:
-        return []
+        return _OSX_LIBS
 
 
 def _deplibs_from_shlibs(conanfile, out):
@@ -1328,6 +1330,31 @@ def _deplibs_from_shlibs(conanfile, out):
                 for dep_lib_match in re.finditer(r"DLL Name: (.*).dll", objdump_output, re.IGNORECASE):
                     dep_lib_base = dep_lib_match.group(1).lower()
                     deplibs.setdefault(dep_lib_base, []).append(library)
+            elif _get_os(conanfile) == "Macos":
+                load_commands = {}
+                number = None
+                for line in objdump_output.splitlines():
+                    if line.startswith("Load command"):
+                        tokens = line.split("Load command")
+                        if len(tokens) == 2:
+                            number = int(tokens[1])
+                            load_commands[number] = dict()
+                    elif number is not None:
+                        line = line.strip()
+                        tokens = line.split(None, 1)
+                        if len(tokens) == 2:
+                            load_commands[number][tokens[0]] = tokens[1]
+                r = r"/System/Library/Frameworks/(.*)\.framework/Versions/(.*)/(.*) \(offset (.*)\)"
+                r = re.compile(r)
+                for load_command in load_commands.values():
+                    if load_command.get("cmd") == "LC_LOAD_DYLIB":
+                        name = load_command.get("name", '')
+                        match = re.match(r, name)
+                        if not match:
+                            out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(name, library))
+                            continue
+                        deplibs.setdefault(match.group(1), []).append(library)
+                x = 0
             else:
                 dep_libs_fn = list(l.replace("NEEDED", "").strip() for l in objdump_output.splitlines() if "NEEDED" in l)
                 for dep_lib_fn in dep_libs_fn:
@@ -1389,3 +1416,43 @@ _WIN32_LIBS = {
     "wmvcore", "workspaceax", "ws2_32", "wsbapp_uuid", "wscapi", "wsdapi", "wsmsvc", "wsnmp32", "wsock32",
     "wtsapi32", "wuguid", "xaswitch", "xinput", "xmllite", "xolehlp", "xpsprint",
 }.difference({"kernel32", "user32", "gdi32", "winspool", "shell32", "ole32", "oleaut32", "uuid", "comdlg32", "advapi32"})
+
+# /System/Library/Frameworks
+_OSX_LIBS = {
+    'AGL', 'AVFAudio', 'AVFoundation', 'AVKit', 'Accelerate', 'Accessibility', 'Accounts',
+    'AdServices', 'AdSupport', 'AddressBook', 'AppKit', 'AppTrackingTransparency', 'AppleScriptKit',
+    'AppleScriptObjC', 'ApplicationServices', 'AudioToolbox', 'AudioUnit', 'AudioVideoBridging',
+    'AuthenticationServices', 'AutomaticAssessmentConfiguration', 'Automator', 'BackgroundTasks',
+    'BusinessChat', 'CFNetwork', 'CalendarStore', 'CallKit', 'Carbon', 'ClassKit', 'CloudKit',
+    'Cocoa', 'Collaboration', 'ColorSync', 'Combine', 'Contacts', 'ContactsUI', 'CoreAudio',
+    'CoreAudioKit', 'CoreAudioTypes', 'CoreBluetooth', 'CoreData', 'CoreDisplay', 'CoreFoundation',
+    'CoreGraphics', 'CoreHaptics', 'CoreImage', 'CoreLocation', 'CoreMIDI', 'CoreMIDIServer',
+    'CoreML', 'CoreMedia', 'CoreMediaIO', 'CoreMotion', 'CoreServices', 'CoreSpotlight',
+    'CoreTelephony', 'CoreText', 'CoreVideo', 'CoreWLAN', 'CryptoKit', 'CryptoTokenKit',
+    'DVDPlayback', 'DeveloperToolsSupport', 'DeviceCheck', 'DirectoryService', 'DiscRecording',
+    'DiscRecordingUI', 'DiskArbitration', 'DriverKit', 'EventKit', 'ExceptionHandling',
+    'ExecutionPolicy', 'ExternalAccessory', 'FWAUserLib', 'FileProvider', 'FileProviderUI',
+    'FinderSync', 'ForceFeedback', 'Foundation', 'GLKit', 'GLUT', 'GSS', 'GameController',
+    'GameKit', 'GameplayKit', 'HIDDriverKit', 'Hypervisor', 'ICADevices', 'IMServicePlugIn',
+    'IOBluetooth', 'IOBluetoothUI', 'IOKit', 'IOSurface', 'IOUSBHost', 'IdentityLookup',
+    'ImageCaptureCore', 'ImageIO', 'InputMethodKit', 'InstallerPlugins', 'InstantMessage',
+    'Intents', 'JavaNativeFoundation', 'JavaRuntimeSupport', 'JavaScriptCore', 'JavaVM', 'Kerberos',
+    'Kernel', 'KernelManagement', 'LDAP', 'LatentSemanticMapping', 'LinkPresentation',
+    'LocalAuthentication', 'MLCompute', 'MapKit', 'MediaAccessibility', 'MediaLibrary',
+    'MediaPlayer', 'MediaToolbox', 'Message', 'Metal', 'MetalKit', 'MetalPerformanceShaders',
+    'MetalPerformanceShadersGraph', 'MetricKit', 'ModelIO', 'MultipeerConnectivity',
+    'NaturalLanguage', 'NearbyInteraction', 'NetFS', 'Network', 'NetworkExtension',
+    'NetworkingDriverKit', 'NotificationCenter', 'OSAKit', 'OSLog', 'OpenAL', 'OpenCL',
+    'OpenDirectory', 'OpenGL', 'PCIDriverKit', 'PCSC', 'PDFKit', 'ParavirtualizedGraphics',
+    'PassKit', 'PencilKit', 'Photos', 'PhotosUI', 'PreferencePanes', 'PushKit', 'Python', 'QTKit',
+    'Quartz', 'QuartzCore', 'QuickLook', 'QuickLookThumbnailing', 'RealityKit', 'ReplayKit', 'Ruby',
+    'SafariServices', 'SceneKit', 'ScreenSaver', 'ScreenTime', 'ScriptingBridge', 'Security',
+    'SecurityFoundation', 'SecurityInterface', 'SensorKit', 'ServiceManagement', 'Social',
+    'SoundAnalysis', 'Speech', 'SpriteKit', 'StoreKit', 'SwiftUI', 'SyncServices', 'System',
+    'SystemConfiguration', 'SystemExtensions', 'TWAIN', 'Tcl', 'Tk', 'UIKit', 'USBDriverKit',
+    'UniformTypeIdentifiers', 'UserNotifications', 'UserNotificationsUI', 'VideoDecodeAcceleration',
+    'VideoSubscriberAccount', 'VideoToolbox', 'Virtualization', 'Vision', 'WebKit', 'WidgetKit',
+    '_AVKit_SwiftUI', '_AuthenticationServices_SwiftUI', '_MapKit_SwiftUI', '_QuickLook_SwiftUI',
+    '_SceneKit_SwiftUI', '_SpriteKit_SwiftUI', '_StoreKit_SwiftUI', 'iTunesLibrary', 'vecLib',
+    'vmnet'
+}
