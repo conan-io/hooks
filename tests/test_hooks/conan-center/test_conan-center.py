@@ -8,7 +8,8 @@ import six
 from parameterized import parameterized
 
 from conans import tools
-from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS
+
+from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS, ERROR_GENERAL
 from conans.tools import Version
 from conans import __version__ as conan_version
 
@@ -118,6 +119,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CONAN CENTER INDEX URL (KB-H027)] The attribute 'url' should " \
                       "point to: https://github.com/conan-io/conan-center-index", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[NOT ALLOWED ATTRIBUTES (KB-H039)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
@@ -141,6 +143,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "recipe", output)
         self.assertIn("[META LINES (KB-H025)] OK", output)
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
+        self.assertIn("[NOT ALLOWED ATTRIBUTES (KB-H039)] OK", output)
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
@@ -692,6 +695,29 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
                       'Remove \'author = (\'foo\', \'bar\')', output)
+
+    def test_no_scm(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            {}
+            def configure(self):
+                pass
+        """)
+
+        tools.save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
+        output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'revision_mode'", output)
+
+        scm = textwrap.dedent("""\
+        scm = {"type": "git",
+               "subfolder": "hello",
+               "url": "auto",
+               "revision": "auto"}
+        """)
+        tools.save('conanfile.py', content=conanfile.replace("{}", scm))
+        output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'scm'", output)
 
     @pytest.mark.skipif(Version(conan_version) < "1.21", reason="requires Conan 1.21 or higher")
     def test_no_target_name(self):
