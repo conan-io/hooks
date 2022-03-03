@@ -9,6 +9,8 @@ from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
 from conans import tools
+from conans.client.graph.python_requires import ConanPythonRequire
+from conans.client.loader import parse_conanfile
 try:
     from conans import Settings
 except ImportError:
@@ -70,6 +72,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H064": "INVALID TOPICS",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
+             "KB-H068": "TEST_TYPE MANAGEMENT",
              }
 
 
@@ -762,6 +765,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             out.warn("tools.get with strip_root=True is available since Conan {0}. "
                      "Please add `required_conan_version >= \"{0}\"`"
                      "".format(str(required_version)))
+
+    @run_test("KB-H068", output)
+    def test(out):
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
+        if os.path.isfile(test_package_path):
+            try:
+                python_requires = ConanPythonRequire(None, None)
+                _, test_conanfile = parse_conanfile(test_package_path, python_requires=python_requires, generator_manager=None)
+                test_type = getattr(test_conanfile, "test_type", None)
+                if test_type and test_type != "explicit":
+                    out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
+            except Exception as e:
+                out.warn("Invalid conanfile: {}".format(e))
 
 
 @raise_if_error_output
