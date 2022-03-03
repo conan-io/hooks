@@ -338,8 +338,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H032", output)
     def test(out):
-        if conanfile.name in ["libusb", "backward-cpp"] or conanfile.version == "system":
-            out.info("'{}' is part of the allowlist.".format(conanfile.name))
+        if conanfile.version == "system":
+            out.info("'system' versions are allowed to install system requirements.")
             return
         if "def system_requirements" in conanfile_content and \
            "SystemPackageTool" in conanfile_content:
