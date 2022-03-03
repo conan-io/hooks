@@ -1170,7 +1170,7 @@ class ConanCenterTests(ConanClientTestCase):
                 """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+        self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
         # short version, spacing
         conanfile = textwrap.dedent("""\
@@ -1184,7 +1184,8 @@ class ConanCenterTests(ConanClientTestCase):
                 """)
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] OK", output)
+        self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
+
 
     def test_no_collect_libs_warning(self):
         conanfile = textwrap.dedent("""\
