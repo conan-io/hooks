@@ -5,6 +5,8 @@ import inspect
 import os
 import re
 import sys
+import requests
+from urllib.parse import urlparse
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
@@ -74,10 +76,12 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H070": "LICENSE VALIDATION",
              }
 
 
 this = sys.modules[__name__]
+
 
 class _HooksOutputErrorCollector(object):
 
@@ -673,6 +677,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if any(line.endswith(b'\r\n') for line in lines):
                     out.error("The file '{}' uses CRLF. Please, replace by LF."
                               .format(filename))
+
     @run_test("KB-H061", output)
     def test(out):
         Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
@@ -726,7 +731,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for build_info in visitor.invalids:
                 out.error("{}:{} Build system dependent functions detected. (Use of {} is forbidden in {})".format(
                     dut_conanfile_path, build_info.loc.line, build_info.what, build_info.func))
-
 
     @run_test("KB-H062", output)
     def test(out):
@@ -792,6 +796,44 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
+
+    @run_test("KB-H070", output)
+    def test(out):
+        def get_project_license_from_repo():
+            try:
+                conandata_path = os.path.join(os.path.dirname(conanfile_path), "conandata.yml")
+                conandata_yml = load_yml(conandata_path)
+                if not conandata_yml:
+                    return False
+                sources = conandata_yml["sources"]
+                first_url = sources[sources.keys()[0]]
+                url = urlparse(first_url)
+                if url.netloc != "github.com":
+                    return False
+                repository = "{}/{}".format(url.path.split("/")[1], url.path.split("/")[2])
+                result = requests.get(f"https://api.github.com/repos/{repository}/license")
+                if not result.ok:
+                    return False
+                return result.json()["license"]["spdx_id"]
+            except:
+                return False
+
+        def get_recipe_license():
+            license_attr = getattr(conanfile, "license")
+            if license_attr:
+                return license_attr if isinstance(license_attr, (list, tuple)) else [license_attr]
+
+        upstream_license = get_project_license_from_repo()
+        recipe_license = get_recipe_license()
+        if not upstream_license or not recipe_license:
+            return
+        if upstream_license.lower() not in [it.lower() for it in recipe_license]:
+            out.error(f"License '{upstream_license}' is listed on upstream repository,"
+                      " but not listed on 'license' attribute.")
+        else:
+            for it in recipe_license:
+                if upstream_license.lower() == it.lower() and upstream_license != it:
+                    out.error(f"License '{it}' uses incorrect case. Use '{upstream_license}' instead.")
 
 
 @raise_if_error_output
