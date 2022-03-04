@@ -1354,7 +1354,6 @@ def _deplibs_from_shlibs(conanfile, out):
                             out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(name, library))
                             continue
                         deplibs.setdefault(match.group(1), []).append(library)
-                x = 0
             else:
                 dep_libs_fn = list(l.replace("NEEDED", "").strip() for l in objdump_output.splitlines() if "NEEDED" in l)
                 for dep_lib_fn in dep_libs_fn:
