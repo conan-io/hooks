@@ -1326,7 +1326,6 @@ def _deplibs_from_shlibs(conanfile, out):
                 out.warn("Running objdump on '{}' failed. Is the environment variable OBJDUMP correctly configured?".format(library))
                 continue
             if _get_os(conanfile) == "Windows":
-                open("output.txt", "w").write(objdump_output)
                 for dep_lib_match in re.finditer(r"DLL Name: (.*).dll", objdump_output, re.IGNORECASE):
                     dep_lib_base = dep_lib_match.group(1).lower()
                     deplibs.setdefault(dep_lib_base, []).append(library)
