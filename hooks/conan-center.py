@@ -447,16 +447,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H040", output)
     def test(out):
-        if "self.cpp_info.name =" in conanfile_content:
-            out.error("CCI uses the name of the package for cmake generator."
-                      " Use 'cpp_info.names' instead.")
+        match = re.search(r"self\.cpp_info\.(name|filename)\s?=", conanfile_content)
+        if match:
+            out.error("CCI uses the name of the package for cmake generator and filename by default."
+                      " Replace 'cpp_info.{0}' by 'cpp_info.{0}s[<generator>]'.".format(match.group(1)))
 
-        for generator in ["cmake", "cmake_multi"]:
-            if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
-               'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
-                out.error("CCI uses the name of the package for {0} generator. "
-                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
-                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+        match = re.search(r"self\.cpp_info\.(names|filenames)\[\s?['\"](cmake|cmake_multi)['\"]\s?\]", conanfile_content)
+        if match:
+            out.error("CCI uses the name of the package for {0} generator. "
+                      "Conanfile should not contain 'self.cpp_info.{1}['{0}']'. "
+                      "Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(match.group(2),
+                                                                                                 match.group(1)))
 
     @run_test("KB-H041", output)
     def test(out):
