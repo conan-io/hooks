@@ -268,6 +268,6 @@ class ConanMissingSystemLibs(ConanClientTestCase):
         for lib in self._os_build_info2.shlibs_bases:
             library = os.path.join(".", self._shlibdir, "{}lib.{}".format(self._prefix, self._shlext))
             self.assertIn("[MISSING SYSTEM LIBS (KB-H043)] Library '{library}' links to system "
-                          "library '{syslib}' but it is not in cpp_info.{attribute}}.".
+                          "library '{syslib}' but it is not in cpp_info.{attribute}.".
                           format(library=library, shlext=self._shlext, syslib=lib,
                                  attribute=self._attribute), output)
