@@ -11,7 +11,10 @@ try:
 except ImportError:
     from io import StringIO
 
-from conans.client.command import SUCCESS
+try:
+    from conans.client.command import SUCCESS
+except ImportError:
+    from conans.cli.exit_codes import SUCCESS
 from tests.utils.conan_command import conan_command
 from tests.utils.environ_vars import context_env
 

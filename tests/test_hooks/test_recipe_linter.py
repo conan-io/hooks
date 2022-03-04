@@ -10,8 +10,16 @@ from parameterized import parameterized
 
 from conans import __version__ as conan_version
 from conans import tools
-from conans.client.command import ERROR_GENERAL, SUCCESS
-from conans.tools import environment_append
+try:
+    from conans.client.command import ERROR_GENERAL, SUCCESS
+except ImportError:
+    from conans.cli.exit_codes import ERROR_GENERAL, SUCCESS
+
+try:
+    from conans.tools import environment_append
+except ImportError:
+    from conans.util.env import environment_update as environment_append
+
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 

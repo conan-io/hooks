@@ -6,6 +6,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class MembersTypoCheckerTests(ConanClientTestCase):
@@ -43,12 +44,12 @@ class MembersTypoCheckerTests(ConanClientTestCase):
         return kwargs
 
     def test_conanfile_basic(self):
-        tools.save('conanfile.py', content=self.conanfile_basic)
+        save('conanfile.py', content=self.conanfile_basic)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("member looks like a typo", output)
 
     def test_conanfile_with_typos(self):
-        tools.save('conanfile.py', content=self.conanfile_with_typos)
+        save('conanfile.py', content=self.conanfile_with_typos)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn(
             "pre_export(): WARN: The 'exports_sourcess' member looks like a typo. Similar to:", output)

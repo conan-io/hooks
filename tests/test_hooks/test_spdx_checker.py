@@ -5,6 +5,8 @@ from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
+from tests.utils.compat import save
+
 
 class SPDXCheckerTest(ConanClientTestCase):
     def _get_environ(self, **kwargs):
@@ -55,7 +57,7 @@ class SPDXCheckerTest(ConanClientTestCase):
         class AConan(ConanFile):
             license = "Apache-2.0", "Invalid-License"
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
 
         self.assertNotIn("recipe doesn't have a license attribute", output)

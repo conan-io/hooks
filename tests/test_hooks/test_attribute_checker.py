@@ -7,10 +7,16 @@ from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
 
+from tests.utils.compat import save
+from tests.utils.compat import v2
+
 
 class AttributeCheckerTests(ConanClientTestCase):
     conanfile_base = textwrap.dedent("""\
-        from conans import ConanFile
+        try:
+            from conans import ConanFile
+        except ImportError:
+            from conan import ConanFile
 
         class AConan(ConanFile):
             {placeholder}
@@ -24,15 +30,23 @@ class AttributeCheckerTests(ConanClientTestCase):
         return kwargs
 
     def test_conanfile_basic(self):
-        tools.save('conanfile.py', content=self.conanfile_basic)
-        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
+        save('conanfile.py', content=self.conanfile_basic)
+        if v2:
+            output = self.conan(['export', '--name', 'name', '--version', 'version', '--user',
+                                 'jgsogo', '--channel', 'test', '.'])
+        else:
+            output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'url'", output)
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'license'", output)
         self.assertIn("pre_export(): WARN: Conanfile doesn't have 'description'", output)
 
     def test_conanfile_alias(self):
-        tools.save('conanfile.py', content=self.conanfile_alias)
-        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
+        save('conanfile.py', content=self.conanfile_alias)
+        if v2:
+            output = self.conan(['export', '--name', 'name', '--version', 'version', '--user',
+                                 'jgsogo', '--channel', 'test', '.'])
+        else:
+            output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'url'", output)
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'license'", output)
         self.assertNotIn("pre_export(): WARN: Conanfile doesn't have 'description'", output)
