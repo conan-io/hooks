@@ -9,7 +9,10 @@ from parameterized import parameterized
 
 from conans import tools
 
-from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS, ERROR_GENERAL
+try:
+    from conans.client.command import ERROR_INVALID_CONFIGURATION, SUCCESS, ERROR_GENERAL
+except ImportError:
+    from conans.cli.exit_codes import ERROR_INVALID_CONFIGURATION, SUCCESS, ERROR_GENERAL
 from conans.tools import Version
 from conans import __version__ as conan_version
 
