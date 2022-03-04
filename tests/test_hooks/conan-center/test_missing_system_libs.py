@@ -138,8 +138,8 @@ class ConanMissingSystemLibs(ConanClientTestCase):
     @property
     def _attribute(self):
         return {
-            "Windows": "system_lib",
-            "Linux": "system_lib",
+            "Windows": "system_libs",
+            "Linux": "system_libs",
             "Macos": "frameworks",
         }[tools.detected_os()]
 
