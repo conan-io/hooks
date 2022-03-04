@@ -102,7 +102,7 @@ class ConanMissingSystemLibs(ConanClientTestCase):
     def _os_build_info(self):
         return {
             "Linux": self.OSBuildInfo(["dlfcn.h"], ["libdl.so"], ["dl"], [], "dlclose((void*)0)"),
-            "Windows": self.OSBuildInfo(["winsock.h"], ["ws2_32.lib"], ["ws2_32"], [], "ntohs(0x4200)"),
+            "Windows": self.OSBuildInfo(["winsock2.h"], ["ws2_32.lib"], ["ws2_32"], [], "WSAStartup(0, 0)"),
             "Macos": self.OSBuildInfo(["CoreServices/CoreServices.h"], ["CoreServices"], [],
                                       ["CoreServices"],
                                       "FSEventStreamCopyDescription(0)"),

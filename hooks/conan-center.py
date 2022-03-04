@@ -1079,7 +1079,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
         missing_system_libs = needed_system_libs.difference(deps_system_libs.union(conanfile_system_libs))
 
-        attribute = 'frameworks' if _get_os(conanfile) else 'system_libs'
+        attribute = 'frameworks' if _get_os(conanfile) == "Macos" else 'system_libs'
         for missing_system_lib in missing_system_libs:
             libs = dict_deplibs_libs[missing_system_lib]
             for lib in libs:
