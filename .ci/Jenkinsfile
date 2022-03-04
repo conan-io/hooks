@@ -17,6 +17,15 @@ pipeline {
                                 sh '.ci/generate_env_macos.sh'
                             }
                         }
+                        stage('Macos - py36 - conandev2') {
+                            environment {
+                                PYVER = 'py36'
+                                TOXENV = 'py36-conandev2'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
+                            }
+                        }
                         stage('Macos - py36 - conandev') {
                             environment {
                                 PYVER = 'py36'
@@ -48,6 +57,15 @@ pipeline {
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
+                            }
+                        }
+                        stage('Macos - py39 - conande2') {
+                            environment {
+                                PYVER = 'py39'
+                                TOXENV = 'py39-conandev2'
+                            }
+                            steps {
+                                sh '.ci/run_tox.sh'
                             }
                         }
                         stage('Macos - py39 - conandev') {
