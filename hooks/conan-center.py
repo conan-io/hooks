@@ -239,7 +239,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 continue
             for files_it in files:
                 file_path = os.path.join(path, files_it)
-                total_size += os.path.getsize(file_path)
+                if not os.path.islink(file_path):
+                    total_size += os.path.getsize(file_path)
 
         total_size_kb = total_size / 1024
         out.success("Total recipe size: %s KB" % total_size_kb)
