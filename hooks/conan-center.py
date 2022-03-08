@@ -800,7 +800,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         settings = getattr(conanfile, "settings", None)
         if not settings:
-            out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' to manage.")
+            out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
 
 
 @raise_if_error_output
