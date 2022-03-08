@@ -74,6 +74,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H070": "MANDATORY SETTINGS",
              }
 
 
@@ -793,6 +794,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
+
+
+    @run_test("KB-H070", output)
+    def test(out):
+        settings = getattr(conanfile, "settings", None)
+        if not settings:
+            out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' to manage.")
 
 
 @raise_if_error_output
