@@ -34,4 +34,4 @@ class SettingsAttrTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("WARN: [MANDATORY SETTINGS (KB-H070)] "
                       "No 'settings' detected in your conanfile.py. "
-                      "Add 'settings' attribute and use 'package_id(self)' to manage.", output)
+                      "Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.", output)
