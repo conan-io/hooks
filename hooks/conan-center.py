@@ -74,6 +74,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H071": "RELOCATABLE SHARED",
              }
 
 
@@ -793,6 +794,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
+
+    @run_test("KB-H071", output)
+    def test(out):
+        cmakefile_path = os.path.join(os.path.dirname(conanfile_path), "CMakeLists.txt")
+        if os.path.isfile(cmakefile_path):
+            cmakefile_content = tools.load(cmakefile_path)
+            if "conan_basic_setup(keep_rpaths)" not in cmakefile_content.lower():
+                out.warn("Did not find 'conan_basic_setup(KEEP_RPATHS)' in CMakeLists.txt. Update your CMakeLists.txt.")
 
 
 @raise_if_error_output
