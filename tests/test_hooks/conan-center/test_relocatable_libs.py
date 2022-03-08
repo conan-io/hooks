@@ -12,7 +12,7 @@ class TestRelocatableLibraries(ConanClientTestCase):
 
         class AConan(ConanFile):
             exports_sources = "CMakeLists.txt"
-            generatos = "cmake"
+            generators = "cmake"
         """)
     cmakefile = textwrap.dedent("""\
         cmake_minimum_required(VERSION 3.1)
@@ -43,3 +43,30 @@ class TestRelocatableLibraries(ConanClientTestCase):
         self.assertIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)] Did not find "
                       "'conan_basic_setup(KEEP_RPATHS)' in CMakeLists.txt. "
                       "Update your CMakeLists.txt.", output)
+
+    def test_cmp0042_without_cmake_version(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile.replace("3.1", "2.8"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)] CMake policy CMP0042 is not enabled."
+                      " Use 'cmake_minimum_required(VERSION 3.0)' or "
+                      "enable 'CMAKE_POLICY_DEFAULT_CMP0042' definition.", output)
+
+    def test_cmp0042_with_cmake_policy_def(self):
+        conanfile = textwrap.dedent("""\
+                    from conans import ConanFile, CMake
+
+                    class AConan(ConanFile):
+                        exports_sources = "CMakeLists.txt"
+                        generators = "cmake"
+                        def build(self):
+                            cmake = CMake(self)
+                            cmake.definitions['CMAKE_POLICY_DEFAULT_CMP0042'] = 'YES'
+                            cmake.configure()
+                    """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile.replace("3.1", "2.8"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertNotIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)]", output)
