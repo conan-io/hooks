@@ -1,0 +1,72 @@
+import os
+import textwrap
+
+from conans import tools
+
+from tests.utils.test_cases.conan_client import ConanClientTestCase
+
+
+class TestRelocatableLibraries(ConanClientTestCase):
+    conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class AConan(ConanFile):
+            exports_sources = "CMakeLists.txt"
+            generators = "cmake"
+        """)
+    cmakefile = textwrap.dedent("""\
+        cmake_minimum_required(VERSION 3.1)
+        project(cmake_wrapper)
+        include(conanbuildinfo.cmake)
+        conan_basic_setup(KEEP_RPATHS)
+        add_subdirectory(source_subfolder)
+        """)
+
+    def _get_environ(self, **kwargs):
+        kwargs = super(TestRelocatableLibraries, self)._get_environ(**kwargs)
+        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
+                                                   'hooks', 'conan-center')})
+        return kwargs
+
+    def test_with_keep_rpaths(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertNotIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)]", output)
+
+    def test_without_keep_rpaths(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile.replace("KEEP_RPATHS", ""))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)] Did not find "
+                      "'conan_basic_setup(KEEP_RPATHS)' in CMakeLists.txt. "
+                      "Update your CMakeLists.txt.", output)
+
+    def test_cmp0042_without_cmake_version(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile.replace("3.1", "2.8"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)] CMake policy CMP0042 is not enabled."
+                      " Use 'cmake_minimum_required(VERSION 3.0)' or "
+                      "enable 'CMAKE_POLICY_DEFAULT_CMP0042' definition.", output)
+
+    def test_cmp0042_with_cmake_policy_def(self):
+        conanfile = textwrap.dedent("""\
+                    from conans import ConanFile, CMake
+
+                    class AConan(ConanFile):
+                        exports_sources = "CMakeLists.txt"
+                        generators = "cmake"
+                        def build(self):
+                            cmake = CMake(self)
+                            cmake.definitions['CMAKE_POLICY_DEFAULT_CMP0042'] = 'YES'
+                            cmake.configure()
+                    """)
+        tools.save('conanfile.py', content=conanfile)
+        tools.save('CMakeLists.txt', content=self.cmakefile.replace("3.1", "2.8"))
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("[RELOCATABLE SHARED LIBS (KB-H071)] OK", output)
+        self.assertNotIn("WARN: [RELOCATABLE SHARED LIBS (KB-H071)]", output)

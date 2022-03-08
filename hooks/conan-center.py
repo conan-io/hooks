@@ -74,6 +74,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H071": "RELOCATABLE SHARED LIBS",
              }
 
 
@@ -793,6 +794,19 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
+
+    @run_test("KB-H071", output)
+    def test(out):
+        cmakefile_path = os.path.join(os.path.dirname(conanfile_path), "CMakeLists.txt")
+        if os.path.isfile(cmakefile_path):
+            cmakefile_content = tools.load(cmakefile_path)
+            if "conan_basic_setup(keep_rpaths)" not in cmakefile_content.lower():
+                out.warn("Did not find 'conan_basic_setup(KEEP_RPATHS)' in CMakeLists.txt. Update your CMakeLists.txt.")
+            if "CMAKE_POLICY_DEFAULT_CMP0042" not in conanfile_content:
+                match = re.search(r"cmake_minimum_required\s?\(VERSION (\d?\.?\d?\.?\d+)\)", cmakefile_content, re.I)
+                if match and tools.Version(match.group(1)) < "3.0":
+                    out.warn("CMake policy CMP0042 is not enabled. Use 'cmake_minimum_required(VERSION 3.0)' or "
+                             "enable 'CMAKE_POLICY_DEFAULT_CMP0042' definition.")
 
 
 @raise_if_error_output
