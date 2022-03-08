@@ -74,7 +74,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
-             "KB-H071": "RELOCATABLE SHARED",
+             "KB-H071": "RELOCATABLE SHARED LIBS",
              }
 
 
