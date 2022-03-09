@@ -799,7 +799,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H070", output)
     def test(out):
         settings = getattr(conanfile, "settings", None)
-        if not settings:
+        if settings:
+            settings = settings if isinstance(settings, (list, tuple)) else [settings]
+            missing = [x for x in ["os", "arch", "compiler", "build_type"] if x not in settings]
+            if missing:
+                out.warn("The values '{}' are missing on 'settings' attribute. Update settings with the missing "
+                         "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
+        else:
             out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
 
 
