@@ -6,6 +6,7 @@ import yaml
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 from conans import __version__ as conan_version
 
 
@@ -28,14 +29,14 @@ class ConanData(ConanClientTestCase):
         return kwargs
 
     def test_missing_conandata(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Create a file 'conandata.yml' file with the "
                       "sources to be downloaded.", output)
 
     def test_no_missing_conandata_but_not_used(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('conandata.yml', content="")
+        save('conanfile.py', content=self.conanfile)
+        save('conandata.yml', content="")
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] Use 'tools.get(**self.conan_data[\"sources\"]", output)
 
@@ -55,8 +56,8 @@ class ConanData(ConanClientTestCase):
                            url: fakeurl
                            md5: 12323423423
                        """)
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('conandata.yml', content=conandata)
+        save('conanfile.py', content=conanfile)
+        save('conandata.yml', content=conandata)
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
 
@@ -69,13 +70,13 @@ class ConanData(ConanClientTestCase):
                            def source(self):
                                tools.download(self.conan_data["sources"]["all"]["url"])
                        """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'], expected_return_code=1)
         self.assertIn("[IMMUTABLE SOURCES (KB-H010)] OK", output)
 
     def _check_conandata(self, conandata):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('conandata.yml', content=conandata)
+        save('conanfile.py', content=self.conanfile)
+        save('conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
         self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
@@ -250,7 +251,7 @@ class ConanData(ConanClientTestCase):
         self._check_conandata(conandata)
 
     def test_sha1_md5(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
                     sources:
                       "1.69.0":
@@ -259,13 +260,13 @@ class ConanData(ConanClientTestCase):
                           sha1: "md5_1.69.0"
                           md5: "sha1_1.69.0"
                           """)
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
         self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
 
     def test_reduce_conandata(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
               "1.69.0":
@@ -332,7 +333,7 @@ class ConanData(ConanClientTestCase):
                         ]
                 }
             }
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         for version in ["1.69.0", "1.70.0", "1.71.0"]:
             export_output = self.conan(['export', '.', 'name/%s@jgsogo/test' % version])
             self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
@@ -348,30 +349,30 @@ class ConanData(ConanClientTestCase):
                 self.assertEqual(expected_conandata_1710, conandata)
 
     def test_versions_as_string(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
               1.73:
                 url: "url1.69.0"
         """)
 
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)] Versions in conandata.yml should be strings", output)
 
     def test_unknown_field(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             random_field: "random"
             """)
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertIn("First level entries ['random_field'] not allowed. Use only first "
                       "level entries ['sources', 'patches'] in conandata.yml", output)
 
     def test_unknown_subentry_sources(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
               "1.70.0":
@@ -379,7 +380,7 @@ class ConanData(ConanClientTestCase):
                 sha256: "sha1.69.0"
                 other: "more_data"
             """)
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertNotIn("First level entries", output)
@@ -387,13 +388,13 @@ class ConanData(ConanClientTestCase):
                       "conandata.yml", output)
 
     def test_unknown_subentry_patches(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             patches:
               "1.70.0":
                 patches: "1.70.0.patch"
             """)
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertNotIn("First level entries", output)
@@ -401,7 +402,7 @@ class ConanData(ConanClientTestCase):
                       "of conandata.yml", output)
 
     def test_unknown_subentry_in_list(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             patches:
               "1.70.0":
@@ -412,7 +413,7 @@ class ConanData(ConanClientTestCase):
                   checksum: "sha_custom"
                   base_path: "source_subfolder"
             """)
-        tools.save('conandata.yml', content=conandata)
+        save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
 

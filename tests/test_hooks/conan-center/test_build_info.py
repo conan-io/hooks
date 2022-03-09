@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class TestBuildInfo(ConanClientTestCase):
@@ -15,7 +16,7 @@ class TestBuildInfo(ConanClientTestCase):
         return kwargs
 
     def test_trivial_ok(self):
-        tools.save("conanfile.py", content=textwrap.dedent("""\
+        save("conanfile.py", content=textwrap.dedent("""\
             from conans import ConanFile
 
             class AConan(ConanFile):
@@ -25,7 +26,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("[NO BUILD SYSTEM FUNCTIONS (KB-H061)] OK", output)
 
     def test_build_toolsosinfo_ok(self):
-        tools.save("conanfile.py", content=textwrap.dedent("""\
+        save("conanfile.py", content=textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
@@ -37,7 +38,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("[NO BUILD SYSTEM FUNCTIONS (KB-H061)] OK", output)
 
     def test_build_platform_ok(self):
-        tools.save("conanfile.py", content=textwrap.dedent("""\
+        save("conanfile.py", content=textwrap.dedent("""\
             from conans import ConanFile
             import platform
 
@@ -50,7 +51,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("[NO BUILD SYSTEM FUNCTIONS (KB-H061)] OK", output)
 
     def test_buildreq_toolsosinfo(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
@@ -64,7 +65,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_buildreq_platform(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             import platform
 
@@ -79,7 +80,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_req_toolsosinfo(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
@@ -93,7 +94,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_req_platform(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             import platform
 
@@ -108,7 +109,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_configopts_toolsosinfo(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
@@ -122,7 +123,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_configopts_platform(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             import platform
 
@@ -137,7 +138,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_config_toolsosinfo(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
 
             class AConan(ConanFile):
@@ -151,7 +152,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:5 Build system dependent", output)
 
     def test_config_platform(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             import platform
 
@@ -166,7 +167,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_validate_toolsosinfo(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             from conans.errors import ConanInvalidConfiguration
 
@@ -181,7 +182,7 @@ class TestBuildInfo(ConanClientTestCase):
         self.assertIn("conanfile.py:6 Build system dependent", output)
 
     def test_validate_platform(self):
-        tools.save("conanfile.py", textwrap.dedent("""\
+        save("conanfile.py", textwrap.dedent("""\
             from conans import ConanFile, tools
             from conans.errors import ConanInvalidConfiguration
             import platform
@@ -204,7 +205,7 @@ class TestBuildInfo(ConanClientTestCase):
                 if tools.os_info.is_windows:
                     pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
 
@@ -216,7 +217,7 @@ class TestBuildInfo(ConanClientTestCase):
                 if tools.os_info.is_linux:
                     pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)
 
@@ -229,6 +230,6 @@ class TestBuildInfo(ConanClientTestCase):
                 if os_info.is_macos:
                     pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO BUILD SYSTEM FUNCTIONS (KB-H061)]", output)

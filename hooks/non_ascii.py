@@ -2,7 +2,19 @@
 
 import os
 import unicodedata
-from conans import tools
+
+
+def load(conanfile, filename):
+    try:
+        from conans.tools import load
+        v2 = False
+    except ImportError:
+        from conan.tools.files import load
+        v2 = True
+    if v2:
+        return load(conanfile, filename)
+    else:
+        return load(filename)
 
 
 def check_non_ascii(filename, content, output):
@@ -23,10 +35,10 @@ def check_non_ascii(filename, content, output):
 
 
 def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
-    conanfile_content = tools.load(conanfile_path)
+    conanfile_content = load(conanfile, conanfile_path)
     check_non_ascii("conanfile.py", conanfile_content, output)
     test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
     test_package_path = os.path.join(test_package_dir, "conanfile.py")
     if os.path.exists(test_package_path):
-        test_package_content = tools.load(test_package_path)
+        test_package_content = load(conanfile, test_package_path)
         check_non_ascii("test_package/conanfile.py", test_package_content)

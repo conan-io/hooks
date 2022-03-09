@@ -21,6 +21,7 @@ except ImportError:
     from conans.util.env import environment_update as environment_append
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class RecipeLinterTests(ConanClientTestCase):
@@ -46,11 +47,11 @@ class RecipeLinterTests(ConanClientTestCase):
 
     @parameterized.expand([(False, ), (True, )])
     def test_basic(self, pylint_werr):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         pylint_werr_value = "1" if pylint_werr else None
         with environment_append({"CONAN_PYLINT_WERR": pylint_werr_value}):
             return_code = ERROR_GENERAL if pylint_werr else SUCCESS
-            output = self.conan(['export', '.', 'name/version@'], expected_return_code=return_code)
+            output = self.conan_export('.', 'name', 'version', expected_return_code=return_code)
 
             if pylint_werr:
                 self.assertIn("pre_export(): Package recipe has linter errors."
@@ -79,15 +80,15 @@ class RecipeLinterTests(ConanClientTestCase):
                 def build(self):
                     pass
         """)
-        tools.save(os.path.join("path spaces", "conanfile.py"), content=conanfile)
+        save(os.path.join("path spaces", "conanfile.py"), content=conanfile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
         self.assertIn("pre_export(): Lint recipe '{}'".format(recipe_path), output)
         self.assertIn("pre_export(): Linter detected '0' errors", output)
 
     def test_custom_rcfile(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('pylintrc', content="[FORMAT]\nindent-string='  '")
+        save('conanfile.py', content=self.conanfile)
+        save('pylintrc', content="[FORMAT]\nindent-string='  '")
 
         with environment_append({"CONAN_PYLINTRC": os.path.join(os.getcwd(), "pylintrc")}):
             output = self.conan(['export', '.', 'name/version@'])
@@ -102,7 +103,7 @@ class RecipeLinterTests(ConanClientTestCase):
                 def build(self):
                     self.output.info(self.conan_data)
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             # With the default 'python_plugin' it doesn't raise
             with environment_append({"CONAN_PYLINT_RECIPE_PLUGINS": None}):
@@ -111,7 +112,7 @@ class RecipeLinterTests(ConanClientTestCase):
                 self.assertIn("pre_export(): Linter detected '0' errors", output)
 
             # With a custom one, it should fail
-            tools.save("plugin_empty.py", content="def register(_):\n\tpass")
+            save("plugin_empty.py", content="def register(_):\n\tpass")
             with environment_append({"CONAN_PYLINT_RECIPE_PLUGINS": "plugin_empty"}):
                 output = self.conan(['export', '.', 'consumer/other@'], expected_return_code=ERROR_GENERAL)
                 self.assertIn("pre_export(): Package recipe has linter errors."
@@ -149,7 +150,7 @@ class RecipeLinterTests(ConanClientTestCase):
                 def deploy(self):
                     self.copy_deps("*.dll")
             """)
-        tools.save('consumer.py', content=conanfile)
+        save('consumer.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', 'consumer.py', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
@@ -172,7 +173,7 @@ class RecipeLinterTests(ConanClientTestCase):
                         pass
             """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', '.', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
@@ -188,7 +189,7 @@ class RecipeLinterTests(ConanClientTestCase):
                 def build(self):
                     _ = self.conan_data["sources"][float(self.version)]
             """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', '.', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors
@@ -207,10 +208,10 @@ class RecipeLinterTests(ConanClientTestCase):
                 name = "consumer"
                 version = "version"
             """)
-        tools.save('require.py', self.conanfile)
+        save('require.py', self.conanfile)
         self.conan(['export', 'require.py', 'name/version@'])
 
-        tools.save('consumer.py', content=conanfile)
+        save('consumer.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
             output = self.conan(['export', 'consumer.py', 'consumer/version@'])
             self.assertIn("pre_export(): Lint recipe", output)  # Hook run without errors

@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class TestGlobalCPPSTD(ConanClientTestCase):
@@ -21,19 +22,19 @@ class TestGlobalCPPSTD(ConanClientTestCase):
         return kwargs
 
     def test_forbidden_usage(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [DEPRECATED GLOBAL CPPSTD (KB-H001)] The 'cppstd' setting is deprecated. "
                       "Use the 'compiler.cppstd' subsetting instead", output)
 
     def test_forbidden_usage_multi_settings(self):
-        tools.save('conanfile.py', content=self.conanfile.replace('"cppstd"', '"cppstd", "os"'))
+        save('conanfile.py', content=self.conanfile.replace('"cppstd"', '"cppstd", "os"'))
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [DEPRECATED GLOBAL CPPSTD (KB-H001)] The 'cppstd' setting is deprecated. "
                       "Use the 'compiler.cppstd' subsetting instead", output)
 
     def test_ok_usage(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("cppstd", "os"))
+        save('conanfile.py', content=self.conanfile.replace("cppstd", "os"))
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [GLOBAL CPPSTD DEPRECATED] ", output)
 

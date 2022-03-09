@@ -17,6 +17,7 @@ from conans.tools import Version
 from conans import __version__ as conan_version
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class ConanCenterTests(ConanClientTestCase):
@@ -97,13 +98,13 @@ class ConanCenterTests(ConanClientTestCase):
         return kwargs
 
     def test_no_duplicated_messages(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)] No 'licenses' folder found in package", output)
         self.assertNotIn("[PACKAGE LICENSE (KB-H012)] OK", output)
 
     def test_conanfile(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
@@ -127,8 +128,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
     def test_conanfile_header_only(self):
-        tools.save('conanfile.py', content=self.conanfile_header_only)
-        tools.save('header.h', content="")
+        save('conanfile.py', content=self.conanfile_header_only)
+        save('header.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] This recipe is a header only library", output)
@@ -150,8 +151,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_header_only_with_settings(self):
-        tools.save('conanfile.py', content=self.conanfile_header_only_with_settings)
-        tools.save('header.h', content="")
+        save('conanfile.py', content=self.conanfile_header_only_with_settings)
+        save('header.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
@@ -171,8 +172,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_settings_clear_with_settings(self):
-        tools.save('conanfile.py', content=self.conanfile_settings_clear_with_settings)
-        tools.save('header.h', content="")
+        save('conanfile.py', content=self.conanfile_settings_clear_with_settings)
+        save('header.h', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
@@ -192,7 +193,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
     def test_conanfile_installer(self):
-        tools.save('conanfile.py', content=self.conanfile_installer)
+        save('conanfile.py', content=self.conanfile_installer)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[RECIPE METADATA (KB-H003)] OK", output)
         self.assertIn("[HEADER_ONLY, NO COPY SOURCE (KB-H005)] OK", output)
@@ -231,7 +232,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [META LINES (KB-H025)] PEP 263 (encoding) is not allowed in the " \
                       "conanfile. Remove the line 2", output)
@@ -252,8 +253,8 @@ class ConanCenterTests(ConanClientTestCase):
                 with tools.environment_append(env_build.vars):
                     self.run("echo bar")
         """)
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
-        tools.save('conanfile.py', content=self.conanfile)
+        save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("ERROR: [TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] The 'RunEnvironment()' "
@@ -270,8 +271,8 @@ class ConanCenterTests(ConanClientTestCase):
                 self.run("echo bar", run_environment=True)
         """)
 
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
-        tools.save('conanfile.py', content=self.conanfile)
+        save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
@@ -293,8 +294,8 @@ class ConanCenterTests(ConanClientTestCase):
                 self.run("echo bar", run_environment=True)
         """)
 
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
-        tools.save('conanfile.py', content=self.conanfile)
+        save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
@@ -302,19 +303,19 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[TEST PACKAGE - NO IMPORTS() (KB-H034)] OK", output)
 
     def test_exports_licenses(self):
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=self.conanfile_base.format(placeholder='exports = "LICENSE"'))
         output = self.conan(['create', '.', 'name/version@name/test'])
         self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
                       " Remove LICENSE from `exports`", output)
 
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=self.conanfile_base.format(placeholder='exports_sources = "LICENSE"'))
         output = self.conan(['create', '.', 'name/version@name/test'])
         self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
                       " Remove LICENSE from `exports_sources`", output)
 
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=self.conanfile_base.format(placeholder='exports = ["foobar", "COPYING.md"]'))
         output = self.conan(['create', '.', 'name/version@name/test'])
         self.assertIn("ERROR: [EXPORT LICENSE (KB-H023)] This recipe is exporting a license file." \
@@ -332,7 +333,7 @@ class ConanCenterTests(ConanClientTestCase):
             options = {"fPIC": [True, False], "shared": [True, False]}
             default_options = {"fPIC": True, "shared": False}
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'package/version@conan/test'])
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
         if tools.os_info.is_windows:
@@ -363,7 +364,7 @@ class ConanCenterTests(ConanClientTestCase):
                 if self.settings.os == "Windows":
                     del self.options.fPIC
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'package/version@conan/test'])
         self.assertIn("[FPIC OPTION (KB-H006)] OK", output)
         if platform.system() == "Windows":
@@ -390,7 +391,7 @@ class ConanCenterTests(ConanClientTestCase):
                 if self.settings.os == "Windows":
                     raise ConanInvalidConfiguration("Windows not supported")
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         if platform.system() == "Windows":
             expected_return_code = ERROR_INVALID_CONFIGURATION
         else:
@@ -417,8 +418,8 @@ class ConanCenterTests(ConanClientTestCase):
                 self.copy("*", dst="include")
         """)
 
-        tools.save('test.c', content="#define FOO 1")
-        tools.save('conanfile.py', content=content.format(
+        save('test.c', content="#define FOO 1")
+        save('conanfile.py', content=content.format(
                    configure="pass"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [LIBCXX MANAGEMENT (KB-H011)] Can't detect C++ source files but " \
@@ -426,7 +427,7 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [CPPSTD MANAGEMENT (KB-H022)] Can't detect C++ source files but " \
                       "recipe does not remove 'self.settings.compiler.cppstd'", output)
 
-        tools.save('conanfile.py', content=content.format(configure="""
+        save('conanfile.py', content=content.format(configure="""
         del self.settings.compiler.libcxx
         del self.settings.compiler.cppstd"""))
         output = self.conan(['create', '.', 'name/version@user/test'])
@@ -449,13 +450,13 @@ class ConanCenterTests(ConanClientTestCase):
             "ERROR: [RECIPE METADATA (KB-H003)] Conanfile doesn't have 'topics' attribute."
         ]
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         for msg in bad_recipe_output:
             self.assertIn(msg, output)
         self.assertNotIn("[RECIPE METADATA (KB-H003)] OK", output)
 
-        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+        save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
         output = self.conan(['create', '.', 'name/version@user/test'])
         for msg in bad_recipe_output:
             self.assertNotIn(msg, output)
@@ -463,7 +464,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         for before, after in [('"name" =', '"name"      = '),
                               ('    "name" =', '\t"name"\t= ')]:
-            tools.save('conanfile.py',
+            save('conanfile.py',
                     content=self.conanfile_header_only_with_settings.replace(before, after))
             output = self.conan(['create', '.', 'name/version@user/test'])
             for msg in bad_recipe_output:
@@ -481,7 +482,7 @@ class ConanCenterTests(ConanClientTestCase):
             def package(self):
                 self.copy("*", dst="include")
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[CONAN CENTER INDEX URL (KB-H027)] OK", output)
 
@@ -489,8 +490,8 @@ class ConanCenterTests(ConanClientTestCase):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
         cmake = """project(test)
         """
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('conanfile.py', content=conanfile)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         path = os.path.join(".", "CMakeLists.txt")
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)] The CMake file '%s' must contain a "
@@ -503,7 +504,7 @@ class ConanCenterTests(ConanClientTestCase):
         cmake_minimum_required(VERSION 2.8)
         project(test)
         """)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
@@ -512,7 +513,7 @@ class ConanCenterTests(ConanClientTestCase):
         cmake_minimum_required(VERSION 2.8)
         project(test)
         """)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
@@ -533,10 +534,10 @@ class ConanCenterTests(ConanClientTestCase):
         cmake = """cmake_minimum_required(VERSION 2.8.11)
         project(test)
         """
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('CMakeLists.txt', content=cmake)
-        tools.save('test_package/CMakeLists.txt', content=cmake)
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=conanfile)
+        save('CMakeLists.txt', content=cmake)
+        save('test_package/CMakeLists.txt', content=cmake)
+        save('test_package/conanfile.py', content=conanfile_tp)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         # validate residual cmake files in test_package/build
@@ -547,14 +548,14 @@ class ConanCenterTests(ConanClientTestCase):
         cmake = textwrap.dedent("""CMAKE_MINIMUM_REQUIRED (VERSION 2.8.11)
         project(test)
         """)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
 
         cmake = textwrap.dedent("""cmake_minimum_required(VERSION 2.8.11)
         project(test)
         """)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
         self.assertNotIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
@@ -562,7 +563,7 @@ class ConanCenterTests(ConanClientTestCase):
         cmake = textwrap.dedent("""project(test)
         cmake_minimum_required(VERSION 2.8.11)
         """)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
         self.assertNotIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
@@ -570,11 +571,11 @@ class ConanCenterTests(ConanClientTestCase):
         cmake = """cmake_minimum_required(VERSION 2.8.11)
         project(test)
         """
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         cmake = textwrap.dedent("""project(test)
         cmake_minimum_required(VERSION 2.8.11)
         """)
-        tools.save('test_package/CMakeLists.txt', content=cmake)
+        save('test_package/CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE MINIMUM VERSION (KB-H028)]", output)
         self.assertNotIn("[CMAKE MINIMUM VERSION (KB-H028)] OK", output)
@@ -590,18 +591,18 @@ class ConanCenterTests(ConanClientTestCase):
             def system_requirements(self):
                 installer = SystemPackageTool()
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[SYSTEM REQUIREMENTS (KB-H032)] OK", output)
 
         conanfile += "        installer.install([])"
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
 
         conanfile = conanfile.replace("installer.install([])", "SystemPackageTool().install([])")
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [SYSTEM REQUIREMENTS (KB-H032)] The method " \
                       "'SystemPackageTool.install' is not allowed in the recipe.", output)
@@ -621,8 +622,8 @@ class ConanCenterTests(ConanClientTestCase):
                 self.run("echo bar", run_environment=True)
         """)
 
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
-        tools.save('conanfile.py', content=self.conanfile)
+        save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[TEST PACKAGE FOLDER (KB-H024)] OK", output)
         self.assertIn("[TEST PACKAGE - RUN ENVIRONMENT (KB-H029)] OK", output)
@@ -635,7 +636,7 @@ class ConanCenterTests(ConanClientTestCase):
         class AConan(ConanFile):
                 pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
 
@@ -646,12 +647,12 @@ class ConanCenterTests(ConanClientTestCase):
                     {}
         """)
 
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=conanfile.replace("{}", 'self.requires("name/version@user/test")'))
         output = self.conan(['create', '.', 'foo/version@user/test'])
         self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
 
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=conanfile.replace("{}", 'self.requires.add("name/version@user/test")'))
         output = self.conan(['create', '.', 'foo/version@user/test'])
         self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.requires.add()' is not " \
@@ -664,14 +665,14 @@ class ConanCenterTests(ConanClientTestCase):
                     {}
         """)
 
-        tools.save('conanfile.py',
+        save('conanfile.py',
                    content=conanfile.replace("{}", 'self.build_requires("name/version@user/test")'))
         output = self.conan(['create', '.', 'foo/version@user/test'])
         self.assertIn("[NO REQUIRES.ADD() (KB-H044)] OK", output)
 
         # Conan >= 1.23 requires "context" parameter for build_requires.add()
         if Version(conan_version) < "1.23":
-            tools.save('conanfile.py',
+            save('conanfile.py',
                     content=conanfile.replace("{}", 'self.build_requires.add("name/version@user/test")'))
             output = self.conan(['create', '.', 'foo/version@user/test'])
             self.assertIn("[NO REQUIRES.ADD() (KB-H044)] The method 'self.build_requires.add()' is not " \
@@ -685,16 +686,16 @@ class ConanCenterTests(ConanClientTestCase):
             def configure(self):
                 pass
         """)
-        tools.save('conanfile.py', content=conanfile.replace("{}", ""))
+        save('conanfile.py', content=conanfile.replace("{}", ""))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[NO AUTHOR (KB-H037)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("{}", "author = 'foobar'"))
+        save('conanfile.py', content=conanfile.replace("{}", "author = 'foobar'"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
                       'Remove \'author = "foobar"\'', output)
 
-        tools.save('conanfile.py', content=conanfile.replace("{}", "author = ('foo', 'bar')"))
+        save('conanfile.py', content=conanfile.replace("{}", "author = ('foo', 'bar')"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn('ERROR: [NO AUTHOR (KB-H037)] Conanfile should not contain author. '
                       'Remove \'author = (\'foo\', \'bar\')', output)
@@ -708,7 +709,7 @@ class ConanCenterTests(ConanClientTestCase):
                 pass
         """)
 
-        tools.save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
+        save('conanfile.py', content=conanfile.replace("{}", "revision_mode = 'scm'"))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
         self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'revision_mode'", output)
 
@@ -718,7 +719,7 @@ class ConanCenterTests(ConanClientTestCase):
                "url": "auto",
                "revision": "auto"}
         """)
-        tools.save('conanfile.py', content=conanfile.replace("{}", scm))
+        save('conanfile.py', content=conanfile.replace("{}", scm))
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
         self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'scm'", output)
 
@@ -729,8 +730,8 @@ class ConanCenterTests(ConanClientTestCase):
                 cmake_minimum_required(VERSION 2.8.11)
                 project(test)
                 """)
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('conanfile.py', content=conanfile)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE VERBOSE MAKEFILE (KB-H046)] OK", output)
 
@@ -739,7 +740,7 @@ class ConanCenterTests(ConanClientTestCase):
 
         set(CMAKE_VERBOSE_MAKEFILE ON)
         """
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         print("CWD: %s" % os.getcwd())
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
@@ -755,9 +756,9 @@ class ConanCenterTests(ConanClientTestCase):
             def test(self):
                 pass
         """)
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
-        tools.save('test_package/CMakeLists.txt', content=cmake)
-        tools.save('CMakeLists.txt', content=cmake.replace("set(CMAKE_VERBOSE_MAKEFILE ON)", ""))
+        save('test_package/conanfile.py', content=conanfile_tp)
+        save('test_package/CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake.replace("set(CMAKE_VERBOSE_MAKEFILE ON)", ""))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertNotIn("Remove it from CMakeLists.txt", output)
         self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
@@ -774,11 +775,11 @@ class ConanCenterTests(ConanClientTestCase):
             def config_options(self):
                 {}
         """)
-        tools.save('conanfile.py', content=conanfile.replace("{}", "del self.options.foo"))
+        save('conanfile.py', content=conanfile.replace("{}", "del self.options.foo"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[DELETE OPTIONS (KB-H045)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("{}", 'self.options.remove("foo")'))
+        save('conanfile.py', content=conanfile.replace("{}", 'self.options.remove("foo")'))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [DELETE OPTIONS (KB-H045)] Found 'self.options.remove'."
                       " Replace it by 'del self.options.<opt>'.", output)
@@ -789,20 +790,20 @@ class ConanCenterTests(ConanClientTestCase):
                 cmake_minimum_required(VERSION 2.8.11)
                 project(test)
                 """)
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('conanfile.py', content=conanfile)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
 
         for pair in [("", ""), ("2.8.11", '"2.8.11"'), ("2.8.11", "'2.8.11'")]:
-            tools.save('test_package/CMakeLists.txt', content=cmake.replace(*pair))
+            save('test_package/CMakeLists.txt', content=cmake.replace(*pair))
             output = self.conan(['export', '.', 'name/version@user/test'])
             self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
                             "requires CMake 3.1 at least."
                             " Update to 'cmake_minimum_required(VERSION 3.1)'.", output)
 
         cmake += "set(CMAKE_CXX_STANDARD 11)"
-        tools.save('CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE VERSION REQUIRED (KB-H048)] The test_package/CMakeLists.txt "
                       "requires CMake 3.1 at least."
@@ -813,8 +814,8 @@ class ConanCenterTests(ConanClientTestCase):
                 project(test)
                 set(CMAKE_CXX_STANDARD 11)
                 """)
-        tools.save('CMakeLists.txt', content=cmake)
-        tools.save('test_package/CMakeLists.txt', content=cmake)
+        save('CMakeLists.txt', content=cmake)
+        save('test_package/CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE VERSION REQUIRED (KB-H048)] OK", output)
 
@@ -826,18 +827,18 @@ class ConanCenterTests(ConanClientTestCase):
                 project(test)
                 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
                 """)
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('CMakeLists.txt', content=cmake)
+        save('conanfile.py', content=conanfile)
+        save('CMakeLists.txt', content=cmake)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
 
-        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "2.8.12"))
+        save('CMakeLists.txt', content=cmake.replace("3.4", "2.8.12"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] The CMake definition "
                       "CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
                       "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
 
-        tools.save('CMakeLists.txt',
+        save('CMakeLists.txt',
                    content=cmake.replace("3.4", "3")
                                 .replace("CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS",
                                          "WINDOWS_EXPORT_ALL_SYMBOLS"))
@@ -846,7 +847,7 @@ class ConanCenterTests(ConanClientTestCase):
                       "WINDOWS_EXPORT_ALL_SYMBOLS requires CMake 3.4 at least. Update "
                       "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'.", output)
 
-        tools.save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
+        save('CMakeLists.txt', content=cmake.replace("3.4", "3.17"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[CMAKE WINDOWS EXPORT ALL SYMBOLS (KB-H049)] OK", output)
 
@@ -858,21 +859,21 @@ class ConanCenterTests(ConanClientTestCase):
             default_options = {"shared": False}
         """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
 
-        tools.save('conanfile.py', content=self.conanfile_header_only)
+        save('conanfile.py', content=self.conanfile_header_only)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[DEFAULT SHARED OPTION VALUE (KB-H050)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("False}", "True}"))
+        save('conanfile.py', content=conanfile.replace("False}", "True}"))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [DEFAULT SHARED OPTION VALUE (KB-H050)] The option 'shared' must be "
                       "'False' by default. Update 'default_options'.", output)
 
     def test_missing_version_in_config(self):
-        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile_base.format(placeholder=''))
+        save(os.path.join('all', 'conanfile.py'), content=self.conanfile_base.format(placeholder=''))
         conandata = textwrap.dedent("""
                     sources:
                         1.0:
@@ -887,8 +888,8 @@ class ConanCenterTests(ConanClientTestCase):
           1.0:
             folder:all
         """)
-        tools.save("config.yml", content=config)
-        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        save("config.yml", content=config)
+        save(os.path.join("all", "conandata.yml"), content=conandata)
         output = self.conan(['export', 'all', 'name/version@user/test'])
         self.assertIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
                       output)
@@ -900,42 +901,42 @@ class ConanCenterTests(ConanClientTestCase):
           2.0:
             folder:all
         """)
-        tools.save("config.yml", content=config)
+        save("config.yml", content=config)
         output = self.conan(['export', 'all', 'name/version@user/test'])
         self.assertNotIn("ERROR: [CONFIG.YML HAS NEW VERSION (KB-H052)] The version \"2.0\" exists in",
                          output)
 
     def test_private_import(self):
-        tools.save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
+        save('conanfile.py', content=self.conanfile_base.format(placeholder=''))
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
 
-        tools.save('conanfile.py', content="from conans.errors import ConanInvalidConfiguration\n" +
+        save('conanfile.py', content="from conans.errors import ConanInvalidConfiguration\n" +
                                            self.conanfile_base.format(placeholder=''))
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
 
-        tools.save('conanfile.py', content="from conans.tools import Version\n" +
+        save('conanfile.py', content="from conans.tools import Version\n" +
                                            self.conanfile_base.format(placeholder=''))
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
 
-        tools.save('conanfile.py', content="from conans.client.tools import msvs_toolset\n" +
+        save('conanfile.py', content="from conans.client.tools import msvs_toolset\n" +
                                            self.conanfile_base.format(placeholder=''))
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
 
-        tools.save('conanfile.py', content="from conans.model.version import Version\n" +
+        save('conanfile.py', content="from conans.model.version import Version\n" +
                                            self.conanfile_base.format(placeholder=''))
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [PRIVATE IMPORTS (KB-H053)] The file conanfile.py imports private conan API on line 1", output)
 
-        tools.save('conanfile.py', content="from conans.model import Generator\n" +
+        save('conanfile.py', content="from conans.model import Generator\n" +
                                            self.conanfile_base.format(placeholder=''))
         output = self.conan(['export', '.', 'name/version@'])
         self.assertIn("[PRIVATE IMPORTS (KB-H053)] OK", output)
@@ -951,16 +952,16 @@ class ConanCenterTests(ConanClientTestCase):
                 self.{0}requires("bar/0.1.0")
         """.format(prefix))
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H055)] Both '{0}requires' attribute and '{0}requirements()' "
                       "method should not be declared at same recipe.".format(prefix), output)
 
-        tools.save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
+        save('conanfile.py', content=conanfile.replace('{}requires = "foo/0.1.0"'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
+        save('conanfile.py', content=conanfile.replace("def {}requirements(self):".format(prefix), "")
                                                     .replace('self.{}requires("bar/0.1.0")'.format(prefix), ""))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
@@ -972,7 +973,7 @@ class ConanCenterTests(ConanClientTestCase):
             license = "Public Domain"
         """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [LICENSE PUBLIC DOMAIN (KB-H056)] " \
                       "Public Domain is not a SPDX license. Use 'Unlicense' instead.", output)
@@ -997,8 +998,8 @@ class ConanCenterTests(ConanClientTestCase):
                 os.rename("foo.txt", "bar.txt")
         """)
 
-        tools.save('conanfile.py', content=conanfile)
-        tools.save('test_package/conanfile.py', content=conanfile_tp)
+        save('conanfile.py', content=conanfile)
+        save('test_package/conanfile.py', content=conanfile_tp)
 
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in conanfile.py may cause"
@@ -1006,8 +1007,8 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'os.rename' in test_package/conanfile.py"
                       " may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)' instead.", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("os.", "tools."))
-        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
+        save('conanfile.py', content=conanfile.replace("os.", "tools."))
+        save('test_package/conanfile.py', content=conanfile_tp.replace("os.", "tools."))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS RENAME (KB-H057)] The 'tools.rename' in conanfile.py is outdated"
                       " and may cause permission error on Windows. Use 'conan.tools.files.rename(self, src, dst)'"
@@ -1017,8 +1018,8 @@ class ConanCenterTests(ConanClientTestCase):
                       " instead.", output)
         self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("os.rename(", "tools.rename(self, "))
-        tools.save('test_package/conanfile.py', content=conanfile_tp.replace("os.rename(", "tools.rename(self, "))
+        save('conanfile.py', content=conanfile.replace("os.rename(", "tools.rename(self, "))
+        save('test_package/conanfile.py', content=conanfile_tp.replace("os.rename(", "tools.rename(self, "))
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertNotIn("WARN: [TOOLS RENAME (KB-H057)]", output)
         self.assertIn("[TOOLS RENAME (KB-H057)] OK", output)
@@ -1031,19 +1032,19 @@ class ConanCenterTests(ConanClientTestCase):
             exports = "foo."
         """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("[ILLEGAL CHARACTERS (KB-H058)] OK", output)
 
         for filename in ["conanfile?.py", "conan file.py", "conanfile%.py"]:
-            tools.save(filename, content=conanfile)
+            save(filename, content=conanfile)
             output = self.conan(['export', filename, 'name/version@user/test'])
             self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file '{}' uses illegal"
                           " charecters (<>:\"/\\|?*%,; ) for its name. Please, rename that file."
                           .format(filename), output)
 
-        tools.save("conanfile.py", content=conanfile)
-        tools.save("foo.", content="")
+        save("conanfile.py", content=conanfile)
+        save("foo.", content="")
         output = self.conan(['export', "conanfile.py", 'name/version@user/test'])
         self.assertIn("ERROR: [ILLEGAL CHARACTERS (KB-H058)] The file 'foo.' ends with a dot."
                       " Please, remove the dot from the end.", output)
@@ -1054,7 +1055,7 @@ class ConanCenterTests(ConanClientTestCase):
         class LibnameConan(ConanFile):
             pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameConan' instead.", output)
 
@@ -1064,14 +1065,14 @@ class ConanCenterTests(ConanClientTestCase):
         class LibnameConan(ConanFile):
             pass
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name-sdk/version@user/test'])
         self.assertIn("WARN: [CLASS NAME (KB-H059)] Class name 'LibnameConan' is not allowed. For example, use 'NameSdkConan' instead.", output)
 
     def test_no_crlf(self):
         conanfile = u"from conans import ConanFile\nclass AConan(ConanFile):\n    pass\n"
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("[NO CRLF (KB-H060)] OK", output)
 
@@ -1080,7 +1081,7 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("ERROR: [NO CRLF (KB-H060)] The file 'conanfile.py' uses CRLF. Please, replace by LF.", output)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         tools.mkdir(os.path.join('test_package', 'build'))
         with io.open(os.path.join('test_package', 'build', 'conanfile.py'), 'w', newline='\r\n') as f_handle:
             f_handle.write(conanfile)
@@ -1099,11 +1100,11 @@ class ConanCenterTests(ConanClientTestCase):
                 tools.cross_building(self)
         """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("[TOOLS CROSS BUILDING (KB-H062)] OK", output)
 
-        tools.save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
+        save('conanfile.py', content=conanfile.replace("tools.cross_building(self)",
                                                              "tools.cross_building(self.settings)"))
         output = self.conan(['export', 'conanfile.py', 'name/version@user/test'])
         self.assertIn("WARN: [TOOLS CROSS BUILDING (KB-H062)] The 'tools.cross_building(self.settings)' syntax in conanfile.py",output)
@@ -1117,7 +1118,7 @@ class ConanCenterTests(ConanClientTestCase):
             def source(self):
                 tools.get({}, strip_root=True)
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/all@user/test'])
         self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1130,7 +1131,7 @@ class ConanCenterTests(ConanClientTestCase):
                        tools.get({},
                                  strip_root=True)
                """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1144,7 +1145,7 @@ class ConanCenterTests(ConanClientTestCase):
                    def source(self):
                        tools.get({}, strip_root=True)
                """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("WARN: [NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1158,7 +1159,7 @@ class ConanCenterTests(ConanClientTestCase):
                     def source(self):
                         tools.get({}, strip_root=True)
                 """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1172,7 +1173,7 @@ class ConanCenterTests(ConanClientTestCase):
                     def source(self):
                         tools.get({}, strip_root=True)
                 """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1186,7 +1187,7 @@ class ConanCenterTests(ConanClientTestCase):
                     def source(self):
                         tools.get({}, strip_root=True)
                 """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
@@ -1200,6 +1201,6 @@ class ConanCenterTests(ConanClientTestCase):
                     pass
         """)
 
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
         self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)

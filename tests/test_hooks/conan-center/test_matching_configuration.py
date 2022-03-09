@@ -6,6 +6,7 @@ from conans import tools
 from parameterized import parameterized
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class MatchingConfigurationTests(ConanClientTestCase):
@@ -34,8 +35,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
-        tools.save('conanfile.py', content=cf)
-        tools.save('file%s' % extension, content="")
+        save('conanfile.py', content=cf)
+        save('file%s' % extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         if platform.system() == system_name:
             self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
@@ -67,8 +68,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
         cf = self.conanfile_match_conf.format(extension=wrong_extension,
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
-        tools.save('conanfile.py', content=cf)
-        tools.save('file%s' % wrong_extension, content="")
+        save('conanfile.py', content=cf)
+        save('file%s' % wrong_extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
 
         self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
@@ -84,9 +85,9 @@ class MatchingConfigurationTests(ConanClientTestCase):
     def package_id(self):
         self.info.header_only()
         """
-        tools.save('conanfile_other.py', content=cf)
-        tools.save('file.h', content="")
-        tools.save('LICENSE', content="")
+        save('conanfile_other.py', content=cf)
+        save('file.h', content="")
+        save('LICENSE', content="")
         output = self.conan(['create', 'conanfile_other.py', 'name/version@danimtb/test'])
         self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
@@ -94,9 +95,9 @@ class MatchingConfigurationTests(ConanClientTestCase):
     def test_matching_configuration_header_only(self):
         cf = self.conanfile_match_conf.format(extension=".h",
                                               settings="")
-        tools.save('conanfile.py', content=cf)
-        tools.save('file.h', content="")
-        tools.save('LICENSE', content="")
+        save('conanfile.py', content=cf)
+        save('file.h', content="")
+        save('LICENSE', content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
         self.assertNotIn("ERROR: [MATCHING CONFIGURATION (KB-H014)]", output)
@@ -105,7 +106,7 @@ class MatchingConfigurationTests(ConanClientTestCase):
         cf = self.conanfile_match_conf.format(extension="",
                                               settings="settings = 'os', 'compiler', 'arch', "
                                                        "'build_type'")
-        tools.save('conanfile.py', content=cf)
+        save('conanfile.py', content=cf)
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         self.assertNotIn("[MATCHING CONFIGURATION (KB-H014)] OK", output)
         self.assertIn("ERROR: [MATCHING CONFIGURATION (KB-H014)] Empty package", output)
@@ -114,8 +115,8 @@ class MatchingConfigurationTests(ConanClientTestCase):
     def test_matching_configuration_tool(self, system_name, extension):
         cf = self.conanfile_match_conf.format(extension=extension,
                                               settings="settings = 'os'")
-        tools.save('conanfile.py', content=cf)
-        tools.save('file%s' % extension, content="")
+        save('conanfile.py', content=cf)
+        save('file%s' % extension, content="")
         output = self.conan(['create', '.', 'name/version@jgsogo/test'])
         system = platform.system()
         if system in ["Darwin", "Linux"]:

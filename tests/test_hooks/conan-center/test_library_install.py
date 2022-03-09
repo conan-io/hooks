@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class TestInstalledLibraries(ConanClientTestCase):
@@ -29,33 +30,33 @@ class TestInstalledLibraries(ConanClientTestCase):
         return kwargs
 
     def test_library_doesnot_exist(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
     def test_empty_library_list(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("open", "# open"))
+        save('conanfile.py', content=self.conanfile.replace("open", "# open"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
     def test_not_installed_global_library(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("[]", "['bar']"))
+        save('conanfile.py', content=self.conanfile.replace("[]", "['bar']"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component name::name library 'bar'", output)
 
     def test_empty_component_libs(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("libs", "components['fake'].libs"))
+        save('conanfile.py', content=self.conanfile.replace("libs", "components['fake'].libs"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
     def test_empty_component_without_libs(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("libs", "components['fake'].libs")
+        save('conanfile.py', content=self.conanfile.replace("libs", "components['fake'].libs")
                                                     .replace("open", "# open"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
     def test_not_install_component_libs(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("libs = []",
+        save('conanfile.py', content=self.conanfile.replace("libs = []",
                                                              "components['fake'].libs = ['bar']"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component name::fake library 'bar'", output)
@@ -68,11 +69,11 @@ class TestInstalledLibraries(ConanClientTestCase):
             def package_id(self):
                 self.info.header_only()
         """)
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
 
     def test_full_library(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("[]", "['libfoo.a']"))
+        save('conanfile.py', content=self.conanfile.replace("[]", "['libfoo.a']"))
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)

@@ -1,14 +1,16 @@
 import os
 import textwrap
 
-from conans import tools
-
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class NonASCIITests(ConanClientTestCase):
     conanfile = textwrap.dedent("""\
-        from conans import ConanFile
+        try:
+            from conans import ConanFile
+        except ImportError:
+            from conan import ConanFile
 
         class AConan(ConanFile):
             author = "Юрий Алексеевич Гагарин"
@@ -22,14 +24,14 @@ class NonASCIITests(ConanClientTestCase):
         return kwargs
 
     def test_with_non_ascii(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        output = self.conan(['export', '.', 'name/version@user/channel'])
+        save('conanfile.py', content=self.conanfile)
+        output = self.conan_export('.', 'name', 'version', 'user', 'channel')
         self.assertIn("ERROR: The file \'conanfile.py\' contains a non-ascii character at line (5)."
                       " Only ASCII characters are allowed, please remove it.", output)
 
     def test_with_no_non_ascii(self):
-        tools.save('conanfile.py', content=self.conanfile
+        save('conanfile.py', content=self.conanfile
             .replace("Юрий Алексеевич Гагарин", "Yuri Alekseyevich Gagarin")
             .replace("A Terra é Azul", "The Earth is Blue"))
-        output = self.conan(['export', '.', 'name/version@user/channel'])
+        output = self.conan_export('.', 'name', 'version', 'user', 'channel')
         self.assertNotIn("ERROR:", output)
