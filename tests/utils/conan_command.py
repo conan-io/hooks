@@ -4,12 +4,24 @@ from contextlib import contextmanager
 
 import sys
 from conans import __version__ as conan_version
-from conans.client.command import Conan, CommandOutputer, Command
+try:
+    from conans.client.command import Conan, CommandOutputer, Command
+except ImportError:
+    from conans.cli.api.conan_api import ConanAPIV2
+    from conans.cli.cli import Cli
+    v2 = True
+
 from conans.model.version import Version
 
 
 @contextmanager
 def conan_command(output_stream):
+    if v2:
+        conan_api = ConanAPIV2()
+        cli = Cli(conan_api)
+        yield cli
+        return
+
     # This snippet reproduces code from conans.client.command.main, we cannot directly
     # use it because in case of error it is exiting the python interpreter :/
     old_stdout, old_stderr = sys.stdout, sys.stderr

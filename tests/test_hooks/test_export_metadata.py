@@ -15,6 +15,7 @@ from conans import tools
 from conans.paths import CONAN_MANIFEST
 from tests.utils import capabilities
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 here = os.path.dirname(__file__)
 
@@ -48,13 +49,13 @@ class ExportMetadataTests(ConanClientTestCase):
         return kwargs
 
     def test_no_repo(self):
-        tools.save('conanfile.py', content=self.conanfile_plain)
+        save('conanfile.py', content=self.conanfile_plain)
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn("pre_export(): WARN: Cannot identify a repository system in directory", output)
 
     def test_conflicting_file(self):
-        tools.save('conanfile.py', content=self.conanfile_plain)
-        tools.save(METADATA_FILENAME, content='whatever')
+        save('conanfile.py', content=self.conanfile_plain)
+        save(METADATA_FILENAME, content='whatever')
         output = self.conan(['export', '.', 'name/version@jgsogo/test'])
         self.assertIn("ERROR: Target file to write metadata already exists", output)
         self.assertIn("Use environment variable '{}' to set a different "
@@ -74,7 +75,7 @@ class ExportMetadataTests(ConanClientTestCase):
         git.run("init .")
         git.run('config user.email "you@example.com"')
         git.run('config user.name "Your Name"')
-        tools.save('conanfile.py', content=conanfile)
+        save('conanfile.py', content=conanfile)
         git.run('add --all')
         git.run('commit -am "initial"')
         git.run('remote add origin {}'.format(url))
@@ -110,7 +111,7 @@ class ExportMetadataTests(ConanClientTestCase):
         # Create the working repo
         svn = tools.SVN()
         svn.checkout(url=repo_url)
-        tools.save('conanfile.py', content=self.conanfile_plain)
+        save('conanfile.py', content=self.conanfile_plain)
         svn.run("add conanfile.py")
         svn.run('commit -m "initial"')
         if pristine_repo:

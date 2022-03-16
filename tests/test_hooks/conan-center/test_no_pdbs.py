@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class NoPDBsTests(ConanClientTestCase):
@@ -27,12 +28,12 @@ class NoPDBsTests(ConanClientTestCase):
         return kwargs
 
     def test_pdb_not_allowed(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [PDB FILES NOT ALLOWED (KB-H017)]", output)
 
     def test_no_pdb_is_ok(self):
-        tools.save('conanfile.py', content=self.conanfile.replace("bad.pdb", "bad.txt"))
+        save('conanfile.py', content=self.conanfile.replace("bad.pdb", "bad.txt"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [PDB FILES NOT ALLOWED (KB-H017)]", output)
         self.assertIn("[PDB FILES NOT ALLOWED (KB-H017)] OK", output)

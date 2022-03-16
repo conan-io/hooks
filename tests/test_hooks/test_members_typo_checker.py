@@ -6,11 +6,15 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class MembersTypoCheckerTests(ConanClientTestCase):
     conanfile_basic = textwrap.dedent("""\
-        from conans import ConanFile
+        try:
+            from conans import ConanFile
+        except ImportError:
+            from conan import ConanFile
 
         class AConan(ConanFile):
             name = "name"
@@ -19,7 +23,10 @@ class MembersTypoCheckerTests(ConanClientTestCase):
                 self.cpp_info.defines = ["ACONAN"]
         """)
     conanfile_with_typos = textwrap.dedent("""\
-        from conans import ConanFile
+        try:
+            from conans import ConanFile
+        except ImportError:
+            from conan import ConanFile
 
         class AConan(ConanFile):
             name = "name"
@@ -43,13 +50,13 @@ class MembersTypoCheckerTests(ConanClientTestCase):
         return kwargs
 
     def test_conanfile_basic(self):
-        tools.save('conanfile.py', content=self.conanfile_basic)
-        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
+        save('conanfile.py', content=self.conanfile_basic)
+        output = self.conan_export('.', 'name', 'version', 'jgsogo', 'test')
         self.assertNotIn("member looks like a typo", output)
 
     def test_conanfile_with_typos(self):
-        tools.save('conanfile.py', content=self.conanfile_with_typos)
-        output = self.conan(['export', '.', 'name/version@jgsogo/test'])
+        save('conanfile.py', content=self.conanfile_with_typos)
+        output = self.conan_export('.', 'name', 'version', 'jgsogo', 'test')
         self.assertIn(
             "pre_export(): WARN: The 'exports_sourcess' member looks like a typo. Similar to:", output)
         self.assertIn(

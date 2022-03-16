@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class TestInvalidTopics(ConanClientTestCase):
@@ -21,23 +22,23 @@ class TestInvalidTopics(ConanClientTestCase):
         return kwargs
 
     def test_valid_topics(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("[INVALID TOPICS (KB-H064)] OK", output)
 
     def test_no_topics(self):
-        tools.save('conanfile.py', content=self.conanfile.replace('topics = ("foobar",)', ""))
+        save('conanfile.py', content=self.conanfile.replace('topics = ("foobar",)', ""))
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("[INVALID TOPICS (KB-H064)] OK", output)
 
     def test_invalid_topics(self):
-        tools.save('conanfile.py', content=self.conanfile.replace('"foobar",', '"foobar", "conan"'))
+        save('conanfile.py', content=self.conanfile.replace('"foobar",', '"foobar", "conan"'))
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("WARN: [INVALID TOPICS (KB-H064)] The topic 'conan' is invalid and should be"
                       " removed from topics attribute.", output)
 
     def test_uppercase_topics(self):
-        tools.save('conanfile.py', content=self.conanfile.replace('"foobar",', '"foobar", "Baz", "QUX"'))
+        save('conanfile.py', content=self.conanfile.replace('"foobar",', '"foobar", "Baz", "QUX"'))
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("WARN: [INVALID TOPICS (KB-H064)] The topic 'Baz' is invalid; even names "
                       "and acronyms should be formatted entirely in lowercase.", output)

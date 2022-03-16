@@ -11,9 +11,13 @@ try:
 except ImportError:
     from io import StringIO
 
-from conans.client.command import SUCCESS
+try:
+    from conans.client.command import SUCCESS
+except ImportError:
+    from conans.cli.exit_codes import SUCCESS
 from tests.utils.conan_command import conan_command
 from tests.utils.environ_vars import context_env
+from tests.utils.compat import v2
 
 
 class ConanClientTestCase(unittest.TestCase):
@@ -27,6 +31,22 @@ class ConanClientTestCase(unittest.TestCase):
         home_short = os.path.join(self._working_dir, 'hs')
         kwargs.update({'CONAN_USER_HOME': home, 'CONAN_USER_HOME_SHORT': home_short})
         return kwargs
+
+    def conan_export(self, cwd, name, version, user=None, channel=None, expected_return_code=SUCCESS):
+        if v2:
+            args = ['export', '--name', name, '--version', version]
+            if user:
+                args.extend(['--user', user])
+            if channel:
+                args.extend(['--channel', channel])
+            args.append(cwd)
+        else:
+            if user and channel:
+                ref = "%s/%s@%s/%s" % (name, version, user, channel)
+            else:
+                ref = "%s/%s@" % (name, version)
+            args = ['export', cwd, ref]
+        return self.conan(args, expected_return_code=expected_return_code)
 
     def conan(self, command, expected_return_code=SUCCESS):
         with context_env(**self._get_environ()):

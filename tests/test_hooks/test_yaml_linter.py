@@ -7,9 +7,19 @@ import unittest
 from parameterized import parameterized
 
 from conans import tools
-from conans.client.command import ERROR_GENERAL, SUCCESS
-from conans.tools import environment_append
+try:
+    from conans.client.command import ERROR_GENERAL, SUCCESS
+except ImportError:
+    from conans.cli.exit_codes import ERROR_GENERAL, SUCCESS
+
+try:
+    from conans.tools import environment_append
+except ImportError:
+    from conans.util.env import environment_update as environment_append
+
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+
+from tests.utils.compat import save
 
 
 class YAMLLinterTests(ConanClientTestCase):
@@ -40,8 +50,8 @@ class YAMLLinterTests(ConanClientTestCase):
                   base_path: "source"
             patches:
             """)
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('conandata.yml', content=conandatafile)
+        save('conanfile.py', content=self.conanfile)
+        save('conandata.yml', content=conandatafile)
         yamllint_werr_value = "1" if yamllint_werr else None
         with environment_append({"CONAN_YAMLLINT_WERR": yamllint_werr_value}):
             return_code = ERROR_GENERAL if yamllint_werr else SUCCESS
@@ -66,8 +76,8 @@ class YAMLLinterTests(ConanClientTestCase):
                 - patch_file: "patches/abcdef.diff"
                   base_path: "source"
             """)
-        tools.save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
-        tools.save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
+        save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
+        save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
         self.assertIn("pre_export(): Lint yaml '{}'".format(recipe_path), output)

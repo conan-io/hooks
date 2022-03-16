@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class NoLibToolTests(ConanClientTestCase):
@@ -28,7 +29,7 @@ class NoLibToolTests(ConanClientTestCase):
         return kwargs
 
     def test_libtool_not_allowed(self):
-        tools.save('conanfile.py', content=self.conanfile)
+        save('conanfile.py', content=self.conanfile)
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [LIBTOOL FILES PRESENCE (KB-H018)]", output)
         self.assertIn("bad.la", output)

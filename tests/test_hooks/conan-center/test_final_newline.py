@@ -4,6 +4,7 @@ import textwrap
 from conans import tools
 
 from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.compat import save
 
 
 class TestGlobalFinalNewLine(ConanClientTestCase):
@@ -52,51 +53,51 @@ class TestGlobalFinalNewLine(ConanClientTestCase):
         return kwargs
 
     def test_no_newline_pysoure(self):
-        tools.save('conanfile.py', content=self.conanfile.strip())
+        save('conanfile.py', content=self.conanfile.strip())
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
     def test_no_newline_cmakelists(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save(os.path.join('CMakeLists.txt'), content=self.cmakelists.strip())
+        save('conanfile.py', content=self.conanfile)
+        save(os.path.join('CMakeLists.txt'), content=self.cmakelists.strip())
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
     def test_no_newline_csource(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save(os.path.join('test_package', 'test_package.c'), content=self.csource.strip())
+        save('conanfile.py', content=self.conanfile)
+        save(os.path.join('test_package', 'test_package.c'), content=self.csource.strip())
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
     def test_no_newline_yml(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save(os.path.join('conandata.yml'), content=self.conandata_yml.strip())
+        save('conanfile.py', content=self.conanfile)
+        save(os.path.join('conandata.yml'), content=self.conandata_yml.strip())
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
     def test_no_newline_config_yml(self):
-        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile)
-        tools.save(os.path.join('config.yml'), content=self.config_yml.strip())
+        save(os.path.join('all', 'conanfile.py'), content=self.conanfile)
+        save(os.path.join('config.yml'), content=self.config_yml.strip())
         output = self.conan(['export', 'all', 'name/version@user/channel'])
         self.assertIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertIn("does not end with an endline", output)
 
     def test_no_newline_in_build_file(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save(os.path.join('test_package', 'build', 'some_file.txt'), 'some data')
+        save('conanfile.py', content=self.conanfile)
+        save(os.path.join('test_package', 'build', 'some_file.txt'), 'some data')
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
         self.assertNotIn("does not end with an endline", output)
 
     def test_ok_usage(self):
-        tools.save(os.path.join('config.yml'), content=self.config_yml)
-        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile)
-        tools.save(os.path.join('all', 'CMakeLists.txt'), content=self.cmakelists)
-        tools.save(os.path.join('all', 'test_package', 'test_package.c'), content=self.csource)
-        tools.save(os.path.join('all', 'conandata.yml'), content=self.conandata_yml)
+        save(os.path.join('config.yml'), content=self.config_yml)
+        save(os.path.join('all', 'conanfile.py'), content=self.conanfile)
+        save(os.path.join('all', 'CMakeLists.txt'), content=self.cmakelists)
+        save(os.path.join('all', 'test_package', 'test_package.c'), content=self.csource)
+        save(os.path.join('all', 'conandata.yml'), content=self.conandata_yml)
         output = self.conan(['export', 'all', 'name/version@user/channel'])
         self.assertNotIn("ERROR: [NO FINAL ENDLINE (KB-H041)]", output)
