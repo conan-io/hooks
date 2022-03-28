@@ -66,8 +66,8 @@ def pre_export(output, conanfile_path, *args, **kwargs):
             logger.error(
                 "Error parsing linter output for recipe '{}': {}".format(conanfile_path, exc))
             logger.error(" - linter arguments: {}".format(lint_args))
-            logger.error(" - output: {}".format(pylint_stdout.getvalue()))
-            logger.error(" - stderr: {}".format(pylint_stderr.getvalue()))
+            logger.error(" - output: {}".format(pylint_stdout))
+            logger.error(" - stderr: {}".format(pylint_stderr))
         else:
             errors = 0
             for msg in messages:
