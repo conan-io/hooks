@@ -17,7 +17,7 @@ from tests.utils.test_cases.conan_client import ConanClientTestCase
 
 class RecipeLinterTests(ConanClientTestCase):
     conanfile = textwrap.dedent(r"""
-        from conans import ConanFile, tools
+        from conan import ConanFile, tools
         
         class TestConan(ConanFile):
             name = "name"
@@ -65,7 +65,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_path_with_spaces(self):
         conanfile = textwrap.dedent(r"""
-            from conans import ConanFile
+            from conan import ConanFile
 
             class Recipe(ConanFile):
                 def build(self):
@@ -88,7 +88,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_custom_plugin(self):
         conanfile = textwrap.dedent(r"""
-            from conans import ConanFile
+            from conan import ConanFile
 
             class Recipe(ConanFile):
                 def build(self):
@@ -111,7 +111,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_dynamic_fields(self):
         conanfile = textwrap.dedent("""
-            from conans import ConanFile
+            from conan import ConanFile
             
             class TestConan(ConanFile):
                 name = "consumer"
@@ -150,7 +150,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_catch_them_all(self):
         conanfile = textwrap.dedent("""
-            from conans import ConanFile
+            from conan import ConanFile
             class BaseConan(ConanFile):
 
                 def source(self):
@@ -173,7 +173,7 @@ class RecipeLinterTests(ConanClientTestCase):
 
     def test_conan_data(self):
         conanfile = textwrap.dedent("""
-            from conans import ConanFile
+            from conan import ConanFile
         
             class ExampleConan(ConanFile):
     
@@ -191,7 +191,9 @@ class RecipeLinterTests(ConanClientTestCase):
     def test_python_requires(self):
         """ python_requires were not added to the 'pylint_plugin' until 1.21 """
         conanfile = textwrap.dedent("""
-            from conans import ConanFile, python_requires
+            from conan import ConanFile
+            # pylint: disable=E9000
+            from conans import python_requires 
 
             base = python_requires("name/version")
 
