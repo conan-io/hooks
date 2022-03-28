@@ -190,19 +190,23 @@ class RecipeLinterTests(ConanClientTestCase):
     @unittest.skipUnless(version.parse(conan_version) >= version.parse("1.21.0"), "Need python_version")
     def test_python_requires(self):
         """ python_requires were not added to the 'pylint_plugin' until 1.21 """
+        pytreq_conanfile = textwrap.dedent("""
+            from conan import ConanFile
+            class TestConan(ConanFile):
+                pass
+            """)
+        tools.save('pyrequire.py', pytreq_conanfile)
+        self.conan(['export', 'pyrequire.py', 'package/version@user/channel'])
         conanfile = textwrap.dedent("""
             from conan import ConanFile
-            # pylint: disable=E9000
-            from conans import python_requires 
-
-            base = python_requires("name/version")
 
             class TestConan(ConanFile):
                 name = "consumer"
                 version = "version"
+                python_requires = "package/version@user/channel"
             """)
-        tools.save('require.py', self.conanfile)
-        self.conan(['export', 'require.py', 'name/version@'])
+        tools.save('require.py', conanfile)
+        self.conan(['export', 'require.py', 'consumer/version@'])
 
         tools.save('consumer.py', content=conanfile)
         with environment_append({"CONAN_PYLINT_WERR": "1"}):
