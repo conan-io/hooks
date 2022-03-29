@@ -74,6 +74,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
              }
 
@@ -787,11 +788,22 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.isfile(test_package_path):
             try:
-                python_requires = ConanPythonRequire(None, None)
-                _, test_conanfile = parse_conanfile(test_package_path, python_requires=python_requires, generator_manager=None)
+                test_conanfile = _load_conanfile(test_package_path)
                 test_type = getattr(test_conanfile, "test_type", None)
                 if test_type and test_type != "explicit":
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
+            except Exception as e:
+                out.warn("Invalid conanfile: {}".format(e))
+
+    @run_test("KB-H069", output)
+    def test(out):
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
+        if os.path.isfile(test_package_path):
+            try:
+                test_conanfile = _load_conanfile(test_package_path)
+                default_options = getattr(test_conanfile, "default_options", None)
+                if default_options:
+                    out.error(f"The attribute 'default_options' is not allowed on test_package/conanfile.py, remove it.")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
 
@@ -1271,3 +1283,11 @@ def _check_short_paths(conanfile_path, folder_path, max_length_path, output):
                             f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
                             "Add 'short_paths = True' in your recipe.")
                         break
+
+
+def _load_conanfile(conanfile_path):
+    python_requires = ConanPythonRequire(None, None)
+    _, conanfile_obj = parse_conanfile(conanfile_path,
+                                       python_requires=python_requires,
+                                       generator_manager=None)
+    return conanfile_obj
