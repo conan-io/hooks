@@ -78,6 +78,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H065": "NO REQUIRED_CONAN_VERSION",
              "KB-H066": "SHORT_PATHS USAGE",
              "KB-H068": "TEST_TYPE MANAGEMENT",
+             "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
+             "KB-H070": "MANDATORY SETTINGS",
              }
 
 
@@ -244,7 +246,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 continue
             for files_it in files:
                 file_path = os.path.join(path, files_it)
-                total_size += os.path.getsize(file_path)
+                if not os.path.islink(file_path):
+                    total_size += os.path.getsize(file_path)
 
         total_size_kb = total_size / 1024
         out.success("Total recipe size: %s KB" % total_size_kb)
@@ -452,16 +455,17 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H040", output)
     def test(out):
-        if "self.cpp_info.name =" in conanfile_content:
-            out.error("CCI uses the name of the package for cmake generator."
-                      " Use 'cpp_info.names' instead.")
+        match = re.search(r"self\.cpp_info\.(name|filename)\s?=", conanfile_content)
+        if match:
+            out.error("CCI uses the name of the package for cmake generator and filename by default."
+                      " Replace 'cpp_info.{0}' by 'cpp_info.{0}s[<generator>]'.".format(match.group(1)))
 
-        for generator in ["cmake", "cmake_multi"]:
-            if "self.cpp_info.names['{}']".format(generator) in conanfile_content or \
-               'self.cpp_info.names["{}"]'.format(generator) in conanfile_content:
-                out.error("CCI uses the name of the package for {0} generator. "
-                          "Conanfile should not contain 'self.cpp_info.names['{0}']'. "
-                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(generator))
+        match = re.search(r"self\.cpp_info\.(names|filenames)\[\s?['\"](cmake|cmake_multi)['\"]\s?\]", conanfile_content)
+        if match:
+            out.error("CCI uses the name of the package for {0} generator. "
+                      "Conanfile should not contain 'self.cpp_info.{1}['{0}']'. "
+                      "Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(match.group(2),
+                                                                                                 match.group(1)))
 
     @run_test("KB-H041", output)
     def test(out):
@@ -790,13 +794,37 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.isfile(test_package_path):
             try:
-                python_requires = ConanPythonRequire(None, None)
-                _, test_conanfile = parse_conanfile(test_package_path, python_requires=python_requires, generator_manager=None)
+                test_conanfile = _load_conanfile(test_package_path)
                 test_type = getattr(test_conanfile, "test_type", None)
                 if test_type and test_type != "explicit":
                     out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
             except Exception as e:
                 out.warn("Invalid conanfile: {}".format(e))
+
+    @run_test("KB-H069", output)
+    def test(out):
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
+        if os.path.isfile(test_package_path):
+            try:
+                test_conanfile = _load_conanfile(test_package_path)
+                default_options = getattr(test_conanfile, "default_options", None)
+                if default_options:
+                    out.error(f"The attribute 'default_options' is not allowed on test_package/conanfile.py, remove it.")
+            except Exception as e:
+                out.warn("Invalid conanfile: {}".format(e))
+
+
+    @run_test("KB-H070", output)
+    def test(out):
+        settings = getattr(conanfile, "settings", None)
+        if settings:
+            settings = settings if isinstance(settings, (list, tuple)) else [settings]
+            missing = [x for x in ["os", "arch", "compiler", "build_type"] if x not in settings]
+            if missing:
+                out.warn("The values '{}' are missing on 'settings' attribute. Update settings with the missing "
+                         "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
+        else:
+            out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
 
 
 @raise_if_error_output
@@ -1283,7 +1311,6 @@ def _check_short_paths(conanfile_path, folder_path, max_length_path, output):
                             "Add 'short_paths = True' in your recipe.")
                         break
 
-
 def _get_compiler(conanfile):
     settings = _get_settings(conanfile)
     if not settings:
@@ -1454,3 +1481,11 @@ _OSX_LIBS = {
     '_SceneKit_SwiftUI', '_SpriteKit_SwiftUI', '_StoreKit_SwiftUI', 'iTunesLibrary', 'vecLib',
     'vmnet'
 }
+
+def _load_conanfile(conanfile_path):
+    python_requires = ConanPythonRequire(None, None)
+    _, conanfile_obj = parse_conanfile(conanfile_path,
+                                       python_requires=python_requires,
+                                       generator_manager=None)
+    return conanfile_obj
+

@@ -719,41 +719,6 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
         self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'scm'", output)
 
-    @pytest.mark.skipif(Version(conan_version) < "1.21", reason="requires Conan 1.21 or higher")
-    def test_no_target_name(self):
-        conanfile = textwrap.dedent("""\
-        from conans import ConanFile
-        class AConan(ConanFile):
-            def package_info(self):
-                {}
-
-        """)
-        pkg_config = 'self.cpp_info.names["pkg_config"] = "foolib"'
-        regular = 'self.cpp_info.name = "Foo"'
-        cmake = 'self.cpp_info.names["cmake"] = "Foo"'
-        cmake_multi = 'self.cpp_info.names["cmake_multi"] = "Foo"'
-        cmake_find = 'self.cpp_info.names["cmake_find_package"] = "Foo"'
-        cmake_find_multi = 'self.cpp_info.names["cmake_find_package_multi"] = "Foo"'
-
-        tools.save('conanfile.py', content=conanfile.replace("{}", regular))
-        output = self.conan(['create', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] "
-                      "CCI uses the name of the package for cmake generator."
-                      " Use 'cpp_info.names' instead.", output)
-
-        for line, gen in [(cmake, "cmake"), (cmake_multi, "cmake_multi")]:
-            tools.save('conanfile.py', content=conanfile.replace("{}", line))
-            output = self.conan(['create', '.', 'name/version@user/test'])
-            self.assertIn("ERROR: [NO TARGET NAME (KB-H040)] CCI uses the name of the package for "
-                          "{0} generator. Conanfile should not contain "
-                          "'self.cpp_info.names['{0}']'. "
-                          " Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(gen), output)
-
-        for it in [pkg_config, cmake_find, cmake_find_multi]:
-            tools.save('conanfile.py', content=conanfile.replace("{}", it))
-            output = self.conan(['create', '.', 'name/version@user/test'])
-            self.assertIn("[NO TARGET NAME (KB-H040)] OK", output)
-
     def test_cmake_verbose_makefile(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
 
