@@ -20,5 +20,8 @@ case "${PYVER}" in
         ;;
 esac
 
+TEST_FOLDER=${TMPDIR}/${PYVER}
+source ${TEST_FOLDER}/bin/activate
+
 ${PYVER} -m tox --recreate
 
