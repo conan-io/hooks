@@ -51,13 +51,13 @@ class RecipeLinterTests(ConanClientTestCase):
             if six.PY2:
                 self.assertIn("pre_export(): conanfile.py:9:8:"
                               " E1601: print statement used (print-statement)", output)
+                self.assertIn("pre_export(): conanfile.py:10:20:"
+                              " W1620: Calling a dict.iter*() method (dict-iter-method)", output)
             else:
                 self.assertIn("pre_export(): conanfile.py:10:20:"
                               " E1101: Instance of 'dict' has no 'iteritems' member (no-member)",
                               output)
 
-            self.assertIn("pre_export(): conanfile.py:10:20:"
-                          " W1620: Calling a dict.iter*() method (dict-iter-method)", output)
             self.assertIn("pre_export(): conanfile.py:10:12:"
                           " W0612: Unused variable 'k' (unused-variable)", output)
             self.assertIn("pre_export(): conanfile.py:10:15:"

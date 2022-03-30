@@ -2,7 +2,7 @@ pytest>=3.6
 parameterized
 responses
 pluggy
-pylint==2.10.2
+pylint
 astroid
 spdx_lookup
 yamllint
