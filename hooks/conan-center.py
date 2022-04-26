@@ -363,7 +363,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
 
         def _not_allowed_entries(info, allowed_entries):
@@ -422,6 +422,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     if not validate_recursive(element, conandata_yml[entry][version], "sources",
                                               allowed_sources):
                         return
+            for element in conandata_yml[entry][version]:
+                if entry == "sources" and element in allowed_sources and not conandata_yml[entry][version][element]:
+                    out.error(f"The entries {allowed_sources} must be filled in conandata.yml.")
+
 
     @run_test("KB-H034", output)
     def test(out):
@@ -1488,4 +1492,3 @@ def _load_conanfile(conanfile_path):
                                        python_requires=python_requires,
                                        generator_manager=None)
     return conanfile_obj
-

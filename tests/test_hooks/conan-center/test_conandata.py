@@ -419,3 +419,17 @@ class ConanData(ConanClientTestCase):
         self.assertNotIn("First level entries", output)
         self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                       "of conandata.yml", output)
+
+    def test_empty_checksum(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+            sources:
+              "1.70.0":
+                url: "url1.69.0"
+                sha256: ""
+            """)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertNotIn("First level entries", output)
+        self.assertIn("The entries ['md5', 'sha1', 'sha256', 'url'] must be filled in conandata.yml.", output)
