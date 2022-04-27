@@ -427,14 +427,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         return
             for element in conandata_yml[entry][version]:
                 if entry == "sources" and element in allowed_sources and not conandata_yml[entry][version][element]:
-                    out.error(f"The entry {element} cannot be empty in conandata.yml.")
-                if entry == "sources" and element in weak_checksums:
-                    out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
+                    out.error(f"The entry '{element}' cannot be empty in conandata.yml.")
                 if entry == "sources" and element in checksums:
                     found_checksums.append(element)
-            if found_checksums:
-                if len(found_checksums) > 1 and 'sha256' in found_checksums:
-                    out.warn("Use only 'sha256' as checksum. It's considerably more secure than others.")
+            if found_checksums and 'sha256' not in found_checksums:
+                out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
 
 
     @run_test("KB-H034", output)

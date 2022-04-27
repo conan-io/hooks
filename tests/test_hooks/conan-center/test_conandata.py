@@ -262,8 +262,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
         self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
-        self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
-        self.assertIn("Use only 'sha256' as checksum. It's considerably more secure than others.", export_output)
+        self.assertNotIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
 
     def test_reduce_conandata(self):
@@ -433,7 +432,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
-        self.assertIn("The entries ['md5', 'sha1', 'sha256', 'url'] must be filled in conandata.yml.", output)
+        self.assertIn("The entry 'sha256' cannot be empty in conandata.yml.", output)
 
     def test_prefer_sha256(self):
         tools.save('conanfile.py', content=self.conanfile)
