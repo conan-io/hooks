@@ -262,6 +262,8 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
         self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertIn("Use only 'sha256' as checksum. It's considerably more secure than others.", export_output)
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
 
     def test_reduce_conandata(self):
