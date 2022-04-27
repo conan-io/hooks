@@ -365,6 +365,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
+        weak_checksums = ["md5", "sha1"]
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -425,6 +426,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for element in conandata_yml[entry][version]:
                 if entry == "sources" and element in allowed_sources and not conandata_yml[entry][version][element]:
                     out.error(f"The entries {allowed_sources} must be filled in conandata.yml.")
+                if entry == "sources" and element in weak_checksums:
+                    out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
 
 
     @run_test("KB-H034", output)
