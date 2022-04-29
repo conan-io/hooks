@@ -1377,7 +1377,6 @@ def _deplibs_from_shlibs(conanfile, out):
                         name = load_command.get("name", '')
                         match = re.match(r, name)
                         if not match:
-                            out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(name, library))
                             continue
                         deplibs.setdefault(match.group(1), []).append(library)
             else:
