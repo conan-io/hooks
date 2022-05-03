@@ -26,7 +26,7 @@ ${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests virtualenv
 ${PYVER} -m virtualenv --python ${PYVER} ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
-  python -m pip install --upgrade --user pip && \
-  python -m pip install --user --requirement .ci/requirements_macos.txt && \
+  python -m pip install --upgrade pip && \
+  python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
   python .ci/last_conan_version.py
 
