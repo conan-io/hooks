@@ -22,8 +22,8 @@ esac
 
 TEST_FOLDER=${TMPDIR}/${PYVER}
 mkdir -p ${TEST_FOLDER} || echo "ok"
-${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests virtualenv
-${PYVER} -m virtualenv --python ${PYVER} ${TEST_FOLDER} && \
+${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
+${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
   python -m pip install --upgrade pip && \
