@@ -363,8 +363,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
-        allowed_sources = ["url", "sha256", "sha1", "md5"]
+        allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5"]
+        weak_checksums = ["md5", "sha1"]
+        checksums = ["md5", "sha1", "sha256"]
+        found_checksums = []
+        has_sources = False
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -411,6 +415,25 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 else:
                     return validate_one(e, name, allowed)
 
+            def validate_checksum_recursive(e, data):
+                if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
+                    for child in data[e]:
+                        if not validate_checksum_recursive(child, data[e]):
+                            return False
+                    return True
+                else:
+                    if isinstance(e, dict):
+                        for k, v in e.items():
+                            if k in checksums:
+                                found_checksums.append(k)
+                                if not v:
+                                    out.error(f"The entry '{k}' cannot be empty in conandata.yml.")
+                    else:
+                        fields = e if isinstance(e, list) else [e]
+                        for field in fields:
+                            if field in checksums:
+                                found_checksums.append(field)
+
             if version not in conandata_yml[entry]:
                 continue
             for element in conandata_yml[entry][version]:
@@ -422,6 +445,15 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     if not validate_recursive(element, conandata_yml[entry][version], "sources",
                                               allowed_sources):
                         return
+            for element in conandata_yml[entry][version]:
+                if entry == "sources":
+                    has_sources = True
+                    validate_checksum_recursive(element, conandata_yml[entry][version])
+            if not found_checksums and has_sources:
+                out.error("The checksum key 'sha256' must be declared and can not be empty.")
+            elif found_checksums and 'sha256' not in found_checksums:
+                out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
+
 
     @run_test("KB-H034", output)
     def test(out):
@@ -1487,4 +1519,3 @@ def _load_conanfile(conanfile_path):
                                        python_requires=python_requires,
                                        generator_manager=None)
     return conanfile_obj
-

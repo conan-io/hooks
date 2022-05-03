@@ -262,6 +262,7 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
         self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
+        self.assertNotIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", export_output)
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", export_output)
 
     def test_reduce_conandata(self):
@@ -419,3 +420,74 @@ class ConanData(ConanClientTestCase):
         self.assertNotIn("First level entries", output)
         self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
                       "of conandata.yml", output)
+
+    def test_empty_checksum(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent("""
+            sources:
+              "1.70.0":
+                url: "url1.69.0"
+                sha256: ""
+            """)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertIn("The entry 'sha256' cannot be empty in conandata.yml.", output)
+
+    def test_prefer_sha256(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        for checksum in ['md5', 'sha1']:
+            conandata = textwrap.dedent(f"""
+                sources:
+                  "1.70.0":
+                    url: "url1.69.0"
+                    {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                """)
+            tools.save('conandata.yml', content=conandata)
+            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+            self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", output)
+            self.assertIn("Consider 'sha256' instead of ['md5', 'sha1']. It's considerably more secure than others.", output)
+
+            conandata = textwrap.dedent(f"""
+                            sources:
+                              "1.69.0":
+                                url: "url1.69.0"
+                                {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                              "1.70.0":
+                                url: "url1.70.0"
+                                {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
+                            """)
+            tools.save('conandata.yml', content=conandata)
+            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+            self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", output)
+            self.assertIn("Consider 'sha256' instead of ['md5', 'sha1']. It's considerably more secure than others.",
+                          output)
+
+    def test_empty_checksum(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        conandata = textwrap.dedent(f"""
+            sources:
+                "1.70.0":
+                    url: "url1.69.0"
+            """)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertIn("The checksum key 'sha256' must be declared and can not be empty.", output)
+
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                        url: "url1.69.0"
+                        sha256: "sha1.69.0"
+                      "1.70.0":
+                        url: "url1.70.0"
+                    patches:
+                      "1.70.0":
+                        - patch_file: "001-1.70.0.patch"
+                          base_path: "source_subfolder/1.70.0"
+                    """)
+        tools.save('conandata.yml', content=conandata)
+        output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
+        self.assertIn("The checksum key 'sha256' must be declared and can not be empty.", output)
