@@ -4,6 +4,7 @@ set -e
 set -x
 
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
+TEST_FOLDER="${TMPDIR}/${PYVER}"
 
 case "${PYVER}" in
     py36)
@@ -20,7 +21,6 @@ case "${PYVER}" in
         ;;
 esac
 
-TEST_FOLDER=${TMPDIR}/${PYVER}
 mkdir -p ${TEST_FOLDER} || echo "ok"
 ${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
 ${PYVER} -m venv ${TEST_FOLDER} && \
