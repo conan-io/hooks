@@ -418,9 +418,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             def validate_checksum_recursive(e, data):
                 if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
                     for child in data[e]:
-                        if not validate_checksum_recursive(child, data[e]):
-                            return False
-                    return True
+                        validate_checksum_recursive(child, data[e])
                 else:
                     if isinstance(e, dict):
                         for k, v in e.items():
