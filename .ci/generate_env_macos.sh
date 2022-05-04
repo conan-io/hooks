@@ -4,6 +4,7 @@ set -e
 set -x
 
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
+TEST_FOLDER="${TMPDIR}/${PYVER}"
 
 case "${PYVER}" in
     py36)
@@ -20,13 +21,12 @@ case "${PYVER}" in
         ;;
 esac
 
-TEST_FOLDER=${TMPDIR}/${PYVER}
 mkdir -p ${TEST_FOLDER} || echo "ok"
-${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests virtualenv
-${PYVER} -m virtualenv --python ${PYVER} ${TEST_FOLDER} && \
+${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
+${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
   python -m pip install --upgrade pip && \
-  python -m pip install --requirement .ci/requirements_macos.txt && \
+  python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
   python .ci/last_conan_version.py
 
