@@ -719,6 +719,16 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'], expected_return_code=ERROR_GENERAL)
         self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'scm'", output)
 
+    def test_no_build_policy(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        class AConan(ConanFile):
+            build_policy = "always"
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['export', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [NOT ALLOWED ATTRIBUTES (KB-H039)] Conanfile should not contain attributes: 'build_policy'", output)
+
     def test_cmake_verbose_makefile(self):
         conanfile = self.conanfile_base.format(placeholder="exports_sources = \"CMakeLists.txt\"")
 
