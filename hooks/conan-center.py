@@ -241,7 +241,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         for path, dirs, files in os.walk(dir_path):
             dirs[:] = [d for d in dirs if
                        d not in [".conan"]]  # Discard the generated .conan directory
-            if os.path.relpath(path, dir_path).replace("\\", "/").startswith("test_package/build"):
+            if _skip_test_package(path, dir_path):
                 # Discard any file in temp builds
                 continue
             for files_it in files:
@@ -315,7 +315,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 for filename in filenames:
                     if filename.lower().startswith("cmake") and \
                        (filename.endswith(".txt") or filename.endswith(".cmake")) and \
-                       os.path.join("test_package", "build") not in root:
+                       not _skip_test_package(root, folder):
                         cmake_path = os.path.join(root, filename)
                         cmake_content = tools.load(cmake_path).lower()
                         for line in cmake_content.splitlines():
@@ -515,7 +515,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("File '{}' does not end with an endline".format(path))
 
         for root, _, filenames in os.walk(export_folder_path):
-            if os.path.relpath(root, export_folder_path).replace("\\", "/").startswith("test_package/build"):
+            if _skip_test_package(root, export_folder_path):
                 # Discard any file in temp builds
                 continue
             for filename in filenames:
@@ -704,7 +704,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                              ".build", ".s", ".asm"]
         recipe_folder = os.path.dirname(conanfile_path)
         for root, _, files in os.walk(recipe_folder):
-            if os.path.relpath(root, recipe_folder).replace("\\", "/").startswith("test_package/build"):
+            if _skip_test_package(root, recipe_folder):
                 continue
             for filename in files:
                 if not any(filename.lower().endswith(ext) for ext in ext_to_be_checked):
@@ -1327,6 +1327,9 @@ def _get_os(conanfile):
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
 
+def _skip_test_package(root, filename):
+    filename = os.path.relpath(root, filename).replace("\\", "/")
+    return filename.startswith("test_package/build") or filename.startswith("test_package/test_output")
 
 def _check_short_paths(conanfile_path, folder_path, max_length_path, output):
     conanfile_content = tools.load(conanfile_path)
