@@ -7,8 +7,8 @@ eval "$(pyenv init -)"
 
 case "${PYVER}" in
     py36)
-        pyenv install 3.6.12
-        pyenv virtualenv 3.6.12 conan
+        pyenv install 3.6.13
+        pyenv virtualenv 3.6.13 conan
         ;;
     py37)
         pyenv install 3.7.12
