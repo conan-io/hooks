@@ -6,10 +6,12 @@ set -x
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
 VENV_FOLDER="${TEST_FOLDER}/venv"
-PYENV=/Users/jenkins/.pyenv/bin/pyenv
+PYENV_ROOT=${TMPDIR}
+PYENV="${TMPDIR}/.pyenv/bin/pyenv"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
 
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 eval "$(${PYENV} init -)"
 
 case "${PYVER}" in
