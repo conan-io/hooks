@@ -429,6 +429,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                                 found_checksums.append(k)
                                 if not v:
                                     out.error(f"The entry '{k}' cannot be empty in conandata.yml.")
+                            if k == "sources" and re.search(google_source_regex, v):
+                                is_google_source = True
                     else:
                         fields = e if isinstance(e, list) else [e]
                         for field in fields:
@@ -449,10 +451,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for element in conandata_yml[entry][version]:
                 if entry == "sources":
                     has_sources = True
-                    if re.search(google_source_regex, conandata_yml[entry][version]["url"]):
-                        is_google_source = True
-                    else:
-                        validate_checksum_recursive(element, conandata_yml[entry][version])
+                    validate_checksum_recursive(element, conandata_yml[entry][version])
             if not found_checksums and has_sources and not is_google_source:
                 out.error("The checksum key 'sha256' must be declared and can not be empty.")
             elif found_checksums and 'sha256' not in found_checksums:
