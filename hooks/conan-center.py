@@ -419,6 +419,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     return validate_one(e, name, allowed)
 
             def validate_checksum_recursive(e, data):
+                def check_is_google_source(v):
+                    urls = v if isinstance(v, list) else [v]
+                    if any(re.search(google_source_regex, url) for url in urls):
+                        is_google_source = True
+                    
                 if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
                     for child in data[e]:
                         validate_checksum_recursive(child, data[e])
@@ -430,14 +435,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                                 if not v:
                                     out.error(f"The entry '{k}' cannot be empty in conandata.yml.")
                             if k == "url":
-                                urls = v if isinstance(v, list) else [v]
-                                if any(re.search(google_source_regex, url) for url in urls):
-                                    is_google_source = True
+                                check_is_google_source(v)
                     else:
                         fields = e if isinstance(e, list) else [e]
                         for field in fields:
                             if field in checksums:
                                 found_checksums.append(field)
+                        if "url" in data:
+                            check_is_google_source(data["url"])
 
             if version not in conandata_yml[entry]:
                 continue
