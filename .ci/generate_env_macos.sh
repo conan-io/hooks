@@ -6,9 +6,10 @@ set -x
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
 VENV_FOLDER="${TEST_FOLDER}/venv"
-PYTHON36="/Users/jenkins/.pyenv/versions/3.6.13/bin/python"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
+
+eval "$(pyenv init -)"
 
 case "${PYVER}" in
     py36)
