@@ -449,7 +449,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for element in conandata_yml[entry][version]:
                 if entry == "sources":
                     has_sources = True
-                    if re.search(google_source_regex, conandata_yml[entry][version]):
+                    if re.search(google_source_regex, conandata_yml[entry][version]["url"]):
                         is_google_source = True
                     else:
                         validate_checksum_recursive(element, conandata_yml[entry][version])
