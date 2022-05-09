@@ -534,3 +534,15 @@ class ConanData(ConanClientTestCase):
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'zulu-openjdk/11.0.12@user/testing'])
         self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", output)
+
+    def test_google_source(self):
+        conandata = textwrap.dedent("""
+                    sources:
+                      "1.69.0":
+                            url: "https://chromium.googlesource.com/chromium/tools/depot_tools/+archive/48c5c9c50455c625c58dab2fbb0904cac467168c.tar.gz"
+                    patches:
+                      "1.69.0":
+                            patch_file: "001-1.69.0.patch"
+                            base_path: "source_subfolder/1.69.0"
+                          """)
+        self._check_conandata(conandata)

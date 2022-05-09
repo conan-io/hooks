@@ -369,6 +369,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         checksums = ["md5", "sha1", "sha256"]
         found_checksums = []
         has_sources = False
+        is_google_source = False
 
         def _not_allowed_entries(info, allowed_entries):
             not_allowed = []
@@ -388,6 +389,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         if entries:
             out.error("First level entries %s not allowed. Use only first level entries %s in "
                       "conandata.yml" % (entries, allowed_first_level))
+
+        google_source_regex = re.compile(r"https://\w+.googlesource.com/")
 
         for entry in conandata_yml:
             if entry in ['sources', 'patches']:
@@ -446,8 +449,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             for element in conandata_yml[entry][version]:
                 if entry == "sources":
                     has_sources = True
-                    validate_checksum_recursive(element, conandata_yml[entry][version])
-            if not found_checksums and has_sources:
+                    if re.search(google_source_regex, conandata_yml[entry][version]["sources"]):
+                        is_google_source = True
+                    else:
+                        validate_checksum_recursive(element, conandata_yml[entry][version])
+            if not found_checksums and has_sources and not is_google_source:
                 out.error("The checksum key 'sha256' must be declared and can not be empty.")
             elif found_checksums and 'sha256' not in found_checksums:
                 out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
