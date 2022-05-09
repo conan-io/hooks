@@ -6,6 +6,10 @@ set -x
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
 
+ls -l /Users/jenkins/.pyenv/versions
+
+python --version
+
 case "${PYVER}" in
     py36)
         PYVER="/Users/jenkins/.pyenv/versions/3.6.13/bin/python"
@@ -29,4 +33,3 @@ ${PYVER} -m venv ${TEST_FOLDER} && \
   python -m pip install --upgrade pip && \
   python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
   python .ci/last_conan_version.py
-
