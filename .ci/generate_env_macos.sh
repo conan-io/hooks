@@ -9,6 +9,8 @@ VENV_FOLDER="${TEST_FOLDER}/venv"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
 
+brew update
+brew install pyenv
 eval "$(pyenv init -)"
 
 case "${PYVER}" in
