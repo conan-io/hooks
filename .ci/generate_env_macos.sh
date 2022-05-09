@@ -6,8 +6,8 @@ set -x
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
 VENV_FOLDER="${TEST_FOLDER}/venv"
-PYENV_ROOT=${TEST_FOLDER}
-PYENV="${TEST_FOLDER}/.pyenv/bin/pyenv"
+PYENV_ROOT="${TEST_FOLDER}/pyenv"
+PYENV="${PYENV_ROOT}/.pyenv/bin/pyenv"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
 
