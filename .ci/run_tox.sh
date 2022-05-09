@@ -24,4 +24,3 @@ esac
 source ${TEST_FOLDER}/bin/activate
 
 ${PYVER} -m tox --recreate
-
