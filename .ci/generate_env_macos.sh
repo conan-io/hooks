@@ -5,27 +5,32 @@ set -x
 
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
+VENV_FOLDER="${TEST_FOLDER}/venv"
+PYTHON36="/Users/jenkins/.pyenv/versions/3.6.13/bin/python"
+
+mkdir -p ${TEST_FOLDER} || echo "ok"
 
 case "${PYVER}" in
     py36)
-        PYVER="/Users/jenkins/.pyenv/versions/3.6.13/bin/python"
+        pyenv install 3.6.12
+        pyenv virtualenv 3.6.12 ${VENV_FOLDER}
         ;;
     py37)
-        PYVER="/Users/jenkins/.pyenv/versions/3.7.6/bin/python"
+        pyenv install 3.7.12
+        pyenv virtualenv 3.7.12 ${VENV_FOLDER}
         ;;
     py38)
-        PYVER="/Users/jenkins/.pyenv/versions/3.8.12/bin/python"
+        pyenv install 3.8.12
+        pyenv virtualenv 3.8.12 ${VENV_FOLDER}
         ;;
     py39)
-        PYVER="/Users/jenkins/.pyenv/versions/3.9.0/bin/python"
+        pyenv install 3.9.2
+        pyenv virtualenv 3.9.2 ${VENV_FOLDER}
         ;;
 esac
 
-mkdir -p ${TEST_FOLDER} || echo "ok"
-${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
-${PYVER} -m venv ${TEST_FOLDER} && \
-  source ${TEST_FOLDER}/bin/activate && \
-  python --version && \
-  python -m pip install --upgrade pip && \
-  python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
-  python .ci/last_conan_version.py
+pyenv activate ${VENV_FOLDER}
+python --version
+pip install --upgrade pip
+pip3 install --requirement .ci/requirements_macos.txt
+python .ci/last_conan_version.py
