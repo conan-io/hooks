@@ -12,6 +12,9 @@ PYENV="${PYENV_ROOT}/bin/pyenv"
 export PATH="${PYENV_ROOT}/bin:$PATH"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
+
+ls -R /Users/jenkins/.pyenv
+
 export PYENV_ROOT=${PYENV_ROOT}
 
 curl -s -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
