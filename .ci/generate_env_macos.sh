@@ -10,10 +10,9 @@ PYENV_ROOT="${TEST_FOLDER}/pyenv"
 PYENV="${PYENV_ROOT}/.pyenv/bin/pyenv"
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
+export PYENV_ROOT=${PYENV_ROOT}
 
-curl -s -L -o "${TEST_FOLDER}/pyenv-installer" https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer
-chmod +x "${TEST_FOLDER}/pyenv-installer"
-PYENV_ROOT=${PYENV_ROOT} "${TEST_FOLDER}/pyenv-installer"
+curl -s -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 eval "$(${PYENV} init -)"
 
 case "${PYVER}" in
