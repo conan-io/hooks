@@ -15,8 +15,8 @@ case "${PYVER}" in
         pyenv virtualenv 3.7.12 conan
         ;;
     py38)
-        pyenv install 3.8.6
-        pyenv virtualenv 3.8.6 conan
+        pyenv install 3.8.12
+        pyenv virtualenv 3.8.12 conan
         ;;
     py39)
         pyenv install 3.9.2
