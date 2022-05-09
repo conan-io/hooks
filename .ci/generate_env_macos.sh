@@ -10,7 +10,6 @@ PYENV=/Users/jenkins/.pyenv/bin/pyenv
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
 
-curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
 eval "$(${PYENV} init -)"
 
 case "${PYVER}" in
