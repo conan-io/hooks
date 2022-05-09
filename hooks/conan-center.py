@@ -420,10 +420,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
             def validate_checksum_recursive(e, data):
                 def check_is_google_source(v):
+                    nonlocal is_google_source
                     urls = v if isinstance(v, list) else [v]
                     if any(re.search(google_source_regex, url) for url in urls):
                         is_google_source = True
-                    
+
                 if isinstance(e, str) and e not in allowed_sources and not isinstance(data[e], str):
                     for child in data[e]:
                         validate_checksum_recursive(child, data[e])
