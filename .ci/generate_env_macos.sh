@@ -6,10 +6,6 @@ set -x
 # https://github.com/conan-io/conan_ci_jenkins/blob/master/resources/org/jfrog/conanci/python_runner/conf.py
 TEST_FOLDER="${TMPDIR}/${PYVER}"
 
-ls -l /Users/jenkins/.pyenv/versions
-
-python --version
-
 case "${PYVER}" in
     py36)
         PYVER="/Users/jenkins/.pyenv/versions/3.6.13/bin/python"
@@ -18,7 +14,7 @@ case "${PYVER}" in
         PYVER="/Users/jenkins/.pyenv/versions/3.7.6/bin/python"
         ;;
     py38)
-        PYVER="/Users/jenkins/.pyenv/versions/3.8.6/bin/python"
+        PYVER="/Users/jenkins/.pyenv/versions/3.8.12/bin/python"
         ;;
     py39)
         PYVER="/Users/jenkins/.pyenv/versions/3.9.0/bin/python"
