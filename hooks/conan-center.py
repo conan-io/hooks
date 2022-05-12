@@ -1433,7 +1433,6 @@ def _deplibs_from_shlibs(conanfile, out):
                 for dep_lib_fn in dep_libs_fn:
                     dep_lib_match = re.match(r"lib(.*).{}(?:\.[0-9]+)*".format(shlext), dep_lib_fn)
                     if not dep_lib_match:
-                        out.warn("Library dependency '{}' of '{}' has a non-standard name.".format(dep_lib_fn, library))
                         continue
                     deplibs.setdefault(dep_lib_match.group(1), []).append(library)
     elif _get_compiler(conanfile) in ["Visual Studio", "msvc"] or _get_os == "Windows":
