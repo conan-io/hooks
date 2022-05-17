@@ -26,7 +26,7 @@ ${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
 ${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
-  python -m pip install platformdirs && \
+  python -m pip install --upgrade platformdirs && \
   python -m pip install --upgrade pip && \
   python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
   python .ci/last_conan_version.py
