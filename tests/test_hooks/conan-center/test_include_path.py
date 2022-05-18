@@ -14,7 +14,7 @@ class TestIncludePath(ConanClientTestCase):
                                                    'hooks', 'conan-center')})
         return kwargs
 
-    def _get_output_for(paths_created, paths_declared, component=""):
+    def _get_output_for(self, paths_created, paths_declared, component=""):
         conanfile = textwrap.dedent(f"""\
             from conans import ConanFile
             import os
