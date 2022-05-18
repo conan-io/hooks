@@ -47,11 +47,7 @@ class TestIncludePath(ConanClientTestCase):
     def test_no_include_path(self):
         output = self._get_output_for(paths_created=[], paths_declared = [])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
-        
-    def test_no_include_path_component(self):
-        output = self._get_output_for(paths_created=[], paths_declared = [], component="componentname")
-        self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
-        
+
     def test_include_path_not_declared(self):
         output = self._get_output_for(paths_created=["include", "include/foo"], paths_declared = ["include"])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
