@@ -37,41 +37,41 @@ class TestIncludePath(ConanClientTestCase):
 
 
     def test_usual_include_path(self):
-        output = _get_output_for(paths_created=["include"], paths_declared = ["include"])
+        output = self._get_output_for(paths_created=["include"], paths_declared = ["include"])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
         
     def test_usual_include_path_component(self):
-        output = _get_output_for(paths_created=["include"], paths_declared = ["include"], component="componentname")
+        output = self._get_output_for(paths_created=["include"], paths_declared = ["include"], component="componentname")
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
 
     def test_no_include_path(self):
-        output = _get_output_for(paths_created=[], paths_declared = [])
+        output = self._get_output_for(paths_created=[], paths_declared = [])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
         
     def test_no_include_path_component(self):
-        output = _get_output_for(paths_created=[], paths_declared = [], component="componentname")
+        output = self._get_output_for(paths_created=[], paths_declared = [], component="componentname")
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
         
     def test_include_path_not_declared(self):
-        output = _get_output_for(paths_created=["include", "include/foo"], paths_declared = ["include"])
+        output = self._get_output_for(paths_created=["include", "include/foo"], paths_declared = ["include"])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
         
     def test_include_path_not_declared_component(self):
-        output = _get_output_for(paths_created=["include", "include/foo"], paths_declared = ["include"], component="componentname")
+        output = self._get_output_for(paths_created=["include", "include/foo"], paths_declared = ["include"], component="componentname")
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
 
     def test_include_path_not_created(self):
-        output = _get_output_for(paths_created=["include"], paths_declared = ["include", "include/foo"])
+        output = self._get_output_for(paths_created=["include"], paths_declared = ["include", "include/foo"])
         self.assertIn("ERROR: [INCLUDE PATH DOES NOT EXIST (KB-H071)] Component name::name include dir 'include/foo'", output)
         
     def test_include_path_not_created_component(self):
-        output = _get_output_for(paths_created=["include"], paths_declared = ["include", "include/foo"], component="componentname")
+        output = self._get_output_for(paths_created=["include"], paths_declared = ["include", "include/foo"], component="componentname")
         self.assertIn("ERROR: [INCLUDE PATH DOES NOT EXIST (KB-H071)] Component name::componentname include dir 'include/foo'", output)
     
     def test_several_include_path(self):
-        output = _get_output_for(paths_created=["include", "include/bar"], paths_declared = ["include", "include/bar"])
+        output = self._get_output_for(paths_created=["include", "include/bar"], paths_declared = ["include", "include/bar"])
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
         
     def test_several_include_path_component(self):
-        output = _get_output_for(paths_created=["include", "include/bar"], paths_declared = ["include", "include/bar"], component="componentname")
+        output = self._get_output_for(paths_created=["include", "include/bar"], paths_declared = ["include", "include/bar"], component="componentname")
         self.assertIn("[INCLUDE PATH DOES NOT EXIST (KB-H071)] OK", output)
