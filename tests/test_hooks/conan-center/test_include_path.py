@@ -27,7 +27,7 @@ class TestIncludePath(ConanClientTestCase):
                         os.makedirs(os.path.join(self.package_folder, p))
 
                 def package_info(self):
-                    if {bool(component)}}:
+                    if {bool(component)}:
                         self.cpp_info.components["{component}"].includedirs = {paths_declared}
                     else:
                         self.cpp_info.includedirs = {paths_declared}
