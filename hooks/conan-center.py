@@ -1178,7 +1178,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         for filename in bad_files:
             for bdir in build_dirs:
                 bdir = os.path.relpath(bdir, conanfile.package_folder)
-                # bdir = bdir.replace("\\", "/")
+                bdir = bdir.replace("\\", "/")
                 bdir = "" if bdir == "." else bdir
                 bdir = "./{}".format(bdir)
                 # https://github.com/conan-io/conan/issues/5401
