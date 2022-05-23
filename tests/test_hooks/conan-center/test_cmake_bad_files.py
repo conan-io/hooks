@@ -105,9 +105,10 @@ class ConanCMakeBadFiles(ConanClientTestCase):
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertNotIn("WARN: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
 
-        tools.save('conanfile.py', content=self.conan_file_info.format('os.path.join("lib", "cmake", "script.cmake")', '["lib\\cmake"]'))
-        output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertNotIn("WARN: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
+        if tools.os_info.is_windows:
+            tools.save('conanfile.py', content=self.conan_file_info.format('os.path.join("lib", "cmake", "script.cmake")', '["lib\\cmake"]'))
+            output = self.conan(['create', '.', 'name/version@user/channel'])
+            self.assertNotIn("WARN: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
 
     def test_components(self):
         conanfile = textwrap.dedent("""\
