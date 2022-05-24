@@ -80,6 +80,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H068": "TEST_TYPE MANAGEMENT",
              "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
+             "KB-H071": "INCLUDE PATH DOES NOT EXIST",
              }
 
 
@@ -1209,6 +1210,17 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
                            "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
 
+        _test_component(conanfile.cpp_info)
+        for c in conanfile.cpp_info.components:
+            _test_component(conanfile.cpp_info.components[c])
+
+    @run_test("KB-H071", output)
+    def test(out):
+        def _test_component(component):
+            for d in component.includedirs:
+                if not os.path.isdir(d):
+                    out.error(f"Component {conanfile.name}::{component.name} include dir '{d}' is listed in the recipe, "
+                               "but not found in package folder. The include dir should probably be fixed or removed.")
         _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
