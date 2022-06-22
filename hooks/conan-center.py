@@ -1071,7 +1071,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "xorg-cf-files",
             "xorg-macros",
             "opentelemetry-proto",
-            "create-dmg"
+            "create-dmg",
+            "googleapis"
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
