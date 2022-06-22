@@ -15,6 +15,7 @@ Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan
  * [Recipe linter](#recipe-linter)
  * [Non ASCII](#non-ascii)
  * [YAML linter](#yaml-linter)
+ * [Reduce conandata.yml](#reduce-conandata)
 
 
 ## Hook setup
@@ -185,6 +186,12 @@ in a recipe before exporting them (it runs in the `pre_export` hook), it can be
 really useful to check for typos.
 
 This hook requires additional dependencies to work: `pip install yamllint`.
+
+### [Reduce conandata.yml](hooks/hook_reduce_conandata.py)
+
+Same as KB-H031, but for conan 2.0.
+Reduces `conandata.yml` files, keeping only entry for the current package version.
+It only helps to avoid generation of extra recipe revisions in case of adding new versions.
 
 ## License
 
