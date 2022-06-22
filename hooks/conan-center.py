@@ -1211,7 +1211,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
                            "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
 
-        _test_component(conanfile.cpp_info)
+        if not conanfile.cpp_info.components:
+            _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
 
@@ -1222,7 +1223,8 @@ def post_package_info(output, conanfile, reference, **kwargs):
                 if not os.path.isdir(d):
                     out.error(f"Component {conanfile.name}::{component.name} include dir '{d}' is listed in the recipe, "
                                "but not found in package folder. The include dir should probably be fixed or removed.")
-        _test_component(conanfile.cpp_info)
+        if not conanfile.cpp_info.components:
+            _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
 
