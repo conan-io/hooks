@@ -23,7 +23,7 @@ Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan
 Place your hook Python files under *~/.conan/hooks*. The name of the hook would be the same one as the file name.
 
 ```
-*~/.conan/hook/conan-center.py
+*~/.conan/hooks/conan-center.py
 ```
 
 Only copying hook files will not activate them.
