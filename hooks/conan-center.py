@@ -1186,7 +1186,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         build_modules = [bm.replace("\\", "/") for bm in build_modules]
 
         for filename in bad_files:
-            if filename in build_modules:
+            if any(os.path.samefile(filename, module) for module in build_modules):
                 continue
             for bdir in build_dirs:
                 bdir = os.path.relpath(bdir, conanfile.package_folder)
