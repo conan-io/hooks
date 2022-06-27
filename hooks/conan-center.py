@@ -1177,6 +1177,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
             build_dirs.update({bd.replace("\\", "/") for bd in component.build_paths})
         files_missplaced = []
 
+
         build_modules = []
         build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package"])
         build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package_multi"])
