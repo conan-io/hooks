@@ -151,6 +151,6 @@ class ConanCMakeBadFiles(ConanClientTestCase):
                         self.cpp_info.build_modules["cmake_find_package_multi"] = [self._module_file_rel_path]
                 """)
 
-        tools.save('conanfile.py', content=conanfile2.format("some_build_dir"))
+        tools.save('conanfile.py', content=conanfile.format("some_build_dir"))
         output = self.conan(['create', '.', 'name/version@user/channel'])
         self.assertNotIn("WARN: [CMAKE FILE NOT IN BUILD FOLDERS (KB-H019)]", output)
