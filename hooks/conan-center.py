@@ -906,6 +906,7 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
             "pdal",
             "tbb",
             "vulkan-loader",
+            "nss",
         )
         if conanfile.name in allowlist:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
