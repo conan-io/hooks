@@ -21,6 +21,7 @@ case "${PYVER}" in
         ;;
 esac
 
+rm -r ${TEST_FOLDER}
 mkdir -p ${TEST_FOLDER} || echo "ok"
 ${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
 ${PYVER} -m venv ${TEST_FOLDER} && \
