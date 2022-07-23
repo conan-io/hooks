@@ -1180,11 +1180,17 @@ def post_package_info(output, conanfile, reference, **kwargs):
         files_missplaced = []
 
         build_modules = []
-        build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package"])
-        build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package_multi"])
-        for component in conanfile.cpp_info.components.values():
-            build_modules.extend(component.build_modules["cmake_find_package"])
-            build_modules.extend(component.build_modules["cmake_find_package_multi"])
+        if isinstance(conanfile.cpp_info.build_modules, dict):
+            build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package"])
+            build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package_multi"])
+        else:
+            out.warn("cpp_info.build_modules is not a dictionary")
+        for component_name, component in conanfile.cpp_info.components.items():
+            if isinstance(conanfile.cpp_info.build_modules, dict):
+                build_modules.extend(component.build_modules["cmake_find_package"])
+                build_modules.extend(component.build_modules["cmake_find_package_multi"])
+            else:
+                out.warn('cpp_info.components["%s"].build_modules is not a dictionary' % component_name)
         build_modules = [bm.replace("\\", "/") for bm in build_modules]
 
         for filename in bad_files:
