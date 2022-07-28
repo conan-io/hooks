@@ -51,10 +51,10 @@ class MSVCToolsTests(ConanClientTestCase):
     def test_custom_is_msvc_not_allowed(self):
         tools.save('conanfile.py', content=self.conanfile_outdated)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("WARN: [MSVC TOOLS (KB-H072)]", output)
+        self.assertIn("WARN: [MICROSOFT TOOLS (KB-H072)]", output)
         self.assertIn("conanfile.py:12 Custom deprecated functions detected. Use of '_is_msvc' is outdated, replace by 'conan.tools.microsoft.is_msvc'.", output)
 
     def test_tools_msvc(self):
         tools.save('conanfile.py', content=self.conanfile_modern)
         output = self.conan(['create', '.', 'name/version@user/channel'])
-        self.assertIn("[MSVC TOOLS (KB-H072)] OK", output)
+        self.assertIn("[MICROSOFT TOOLS (KB-H072)] OK", output)

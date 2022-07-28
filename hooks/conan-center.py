@@ -81,7 +81,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
-             "KB-H072": "MSVC TOOLS",
+             "KB-H072": "MICROSOFT TOOLS",
              }
 
 
