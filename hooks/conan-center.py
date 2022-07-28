@@ -81,6 +81,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
+             "KB-H072": "MSVC TOOLS",
              }
 
 
@@ -871,6 +872,56 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                          "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
         else:
             out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
+
+
+    @run_test("KB-H072", output)
+    def test(out):
+        Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
+
+        class BuildInfo(collections.namedtuple('BuildInfo', ("loc", "outdated", "func"))):
+            def __eq__(self, other):
+                return self.loc.line == other.loc.line
+
+        class BuildInfoVisitor(ast.NodeVisitor):
+            TOOLS_METHODS = {
+                "_is_msvc": "conan.tools.microsoft.is_msvc",
+            }
+
+            def __init__(self):
+                self.invalids = []
+                self.function_def_stack = []
+                ast.NodeVisitor.__init__(self)
+
+            def visit_FunctionDef(self, node):
+                self.function_def_stack.append(node.name)
+                self.generic_visit(node)
+                self.function_def_stack.pop()
+
+            def visit_Attribute(self, node):
+                outdated_methods = [fdef for fdef in self.function_def_stack if fdef in self.TOOLS_METHODS.keys()]
+                if outdated_methods:
+                    outdated_method = outdated_methods[0]
+                    build_info = BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), getattr(node, "end_col_offset", node.col_offset)), outdated_method, self.TOOLS_METHODS[outdated_method])
+                    if build_info not in self.invalids:
+                        self.invalids.append(build_info)
+                self.generic_visit(node)
+
+        to_test = [(conanfile_path, conanfile_content),]
+        test_conanfile_path = os.path.join(export_folder_path, "test_package", "conanfile.py")
+        if os.path.isfile(test_conanfile_path):
+            to_test.append((test_conanfile_path, tools.load(test_conanfile_path)))
+
+        for dut_conanfile_path, dut_conanfile_contents in to_test:
+            try:
+                node = ast.parse(dut_conanfile_contents)
+            except SyntaxError:
+                out.error("A SyntaxError was thrown while parsing '{}'".format(dut_conanfile_path))
+                continue
+            visitor = BuildInfoVisitor()
+            visitor.visit(node)
+            for build_info in visitor.invalids:
+                out.warn("{}:{} Custom deprecated functions detected. Use of '{}' is outdated, replace by '{}'.".format(
+                    dut_conanfile_path, build_info.loc.line, build_info.outdated, build_info.func))
 
 
 @raise_if_error_output
