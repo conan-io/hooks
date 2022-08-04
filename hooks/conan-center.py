@@ -1357,7 +1357,8 @@ def _is_recipe_header_only(conanfile):
     package_id_method = getattr(conanfile, "package_id")
     header_only_id = "self.info.header_only()" in inspect.getsource(package_id_method)
     settings_clear = "self.info.settings.clear()" in inspect.getsource(package_id_method)
-    return header_only_id or without_settings or settings_clear
+    info_clear = "self.info.clear()" in inspect.getsource(package_id_method)
+    return header_only_id or without_settings or settings_clear or info_clear
 
 
 def _get_settings(conanfile):
