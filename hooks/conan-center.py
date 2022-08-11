@@ -443,6 +443,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         for field in fields:
                             if field in checksums:
                                 found_checksums.append(field)
+                                if not data[field]:
+                                    out.error(f"The entry '{field}' cannot be empty in conandata.yml.")
                         if "url" in data:
                             check_is_google_source(data["url"])
 

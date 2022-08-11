@@ -567,4 +567,4 @@ patches:
         tools.save('conandata.yml', content=conandata)
         tools.save('conanfile.py', content=self.conanfile)
         output = self.conan(['export', '.', 'blend2d/0.0.18@user/testing'])
-        self.assertIn("[CONANDATA.YML FORMAT (KB-H030)] OK", output)
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)] The entry 'sha256' cannot be empty in conandata.yml.", output)
