@@ -434,7 +434,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                         for k, v in e.items():
                             if k in checksums:
                                 found_checksums.append(k)
-                                if not v or not len(v):
+                                if not v or not len(v.strip()):
                                     out.error(f"The entry '{k}' cannot be empty in conandata.yml.")
                             if k == "url":
                                 check_is_google_source(v)
