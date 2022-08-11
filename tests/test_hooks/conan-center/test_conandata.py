@@ -546,3 +546,25 @@ class ConanData(ConanClientTestCase):
                             base_path: "source_subfolder/1.69.0"
                           """)
         self._check_conandata(conandata)
+
+    def test_blend2d_empty_checksum(self):
+        conandata = textwrap.dedent("""sources:
+  "0.0.18":
+    url: "https://blend2d.com/download/blend2d-beta18.zip"
+    sha256: ""
+  "0.0.17":
+    url: "https://blend2d.com/download/blend2d-beta17.zip"
+    sha256: "06ee8fb0bea281d09291e498900093139426501a1a7f09dba0ec801dd340635e"
+
+patches:
+  "0.0.18":
+    - base_path: "source_subfolder"
+      patch_file: "patches/0.0.17-0001-disable-embed-asmjit.patch"
+  "0.0.17":
+    - base_path: "source_subfolder"
+      patch_file: "patches/0.0.17-0001-disable-embed-asmjit.patch"
+""")
+        tools.save('conandata.yml', content=conandata)
+        tools.save('conanfile.py', content=self.conanfile)
+        output = self.conan(['export', '.', 'blend2d/0.0.18@user/testing'])
+        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)] The entry 'sha256' cannot be empty in conandata.yml.", output)
