@@ -76,17 +76,17 @@ class YAMLLinterTests(ConanClientTestCase):
     def test_empty_checksum(self):
         conandatafile = textwrap.dedent(r"""
             sources:
-            "version":
-                url: "https://url.to/name/version.tar.xz"
-                sha256: ""
+                "version":
+                    url: "https://url.to/name/version.tar.xz"
+                    sha256: ""
             patches:
-            "version":
-                - patch_file: "patches/abcdef.diff"
-                  base_path: "source"
+                "version":
+                    - patch_file: "patches/abcdef.diff"
+                      base_path: "source"
             """)
         tools.save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
         tools.save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
         self.assertIn("pre_export(): Lint yaml '{}'".format(recipe_path), output)
-        self.assertIn("pre_export(): YAML Linter detected '1' errors", output)
+        self.assertIn("pre_export(): YAML Linter detected '1' errors... show the output", output)
