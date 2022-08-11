@@ -31,13 +31,13 @@ class YAMLLinterTests(ConanClientTestCase):
     def test_basic(self, yamllint_werr):
         conandatafile = textwrap.dedent(r"""
             sources:
-            "version":
-                url: "https://url.to/name/version.tar.xz"
-                sha256: "3a530d1b243b5dec00bc54937455471aaa3e56849d2593edb8ded07228202240"
+                "version":
+                    url: "https://url.to/name/version.tar.xz"
+                    sha256: "3a530d1b243b5dec00bc54937455471aaa3e56849d2593edb8ded07228202240"
             patches:
-            "version":
-                - patch_file: "patches/abcdef.diff"
-                  base_path: "source"
+                "version":
+                    - patch_file: "patches/abcdef.diff"
+                      base_path: "source"
             patches:
             """)
         tools.save('conanfile.py', content=self.conanfile)
@@ -58,16 +58,16 @@ class YAMLLinterTests(ConanClientTestCase):
     def test_path_with_spaces(self):
         conandatafile = textwrap.dedent(r"""
             sources:
-            "version":
-                url: "https://url.to/name/version.tar.xz"
-                sha256: "3a530d1b243b5dec00bc54937455471aaa3e56849d2593edb8ded07228202240"
+                "version":
+                    url: "https://url.to/name/version.tar.xz"
+                    sha256: "3a530d1b243b5dec00bc54937455471aaa3e56849d2593edb8ded07228202240"
             patches:
-            "version":
-                - patch_file: "patches/abcdef.diff"
-                  base_path: "source"
+                "version":
+                    - patch_file: "patches/abcdef.diff"
+                      base_path: "source"
             """)
         tools.save(os.path.join("path spaces", "conanfile.py"), content=self.conanfile)
-        tools.save(os.path.join("path spaces", "conandata.py"), content=conandatafile)
+        tools.save(os.path.join("path spaces", "conandata.yml"), content=conandatafile)
         output = self.conan(['export', 'path spaces/conanfile.py', 'name/version@'])
         recipe_path = os.path.join(os.getcwd(), "path spaces", "conanfile.py")
         self.assertIn("pre_export(): Lint yaml '{}'".format(recipe_path), output)
