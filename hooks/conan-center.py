@@ -1188,7 +1188,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         else:
             out.warn("cpp_info.build_modules is not a dictionary")
         for component_name, component in conanfile.cpp_info.components.items():
-            if isinstance(conanfile.cpp_info.build_modules, dict):
+            if isinstance(component.build_modules, dict):
                 build_modules.extend(component.build_modules["cmake_find_package"])
                 build_modules.extend(component.build_modules["cmake_find_package_multi"])
             else:
