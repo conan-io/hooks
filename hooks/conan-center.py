@@ -901,15 +901,16 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
     @run_test("KB-H050", output)
     def test(out):
         allowlist = (
+            "glib",
             "libgphoto2",
+            "moltenvk",
+            "nss",
             "onetbb",
             "opencl-icd-loader",
             "paho-mqtt-c",
             "pdal",
             "tbb",
             "vulkan-loader",
-            "nss",
-            "glib"
         )
         if conanfile.name in allowlist:
             out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
