@@ -81,6 +81,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
+             "KB-H072": "PYLINT EXECUTION",
              }
 
 
@@ -873,6 +874,23 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                          "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
         else:
             out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
+
+    @run_test("KB-H072", output)
+    def test(out):
+        def _check_conanfile_content(content, path):
+            patterns = [r'#\s*pylint\s*:\s*skip-file\s*', '#\s*pylint\s*:\s*disable-all\s*', '#\s*pylint\s*:\s*disable=']
+            for pattern in patterns:
+                if re.search(pattern, content):
+                    out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
+
+        _check_conanfile_content(conanfile_content, "conanfile.py")
+
+        # INFO: When Test V1 package is present, test package prepared for Conan 2.0, should not skip pylint
+        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
+        test_v1_package_path = os.path.join(os.path.dirname(conanfile_path), "test_v1_package", "conanfile.py")
+        if os.path.exists(test_package_path) and os.path.exists(test_v1_package_path):
+            test_package_content = tools.load(test_package_path)
+            _check_conanfile_content(test_package_content, test_package_path)
 
 
 @raise_if_error_output
