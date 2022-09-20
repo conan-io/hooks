@@ -81,7 +81,7 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("[PYLINT EXECUTION (KB-H072)] OK", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
 
     def test_pylint_test_v1_package(self):
         tools.save("conanfile.py", content=textwrap.dedent("""\
@@ -90,12 +90,12 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         tools.save("test_package/conanfile.py", content=textwrap.dedent("""\
-                    #pylint: skip-file
                     from conan import ConanFile
                     class AConan(ConanFile):
                         pass
                     """))
         tools.save("test_v1_package/conanfile.py", content=textwrap.dedent("""\
+                    #pylint: skip-file
                     from conan import ConanFile
                     class AConan(ConanFile):
                         pass

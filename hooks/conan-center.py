@@ -884,13 +884,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
 
         _check_conanfile_content(conanfile_content, "conanfile.py")
-
-        # INFO: When Test V1 package is present, test package prepared for Conan 2.0, should not skip pylint
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         test_v1_package_path = os.path.join(os.path.dirname(conanfile_path), "test_v1_package", "conanfile.py")
-        if os.path.exists(test_package_path) and os.path.exists(test_v1_package_path):
-            test_package_content = tools.load(test_package_path)
-            _check_conanfile_content(test_package_content, test_package_path)
+        for test_package in [test_package_path, test_v1_package_path]:
+            if os.path.exists(test_package):
+                test_package_content = tools.load(test_package)
+                _check_conanfile_content(test_package_content, test_package)
 
 
 @raise_if_error_output
