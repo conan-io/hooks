@@ -44,7 +44,7 @@ class TestSkipPylint(ConanClientTestCase):
                 pass
             """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_disable_all(self):
         tools.save("conanfile.py", content=textwrap.dedent("""\
@@ -55,7 +55,7 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_disable_locally(self):
         tools.save("conanfile.py", content=textwrap.dedent("""\
@@ -66,7 +66,7 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_test_package_alone(self):
         tools.save("conanfile.py", content=textwrap.dedent("""\
@@ -81,7 +81,7 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_test_v1_package(self):
         tools.save("conanfile.py", content=textwrap.dedent("""\
@@ -101,4 +101,4 @@ class TestSkipPylint(ConanClientTestCase):
                         pass
                     """))
         output = self.conan(["export", ".", "name/version@user/channel"])
-        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped", output)
+        self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)

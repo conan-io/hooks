@@ -884,10 +884,11 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
 
         recipe_folder = os.path.dirname(conanfile_path)
-        recipes = _get_files_following_patterns(recipe_folder, ["conanfile*.py"])
+        recipes = _get_files_following_patterns(recipe_folder, [r"conanfile.py", ])
         for recipe in recipes:
-            recipe_content = tools.load(recipe)
-            _check_conanfile_content(recipe_content, recipe)
+            recipe_path = os.path.join(recipe_folder, recipe)
+            recipe_content = tools.load(recipe_path)
+            _check_conanfile_content(recipe_content, recipe_path)
 
 
 @raise_if_error_output
