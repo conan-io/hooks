@@ -15,6 +15,8 @@ class TestSkipPylint(ConanClientTestCase):
         return kwargs
 
     def test_trivial_ok(self):
+        """No error expected for regular conan recipe without pylint attribute
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
             from conan import ConanFile
 
@@ -25,6 +27,9 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("[PYLINT EXECUTION (KB-H072)] OK", output)
 
     def test_pylint_comment(self):
+        """Pylint should be classified when is a command in middle of the code, or
+           an attribute to its client
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
             from conan import ConanFile
 
@@ -36,6 +41,8 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("[PYLINT EXECUTION (KB-H072)] OK", output)
 
     def test_pylint_skip_file(self):
+        """Pytlint skip-file should not be allowed when found in a recipe
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
             # pylint: skip-file
             from conan import ConanFile
@@ -47,6 +54,8 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_disable_all(self):
+        """Legacy pylint disable-all (previous form of skip-file) should not be allowed
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
                     #pylint: disable-all
                     from conan import ConanFile
@@ -58,6 +67,8 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_disable_locally(self):
+        """Partial Pylint disable should not be allowed
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
                     # pylint : disable=locally-disabled, multiple-statements, fixme, line-too-long
                     from conan import ConanFile
@@ -69,6 +80,8 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_test_package_alone(self):
+        """Test package should be scanned by pylint always
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
                     from conan import ConanFile
                     class AConan(ConanFile):
@@ -84,6 +97,8 @@ class TestSkipPylint(ConanClientTestCase):
         self.assertIn("ERROR: [PYLINT EXECUTION (KB-H072)] Pylint can not be skipped, remove '#pylint' line from", output)
 
     def test_pylint_test_v1_package(self):
+        """Test V1 package should be scanned by pylint always
+        """
         tools.save("conanfile.py", content=textwrap.dedent("""\
                     from conan import ConanFile
                     class AConan(ConanFile):
