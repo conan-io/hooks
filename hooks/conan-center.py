@@ -81,6 +81,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
              "KB-H070": "MANDATORY SETTINGS",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
+             "KB-H072": "PYLINT EXECUTION",
              }
 
 
@@ -873,6 +874,21 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                          "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
         else:
             out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
+
+    @run_test("KB-H072", output)
+    def test(out):
+        def _check_conanfile_content(content, path):
+            patterns = [r'#\s*pylint\s*:\s*skip-file\s*', '#\s*pylint\s*:\s*disable-all\s*', '#\s*pylint\s*:\s*disable=']
+            for pattern in patterns:
+                if re.search(pattern, content):
+                    out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
+
+        recipe_folder = os.path.dirname(conanfile_path)
+        recipes = _get_files_following_patterns(recipe_folder, [r"conanfile.py", ])
+        for recipe in recipes:
+            recipe_path = os.path.join(recipe_folder, recipe)
+            recipe_content = tools.load(recipe_path)
+            _check_conanfile_content(recipe_content, recipe_path)
 
 
 @raise_if_error_output
