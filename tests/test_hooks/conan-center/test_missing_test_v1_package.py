@@ -77,9 +77,17 @@ class TestMissingTestV1Package(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("[TEST V1 PACKAGE FOLDER (KB-H073)] OK", output)
 
-    def test_missing_legacy_test_package(self):
+    def test_missing_test_v1_package_folder(self):
         tools.save('conanfile.py', content=self.conanfile)
         tools.save('test_package/conanfile.py', content=self.test_package_conanfile)
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("ERROR: [TEST V1 PACKAGE FOLDER (KB-H073)] The test_package seems be prepared for Conan v2, "
                       "but test_v1_package is missing.", output)
+
+    def test_missing_test_v1_package_conanfile(self):
+        tools.save('conanfile.py', content=self.conanfile)
+        tools.save('test_package/conanfile.py', content=self.test_package_conanfile)
+        tools.mkdir('test_v1_package')
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("ERROR: [TEST V1 PACKAGE FOLDER (KB-H073)] There is no 'conanfile.py' in 'test_v1_package'"
+                      " folder", output)

@@ -896,14 +896,18 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         dir_path = os.path.dirname(conanfile_path)
         test_package_conanfile_path = os.path.join(dir_path, "test_package", "conanfile.py")
         test_v1_package_path = os.path.join(dir_path, "test_v1_package")
+        test_v1_package_conanfile_path = os.path.join(test_v1_package_path, "conanfile.py")
+        content = None
         if os.path.isfile(test_package_conanfile_path):
             try:
-                test_conanfile = tools.load(test_package_conanfile_path)
-                if ("VirtualRunEnv" in test_conanfile or "self.cpp.build" in test_conanfile) and \
-                        not os.path.exists(test_v1_package_path):
-                    out.error("The test_package seems be prepared for Conan v2, but test_v1_package is missing.")
+                content = tools.load(test_package_conanfile_path)
             except Exception as error:
                 out.warn(f"Invalid conanfile: {error}")
+        if content and ("VirtualRunEnv" in content or "self.cpp.build" in content):
+            if not os.path.exists(test_v1_package_path):
+                out.error("The test_package seems be prepared for Conan v2, but test_v1_package is missing.")
+            elif not os.path.isfile(test_v1_package_conanfile_path):
+                out.error("There is no 'conanfile.py' in 'test_v1_package' folder")
 
 
 @raise_if_error_output
