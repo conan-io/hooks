@@ -903,7 +903,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 content = tools.load(test_package_conanfile_path)
             except Exception as error:
                 out.warn(f"Invalid conanfile: {error}")
-        if content and ("VirtualRunEnv" in content or "self.cpp.build" in content):
+        if content and "self.tested_reference_str" in content:
             if not os.path.exists(test_v1_package_path):
                 out.error("The test_package seems be prepared for Conan v2, but test_v1_package is missing.")
             elif not os.path.isfile(test_v1_package_conanfile_path):
