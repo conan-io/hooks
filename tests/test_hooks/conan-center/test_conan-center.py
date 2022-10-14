@@ -430,6 +430,13 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
         self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
 
+        tools.save('conanfile.py', content=content.format(configure="""
+        self.settings.rm_safe("compiler.libcxx")
+        self.settings.rm_safe("compiler.cppstd")"""))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBCXX MANAGEMENT (KB-H011)] OK", output)
+        self.assertIn("[CPPSTD MANAGEMENT (KB-H022)] OK", output)
+
     def test_missing_attributes(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile
