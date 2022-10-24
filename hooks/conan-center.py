@@ -1011,7 +1011,10 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
 
-            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.libcxx" not in low:
+            if conanfile.settings.get_safe("compiler") and \
+                ("del self.settings.compiler.libcxx" not in low and \
+                 'self.settings.rm_safe("compiler.libcxx")' not in low and \
+                 "self.settings.rm_safe('compiler.libcxx')" not in low):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
@@ -1020,7 +1023,10 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
-            if conanfile.settings.get_safe("compiler") and "del self.settings.compiler.cppstd" not in low:
+            if conanfile.settings.get_safe("compiler") and \
+                ("del self.settings.compiler.cppstd" not in low and \
+                 'self.settings.rm_safe("compiler.cppstd")' not in low and \
+                 "self.settings.rm_safe('compiler.cppstd')" not in low):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
