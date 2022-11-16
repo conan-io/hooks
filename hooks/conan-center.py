@@ -83,6 +83,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
              "KB-H072": "PYLINT EXECUTION",
              "KB-H073": "TEST V1 PACKAGE FOLDER",
+             "KB-H074": "STATIC ARTIFACTS",
              }
 
 
@@ -1129,7 +1130,12 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H015", output)
     def test(out):
         if not _shared_files_well_managed(conanfile, conanfile.package_folder):
-            out.error("Package with 'shared' option did not contains any shared artifact")
+            out.error("Package with 'shared=True' option did not contain any shared artifact")
+
+    @run_test("KB-H074", output)
+    def test(out):
+        if not _static_files_well_managed(conanfile, conanfile.package_folder):
+            out.error("Package with 'shared=False' option did not contain any static artifact")
 
     @run_test("KB-H020", output)
     def test(out):
@@ -1327,6 +1333,19 @@ def _shared_files_well_managed(conanfile, folder):
         options_dict = {key: value for key, value in conanfile.options.items()}
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
         if not _get_files_with_extensions(folder, shared_extensions):
+            return False
+    return True
+
+
+def _static_files_well_managed(conanfile, folder):
+    static_extensions = ["a", "lib"]
+    shared_name = "shared"
+    try:
+        options_dict = {key: value for key, value in conanfile.options.values.as_list()}
+    except Exception:
+        options_dict = {key: value for key, value in conanfile.options.items()}
+    if shared_name in options_dict.keys() and options_dict[shared_name] == "False":
+        if not _get_files_with_extensions(folder, static_extensions):
             return False
     return True
 
