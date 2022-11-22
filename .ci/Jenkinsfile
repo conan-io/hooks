@@ -6,7 +6,7 @@ pipeline {
             parallel {
                 stage('Macos - py36') {
                     agent {
-                        label 'Macos'
+                        label 'M1Macos'
                     }
                     stages {
                         stage('Macos - py36 - Generate environment') {
@@ -39,7 +39,7 @@ pipeline {
                 }
                 stage('Macos - py38') {
                     agent {
-                        label 'Macos'
+                        label 'M1Macos'
                     }
                     stages {
                         stage('Macos - py38 - Generate environment') {
