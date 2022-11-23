@@ -84,6 +84,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H072": "PYLINT EXECUTION",
              "KB-H073": "TEST V1 PACKAGE FOLDER",
              "KB-H074": "STATIC ARTIFACTS",
+             "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
              }
 
 
@@ -909,6 +910,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 out.error("The test_package seems be prepared for Conan v2, but test_v1_package is missing.")
             elif not os.path.isfile(test_v1_package_conanfile_path):
                 out.error("There is no 'conanfile.py' in 'test_v1_package' folder")
+
+    @run_test("KB-H075", output)
+    def test(out):
+        match = re.search(r'self.requires\(.*override=True.*\)', conanfile_content)
+        if match:
+            out.error("self.requires('package/version', override=True) is forbidden, do not force override parameter.")
 
 
 @raise_if_error_output
