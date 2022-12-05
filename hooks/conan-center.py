@@ -1347,13 +1347,10 @@ def _shared_files_well_managed(conanfile, folder):
 def _static_files_well_managed(conanfile, folder):
     static_extensions = ["a", "lib"]
     shared_name = "shared"
-    header_only_name = "header_only"
     try:
         options_dict = {key: value for key, value in conanfile.options.values.as_list()}
     except Exception:
         options_dict = {key: value for key, value in conanfile.options.items()}
-    if header_only_name in options_dict.keys() and options_dict[header_only_name] == "True":
-        return True
     if shared_name in options_dict.keys() and options_dict[shared_name] == "False":
         if not _get_files_with_extensions(folder, static_extensions):
             return False
