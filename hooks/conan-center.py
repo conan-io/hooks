@@ -1138,11 +1138,15 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H015", output)
     def test(out):
+        if conanfile.name in ["mbits-args"]:
+            return
         if not _shared_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared=True' option did not contain any shared artifact")
 
     @run_test("KB-H074", output)
     def test(out):
+        if conanfile.name in ["mbits-args"]:
+            return
         if not _static_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared=False' option did not contain any static artifact")
 
