@@ -1048,6 +1048,8 @@ def pre_build(output, conanfile, **kwargs):
 
     @run_test("KB-H007", output)
     def test(out):
+        if conanfile.name in ["mbits-args"]:
+            return
         has_fpic = conanfile.options.get_safe("fPIC")
         error = False
         if conanfile.settings.get_safe("os") == "Windows" and has_fpic:
