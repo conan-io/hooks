@@ -924,8 +924,7 @@ def pre_export(conanfile):
 
 @raise_if_error_output
 def post_export(conanfile):
-    conanfile_path = os.path.join(conanfile.recipe_folder, "conanfile.py")
-    export_folder_path = os.path.dirname(conanfile_path)
+    export_folder_path = os.path.dirname(conanfile.export_folder)
 
     @run_test("KB-H031", conanfile)
     def test(out):
