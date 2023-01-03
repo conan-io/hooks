@@ -35,8 +35,6 @@ class ConanClientV2TestCase(object):
     def conan(self, command, expected_return_code=SUCCESS):
         with context_env(**self._get_environ()):
             try:
-                environment = os.environ.copy()
-                environment["CONAN_HOME"] = self._home
                 conan_command = str(" ").join(["conan"] + command)
                 result = subprocess.check_output(conan_command, shell=True, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as error:
