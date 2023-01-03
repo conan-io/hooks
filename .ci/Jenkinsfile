@@ -181,7 +181,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox tests/test_hooks/conan-center-v2
+                                    tox
                                 '''
                             }
                         }
@@ -232,7 +232,7 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate conan
-                                    tox tests/test_hooks/conan-center-v2
+                                    tox
                                 '''
                             }
                         }
