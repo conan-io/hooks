@@ -3,7 +3,6 @@
 import os
 import shutil
 import tempfile
-import unittest
 import uuid
 import subprocess
 
@@ -11,7 +10,7 @@ from conan.cli.exit_codes import SUCCESS
 from tests.utils.environ_vars import context_env
 
 
-class ConanClientV2TestCase(unittest.TestCase):
+class ConanClientV2TestCase(object):
     """ Helper class to run isolated conan commands """
     _old_cwd = None
     _working_dir = None
@@ -41,12 +40,12 @@ class ConanClientV2TestCase(unittest.TestCase):
                 conan_command = str(" ").join(["conan"] + command)
                 result = subprocess.check_output(conan_command, shell=True, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as error:
-                self.assertEqual(expected_return_code, error.returncode)
+                assert expected_return_code == error.returncode, "Expected to pass but Conan command failed."
             else:
-                self.assertEqual(SUCCESS, expected_return_code, msg="Command passed but expected failure")
+                assert SUCCESS == expected_return_code, "Conan command passed but expected to fail"
             return result.decode()
 
-    def setUp(self):
+    def setup_method(self, method):
         if not os.path.isdir(self.hooks_dir):
             os.makedirs(self.hooks_dir)
         testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
@@ -54,13 +53,13 @@ class ConanClientV2TestCase(unittest.TestCase):
         os.chdir(testcase_dir)
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls._working_dir = tempfile.mkdtemp()
         cls._old_cwd = os.getcwd()
         cls._home = os.path.join(cls._working_dir, 'home')
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         os.chdir(cls._old_cwd)
 
         def handleRemoveReadonly(func, path, exc):
