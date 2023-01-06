@@ -34,6 +34,11 @@ class ForbiddenOverrideTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/channel'])
         self.assertIn("[REQUIREMENT OVERRIDE PARAMETER (KB-H075)] OK", output)
 
+    def test_with_commented_requires(self):
+        tools.save('conanfile.py', content=self.conanfile.replace("{}", "# self.requires('package/version', override=True)"))
+        output = self.conan(['export', '.', 'name/version@user/channel'])
+        self.assertIn("[REQUIREMENT OVERRIDE PARAMETER (KB-H075)] OK", output)
+
     def test_no_requires(self):
         tools.save('conanfile.py', content=self.conanfile.replace("{}", ""))
         output = self.conan(['export', '.', 'name/version@user/channel'])
