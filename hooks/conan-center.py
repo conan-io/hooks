@@ -913,7 +913,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H075", output)
     def test(out):
-        match = re.search(r'self.requires\(.*override=True.*\)', conanfile_content)
+        match = re.search(r'(^|\n)\s*self.requires\(.*override=True.*\)', conanfile_content)
         if match:
             out.error("self.requires('package/version', override=True) is forbidden, do not force override parameter.")
 
