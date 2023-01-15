@@ -2,6 +2,7 @@ import ast
 import collections
 
 import fnmatch
+import glob
 import inspect
 import os
 import re
@@ -85,6 +86,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H073": "TEST V1 PACKAGE FOLDER",
              "KB-H074": "STATIC ARTIFACTS",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
+             "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
              }
 
 
@@ -1154,6 +1156,13 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         if not _static_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared=False' option did not contain any static artifact")
 
+    @run_test("KB-H076", output)
+    def test(out):
+        libs_both_static_shared = _get_libs_if_static_and_shared(conanfile)
+        if len(libs_both_static_shared):
+            out.error("Package contains both shared and static flavors of these "
+                      f"libraries: {', '.join(libs_both_static_shared)}")
+
     @run_test("KB-H020", output)
     def test(out):
         if conanfile.name in ["cmake", "msys2", "strawberryperl", "android-ndk", "emsdk"]:
@@ -1365,6 +1374,30 @@ def _static_files_well_managed(conanfile, folder):
         if not _get_files_with_extensions(folder, static_extensions):
             return False
     return True
+
+
+def _get_libs_if_static_and_shared(conanfile):
+    # TODO: to improve. We only check whether we can find the same lib name with a static or
+    # shared extension. Therefore:
+    #   - it can't check anything useful on Windows for the moment
+    #   - it can't detect a bad packaging if static & shared flavors have different names
+    static_extensions = ["a"]
+    shared_extensions = ["so", "dylib"]
+
+    static_libs = set()
+    shared_libs = set()
+
+    libdirs = [os.path.join(conanfile.package_folder, libdir)
+               for libdir in getattr(conanfile.cpp.package, "libdirs")]
+    for libdir in libdirs:
+        for ext in static_extensions:
+            static_libs.update([re.sub(fr"\.{ext}$", "", os.path.basename(p))
+                                for p in glob.glob(os.path.join(libdir, f"*.{ext}"))])
+        for ext in shared_extensions:
+            shared_libs.update([re.sub(fr"\.{ext}$", "", os.path.basename(p))
+                                for p in glob.glob(os.path.join(libdir, f"*.{ext}"))])
+
+    return static_libs.intersection(shared_libs)
 
 
 def _files_match_settings(conanfile, folder, output):
