@@ -2,8 +2,10 @@ import ast
 import collections
 
 import fnmatch
+import glob
 import inspect
 import os
+import platform
 import re
 import sys
 import subprocess
@@ -11,9 +13,11 @@ import subprocess
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
+from conan.tools.apple import is_apple_os
 from conans import tools
 from conans.client.graph.python_requires import ConanPythonRequire
 from conans.client.loader import parse_conanfile
+from conans.util.runners import check_output_runner
 try:
     from conans import Settings
 except ImportError:
@@ -85,6 +89,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H073": "TEST V1 PACKAGE FOLDER",
              "KB-H074": "STATIC ARTIFACTS",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
+             "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
              }
 
 
@@ -1231,6 +1236,14 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             for lib in libs:
                 out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.{}.".format(lib, missing_system_lib, attribute))
 
+    @run_test("KB-H077", output)
+    def test(out):
+        if not is_apple_os(conanfile):
+            return
+        not_relocatable_libs = _get_non_relocatable_shared_libs(conanfile)
+        if not_relocatable_libs:
+            out.error(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
+
 
 @raise_if_error_output
 def post_package_info(output, conanfile, reference, **kwargs):
@@ -1563,6 +1576,25 @@ def _deplibs_from_shlibs(conanfile, out):
                     dep_lib_base = l.group(1).lower()
                     deplibs.setdefault(dep_lib_base, []).append(library)
     return deplibs
+
+
+def _get_non_relocatable_shared_libs(conanfile):
+    if platform.system() != "Darwin":
+        return None
+
+    bad_shared_libs = []
+
+    libdirs = [os.path.join(conanfile.package_folder, libdir)
+               for libdir in getattr(conanfile.cpp.package, "libdirs")]
+    for libdir in libdirs:
+        for dylib_path in glob.glob(os.path.join(libdir, "*.dylib")):
+            command = f"otool -D {dylib_path}"
+            install_name = check_output_runner(command).strip().split(":")[1].strip()
+            base_install_name = install_name.rsplit("/", 1)[0]
+            if base_install_name != "@rpath":
+                bad_shared_libs.append(os.path.basename(dylib_path))
+
+    return bad_shared_libs
 
 
 _GLIBC_LIBS = {
