@@ -1590,8 +1590,8 @@ def _get_non_relocatable_shared_libs(conanfile):
         for dylib_path in glob.glob(os.path.join(libdir, "*.dylib")):
             command = f"otool -D {dylib_path}"
             install_name = check_output_runner(command).strip().split(":")[1].strip()
-            base_install_name = install_name.rsplit("/", 1)[0]
-            if base_install_name != "@rpath":
+            install_name_dir = os.path.dirname(install_name)
+            if install_name_dir != "@rpath":
                 bad_shared_libs.append(os.path.basename(dylib_path))
 
     return bad_shared_libs
