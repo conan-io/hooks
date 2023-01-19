@@ -52,13 +52,17 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
                     if self.options.shared:
                         open(os.path.join(libdir, "libfoo.so"), "w")
                         open(os.path.join(libdir, "libbar.so"), "w")
+                        open(os.path.join(libdir, "libfoobar.dll.a"), "w")
                     else:
                         open(os.path.join(libdir, "libfoo.a"), "w")
                         open(os.path.join(libdir, "libbar.a"), "w")
+                        open(os.path.join(libdir, "libfoobar.a"), "w")
                 else:
                     open(os.path.join(libdir, "libfoo.a"), "w")
                     open(os.path.join(libdir, "libfoo.so"), "w")
                     open(os.path.join(libdir, "libbar.a"), "w")
+                    open(os.path.join(libdir, "libfoobar.a"), "w")
+                    open(os.path.join(libdir, "libfoobar.dll.a"), "w")
 
             def package_info(self):
                 self.cpp_info.libs = ["foo"]
@@ -101,4 +105,4 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
         if hook_ok:
             self.assertIn("[EITHER STATIC OR SHARED OF EACH LIB (KB-H076)] OK", output)
         else:
-            self.assertIn("ERROR: [EITHER STATIC OR SHARED OF EACH LIB (KB-H076)] Package contains both shared and static flavors of these libraries: libfoo", output)
+            self.assertIn("ERROR: [EITHER STATIC OR SHARED OF EACH LIB (KB-H076)] Package contains both shared and static flavors of these libraries: libfoo, libfoobar", output)

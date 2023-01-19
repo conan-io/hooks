@@ -1379,9 +1379,10 @@ def _static_files_well_managed(conanfile, folder):
 def _get_libs_if_static_and_shared(conanfile):
     # TODO: to improve. We only check whether we can find the same lib name with a static or
     # shared extension. Therefore:
-    #   - it can't check anything useful on Windows for the moment
+    #   - it can't check anything useful for cl like compilers (Visual Studio, clang-cl, Intel-cc) for the moment
     #   - it can't detect a bad packaging if static & shared flavors have different names
-    static_extensions = ["a"]
+    static_extension = "a"
+    import_lib_extension = "dll.a"
     shared_extensions = ["so", "dylib"]
 
     static_libs = set()
@@ -1390,14 +1391,20 @@ def _get_libs_if_static_and_shared(conanfile):
     libdirs = [os.path.join(conanfile.package_folder, libdir)
                for libdir in getattr(conanfile.cpp.package, "libdirs")]
     for libdir in libdirs:
-        for ext in static_extensions:
-            static_libs.update([re.sub(fr"\.{ext}$", "", os.path.basename(p))
-                                for p in glob.glob(os.path.join(libdir, f"*.{ext}"))])
-        for ext in shared_extensions:
+        # Collect statib libs.
+        # Pay attention to not pick up import libs while collecting static libs !
+        static_libs.update([re.sub(fr"\.{static_extension}$", "", os.path.basename(p))
+                            for p in glob.glob(os.path.join(libdir, f"*.{static_extension}"))
+                            if not p.endswith(f".{import_lib_extension}")])
+
+        # Collect shared libs and import libs
+        for ext in shared_extensions + [import_lib_extension]:
             shared_libs.update([re.sub(fr"\.{ext}$", "", os.path.basename(p))
                                 for p in glob.glob(os.path.join(libdir, f"*.{ext}"))])
 
-    return static_libs.intersection(shared_libs)
+    result = list(static_libs.intersection(shared_libs))
+    result.sort()
+    return result
 
 
 def _files_match_settings(conanfile, folder, output):
