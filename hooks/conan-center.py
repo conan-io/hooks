@@ -1250,7 +1250,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             return
         not_relocatable_libs = _get_non_relocatable_shared_libs(conanfile)
         if not_relocatable_libs:
-            out.error(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
+            out.warn(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
 
 
 @raise_if_error_output

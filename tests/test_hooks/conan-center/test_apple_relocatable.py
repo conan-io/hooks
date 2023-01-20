@@ -121,6 +121,6 @@ class TestAppleRelocatableSharedLibs(ConanClientTestCase):
         tools.save("foo.c", content=self.foo_c)
         output = self.conan(["create", ".", "foo/1.0@user/test", "-o", f"foo:shared={shared}"])
         if platform.system() == "Darwin" and shared and install_name_dir != "@rpath":
-            self.assertIn("ERROR: [APPLE RELOCATABLE SHARED LIBS (KB-H077)] install_name dir of these shared libs is not @rpath: libfoo.dylib", output)
+            self.assertIn("WARN: [APPLE RELOCATABLE SHARED LIBS (KB-H077)] install_name dir of these shared libs is not @rpath: libfoo.dylib", output)
         else:
             self.assertIn("[APPLE RELOCATABLE SHARED LIBS (KB-H077)] OK", output)
