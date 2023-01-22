@@ -91,6 +91,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
              "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
              "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
+             "KB-H078": "WINDOWS LOWERCASE SYSTEM LIBS",
              }
 
 
@@ -1334,6 +1335,29 @@ def post_package_info(output, conanfile, reference, **kwargs):
             _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
+
+    @run_test("KB-H078", output)
+    def test(out):
+        if conanfile.settings.get_safe("os") != "Windows":
+            return
+
+        uppercase_system_libs = []
+
+        def _collect_uppercase_system_libs(component):
+            uppercase_system_libs.extend([lib for lib in component.system_libs if lib != lib.lower()])
+
+        if not conanfile.cpp_info.components:
+            _collect_uppercase_system_libs(conanfile.cpp_info)
+        for c in conanfile.cpp_info.components:
+            _collect_uppercase_system_libs(conanfile.cpp_info.components[c])
+
+        if uppercase_system_libs:
+            uppercase_system_libs.sort()
+            out.error(
+                "All libs listed in system_libs should be lowercase if host OS is "
+                "Windows to support both native Windows build and cross-build from Linux. "
+                f"Found system libs with uppercase characters: {', '.join(uppercase_system_libs)}"
+            )
 
 
 def _get_files_following_patterns(folder, patterns):
