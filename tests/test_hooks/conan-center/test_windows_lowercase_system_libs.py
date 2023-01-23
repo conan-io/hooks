@@ -64,7 +64,7 @@ class TestPackageInfoWindowsLowercaseSystemLibs(ConanClientTestCase):
     def test_global_cpp_info(self, system_lib):
         tools.save("conanfile.py", content=self._conanfile_test_global_cpp_info(system_lib))
         output = self.conan(["create", ".", "name/version@user/test"])
-        if platform.system() != "Windows" or not system_lib or system_lib == system_lib.lower():
+        if platform.system() != "Windows" or not system_lib or system_lib.islower():
             self.assertIn("[WINDOWS LOWERCASE SYSTEM LIBS (KB-H078)] OK", output)
         else:
             error_message = (
@@ -86,14 +86,14 @@ class TestPackageInfoWindowsLowercaseSystemLibs(ConanClientTestCase):
         tools.save("conanfile.py", content=self._conanfile_test_components_cpp_info(system_lib_a, system_lib_b))
         output = self.conan(["create", ".", "name/version@user/test"])
         if platform.system() != "Windows" or \
-           ((not system_lib_a or system_lib_a == system_lib_a.lower()) and \
-            (not system_lib_b or system_lib_b == system_lib_b.lower())):
+           ((not system_lib_a or system_lib_a.islower()) and \
+            (not system_lib_b or system_lib_b.islower())):
             self.assertIn("[WINDOWS LOWERCASE SYSTEM LIBS (KB-H078)] OK", output)
         else:
             uppercase_libs = []
-            if system_lib_a and system_lib_a != system_lib_a.lower():
+            if system_lib_a and not system_lib_a.islower():
                 uppercase_libs.append(system_lib_a)
-            if system_lib_b and system_lib_b != system_lib_b.lower():
+            if system_lib_b and not system_lib_b.islower():
                 uppercase_libs.append(system_lib_b)
             uppercase_libs.sort()
             error_message = (
