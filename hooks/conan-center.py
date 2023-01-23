@@ -1344,7 +1344,7 @@ def post_package_info(output, conanfile, reference, **kwargs):
         uppercase_system_libs = []
 
         def _collect_uppercase_system_libs(component):
-            uppercase_system_libs.extend([lib for lib in component.system_libs if lib != lib.lower()])
+            uppercase_system_libs.extend([lib for lib in component.system_libs if not lib.islower())])
 
         if not conanfile.cpp_info.components:
             _collect_uppercase_system_libs(conanfile.cpp_info)
