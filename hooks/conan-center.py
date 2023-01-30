@@ -14,6 +14,7 @@ from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
 from conan.tools.apple import is_apple_os
+from conan.tools.files import collect_libs
 from conans import tools
 from conans.client.graph.python_requires import ConanPythonRequire
 from conans.client.loader import parse_conanfile
@@ -1311,7 +1312,12 @@ def post_package_info(output, conanfile, reference, **kwargs):
             for p in component.libdirs:
                 if not os.path.isdir(p):
                     continue
-                libs_found = tools.collect_libs(conanfile, p)
+                libs_found = collect_libs(conanfile, p)
+                if conanfile.settings.get_safe("os") == "Windows" and \
+                   conanfile.settings.get_safe("compiler") in ("gcc", "clang"):
+                    # For MinGW, collect_libs() is populated with "foo.dll" when filename is libfoo.dll.a
+                    # but it's perfectly valid to set cpp_info.libs = ["foo"] in recipe, so we must handle this case.
+                    libs_found.extend([l[0:-4] for l in libs_found if l.endswith(".dll")])
                 libs_to_search = [l for l in libs_to_search if l not in libs_found]
                 libs_to_search = [l for l in libs_to_search if not os.path.isfile(os.path.join(p, l))]
             for l in libs_to_search:
