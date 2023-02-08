@@ -165,7 +165,7 @@ def raise_if_error_output(func):
 
 
 def kb_url(kb_id):
-    return "https://github.com/conan-io/conan-center-index/blob/master/docs/error_knowledge_base.md#{}".format(kb_id)
+    return "https://github.com/conan-io/conan-center-index/blob/master/docs/error_knowledge_base.md#{}-{}".format(kb_id, kb_errors[kb_id].replace(' ', '-'))
 
 
 def run_test(kb_id, output):
