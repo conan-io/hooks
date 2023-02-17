@@ -173,18 +173,6 @@ pipeline {
                                 sh '.ci/generate_env_linux.sh'
                             }
                         }
-                        stage('Linux - py36 - conanv2') {
-                            environment {
-                                TOXENV = 'py36-conanv2'
-                            }
-                            steps {
-                                sh '''
-                                    eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
-                                '''
-                            }
-                        }
                         stage('Linux - py36 - conandev') {
                             environment {
                                 TOXENV = 'py36-conandev'
@@ -222,18 +210,6 @@ pipeline {
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
-                            }
-                        }
-                        stage('Linux - py38 - conanv2') {
-                            environment {
-                                TOXENV = 'py38-conanv2'
-                            }
-                            steps {
-                                sh '''
-                                    eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
-                                '''
                             }
                         }
                         stage('Linux - py38 - conandev') {
