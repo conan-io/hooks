@@ -1560,7 +1560,7 @@ def _deplibs_from_shlibs(conanfile, out):
             try:
                 buffer = StringIO()
                 with chdir(conanfile, conanfile.package_folder):
-                    conanfile.run(f"dumpbin -dependents {library}", output=buffer, env=["conanvcvars"])
+                    conanfile.run(f"dumpbin -dependents {library}", buffer, env=["conanvcvars"])
                 dumpbin_output = buffer.getvalue()
             except subprocess.CalledProcessError:
                 out.warn("Running dumpbin on '{}' failed.".format(library))
