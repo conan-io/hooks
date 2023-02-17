@@ -5,15 +5,16 @@ import fnmatch
 import inspect
 import os
 import re
-import sys
+import glob
 import subprocess
 import shutil
+import platform
 from io import StringIO
 
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
-from conans.client.loader import parse_conanfile
+from conans.util.runners import check_output_runner
 
 from conan.api.conan_api import ConanAPI
 
@@ -94,6 +95,8 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H073": "TEST V1 PACKAGE FOLDER",
              "KB-H074": "STATIC ARTIFACTS",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
+             "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
+             "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
              }
 
 
@@ -1229,6 +1232,21 @@ def post_package(conanfile):
             for lib in libs:
                 out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.{}.".format(lib, missing_system_lib, attribute))
 
+    @run_test("KB-H076", conanfile)
+    def test(out):
+        libs_both_static_shared = _get_libs_if_static_and_shared(conanfile)
+        if len(libs_both_static_shared):
+            out.error("Package contains both shared and static flavors of these "
+                      f"libraries: {', '.join(libs_both_static_shared)}")
+
+    @run_test("KB-H077", conanfile)
+    def test(out):
+        if not is_apple_os(conanfile):
+            return
+        not_relocatable_libs = _get_non_relocatable_shared_libs(conanfile)
+        if not_relocatable_libs:
+            out.warn(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
+
 
 @raise_if_error_output
 def post_package_info(conanfile):
@@ -1366,6 +1384,37 @@ def _static_files_well_managed(conanfile, folder):
         if not _get_files_with_extensions(conanfile, folder, static_extensions):
             return False
     return True
+
+
+def _get_libs_if_static_and_shared(conanfile):
+    # TODO: to improve. We only check whether we can find the same lib name with a static or
+    # shared extension. Therefore:
+    #   - it can't check anything useful for cl like compilers (Visual Studio, clang-cl, Intel-cc) for the moment
+    #   - it can't detect a bad packaging if static & shared flavors have different names
+    static_extension = "a"
+    import_lib_extension = "dll.a"
+    shared_extensions = ["so", "dylib"]
+
+    static_libs = set()
+    shared_libs = set()
+
+    libdirs = [os.path.join(conanfile.package_folder, libdir)
+               for libdir in getattr(conanfile.cpp.package, "libdirs")]
+    for libdir in libdirs:
+        # Collect statib libs.
+        # Pay attention to not pick up import libs while collecting static libs !
+        static_libs.update([re.sub(fr"\.{static_extension}$", "", os.path.basename(p))
+                            for p in glob.glob(os.path.join(libdir, f"*.{static_extension}"))
+                            if not p.endswith(f".{import_lib_extension}")])
+
+        # Collect shared libs and import libs
+        for ext in shared_extensions + [import_lib_extension]:
+            shared_libs.update([re.sub(fr"\.{ext}$", "", os.path.basename(p))
+                                for p in glob.glob(os.path.join(libdir, f"*.{ext}"))])
+
+    result = list(static_libs.intersection(shared_libs))
+    result.sort()
+    return result
 
 
 def _files_match_settings(conanfile, folder, output):
@@ -1569,6 +1618,25 @@ def _deplibs_from_shlibs(conanfile, out):
                 dep_lib_base = l.group(1).lower()
                 deplibs.setdefault(dep_lib_base, []).append(library)
     return deplibs
+
+
+def _get_non_relocatable_shared_libs(conanfile):
+    if platform.system() != "Darwin":
+        return None
+
+    bad_shared_libs = []
+
+    libdirs = [os.path.join(conanfile.package_folder, libdir)
+               for libdir in getattr(conanfile.cpp.package, "libdirs")]
+    for libdir in libdirs:
+        for dylib_path in glob.glob(os.path.join(libdir, "*.dylib")):
+            command = f"otool -D {dylib_path}"
+            install_name = check_output_runner(command).strip().split(":")[1].strip()
+            install_name_dir = os.path.dirname(install_name)
+            if install_name_dir != "@rpath":
+                bad_shared_libs.append(os.path.basename(dylib_path))
+
+    return bad_shared_libs
 
 
 _GLIBC_LIBS = {
