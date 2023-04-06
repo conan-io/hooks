@@ -87,7 +87,6 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H070": "MANDATORY SETTINGS",
              "KB-H071": "INCLUDE PATH DOES NOT EXIST",
              "KB-H072": "PYLINT EXECUTION",
-             "KB-H073": "TEST V1 PACKAGE FOLDER",
              "KB-H074": "STATIC ARTIFACTS",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
              "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
@@ -899,24 +898,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             recipe_path = os.path.join(recipe_folder, recipe)
             recipe_content = tools.load(recipe_path)
             _check_conanfile_content(recipe_content, recipe_path)
-
-    @run_test("KB-H073", output)
-    def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        test_package_conanfile_path = os.path.join(dir_path, "test_package", "conanfile.py")
-        test_v1_package_path = os.path.join(dir_path, "test_v1_package")
-        test_v1_package_conanfile_path = os.path.join(test_v1_package_path, "conanfile.py")
-        content = None
-        if os.path.isfile(test_package_conanfile_path):
-            try:
-                content = tools.load(test_package_conanfile_path)
-            except Exception as error:
-                out.warn(f"Invalid conanfile: {error}")
-        if content and "self.tested_reference_str" in content:
-            if not os.path.exists(test_v1_package_path):
-                out.error("The test_package seems be prepared for Conan v2, but test_v1_package is missing.")
-            elif not os.path.isfile(test_v1_package_conanfile_path):
-                out.error("There is no 'conanfile.py' in 'test_v1_package' folder")
 
     @run_test("KB-H075", output)
     def test(out):
