@@ -68,26 +68,3 @@ class TestMissingTestV1Package(ConanClientTestCase):
         kwargs = super(TestMissingTestV1Package, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
                                                    'hooks', 'conan-center')})
-        return kwargs
-
-    def test_valid_folder_structure(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('test_package/conanfile.py', content=self.test_package_conanfile)
-        tools.save('test_v1_package/conanfile.py', content=self.test_v1_package_conanfile)
-        output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("[TEST V1 PACKAGE FOLDER (KB-H073)] OK", output)
-
-    def test_missing_test_v1_package_folder(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('test_package/conanfile.py', content=self.test_package_conanfile)
-        output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [TEST V1 PACKAGE FOLDER (KB-H073)] The test_package seems be prepared for Conan v2, "
-                      "but test_v1_package is missing.", output)
-
-    def test_missing_test_v1_package_conanfile(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        tools.save('test_package/conanfile.py', content=self.test_package_conanfile)
-        tools.mkdir('test_v1_package')
-        output = self.conan(['export', '.', 'name/version@user/channel'])
-        self.assertIn("ERROR: [TEST V1 PACKAGE FOLDER (KB-H073)] There is no 'conanfile.py' in 'test_v1_package'"
-                      " folder", output)
