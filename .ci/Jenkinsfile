@@ -68,24 +68,6 @@ pipeline {
                                 sh '.ci/run_tox.sh'
                             }
                         }
-                        stage('Macos - py38 - conanprev') {
-                            environment {
-                                PYVER = 'py38'
-                                TOXENV = 'py38-conanprev'
-                            }
-                            steps {
-                                sh '.ci/run_tox.sh'
-                            }
-                        }
-                        stage('Macos - py38 - conanprevprev') {
-                            environment {
-                                PYVER = 'py38'
-                                TOXENV = 'py38-conanprevprev'
-                            }
-                            steps {
-                                sh '.ci/run_tox.sh'
-                            }
-                        }
                     }
                 }
             }
@@ -114,14 +96,6 @@ pipeline {
                                 bat 'tox --recreate'
                             }
                         }
-                        stage('Windows - py36 - conanprev') {
-                            environment {
-                                TOXENV = 'py36-conanprev'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
                     }
                 }
                 stage('Windows - py38') {
@@ -140,14 +114,6 @@ pipeline {
                         stage('Windows - py38 - conancurrent') {
                             environment {
                                 TOXENV = 'py38-conancurrent'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                        stage('Windows - py38 - conanprev') {
-                            environment {
-                                TOXENV = 'py38-conanprev'
                             }
                             steps {
                                 bat 'tox --recreate'
@@ -227,30 +193,6 @@ pipeline {
                         stage('Linux - py38 - conancurrent') {
                             environment {
                                 TOXENV = 'py38-conancurrent'
-                            }
-                            steps {
-                                sh '''
-                                    eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
-                                '''
-                            }
-                        }
-                        stage('Linux - py38 - conanprev') {
-                            environment {
-                                TOXENV = 'py38-conanprev'
-                            }
-                            steps {
-                                sh '''
-                                    eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
-                                '''
-                            }
-                        }
-                        stage('Linux - py38 - conanprevprev') {
-                            environment {
-                                TOXENV = 'py38-conanprevprev'
                             }
                             steps {
                                 sh '''
