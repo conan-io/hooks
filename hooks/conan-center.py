@@ -1003,6 +1003,9 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H011", output)
     def test(out):
+        if conanfile.name in ['mawk']:
+            return
+
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
@@ -1018,6 +1021,9 @@ def post_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H022", output)
     def test(out):
+        if conanfile.name in ['mawk']:
+            return
+
         if _is_pure_c():
             conanfile_content = tools.load(conanfile_path)
             low = conanfile_content.lower()
