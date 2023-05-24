@@ -1087,7 +1087,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H013", output)
     def test(out):
         if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "mingw-builds",
-                              "openjdk", "mono", "gcc", "mold"]:
+                              "openjdk", "mono", "gcc", "mold", "tz"]:
             return
 
         base_known_folders = ["lib", "bin", "include", "res", "licenses"]
@@ -1128,7 +1128,6 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "create-dmg",
             "googleapis",
             "grpc-proto",
-            "tz",
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
