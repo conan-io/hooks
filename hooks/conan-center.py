@@ -1413,7 +1413,7 @@ def _get_libs_if_static_and_shared(conanfile):
 
 
 def _files_match_settings(conanfile, folder, output):
-    header_extensions = ["h", "h++", "hh", "hxx", "hpp"]
+    header_extensions = ["h", "h++", "hh", "hxx", "hpp", "cuh"]
     visual_extensions = ["lib", "dll", "exe", "bat"]
     mingw_extensions = ["a", "lib", "a.dll", "dll", "exe", "sh"]
     # The "" extension is allowed to look for possible executables
