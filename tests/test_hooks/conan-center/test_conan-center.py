@@ -1003,6 +1003,100 @@ class ConanCenterTests(ConanClientTestCase):
         self.assertIn("ERROR: [LICENSE PUBLIC DOMAIN (KB-H056)] " \
                       "Public Domain is not a SPDX license. Use 'Unlicense' instead.", output)
 
+    def test_library_doesnot_exist(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+        import os
+
+        class AConan(ConanFile):
+            settings = "os"
+
+            def package(self):
+                os.makedirs(os.path.join(self.package_folder, "lib"))
+                open(os.path.join(self.package_folder, "lib", "libfoo.a"), "w")
+
+            def package_info(self):
+                self.cpp_info.libs = []
+        """)
+        tools.save('conanfile.py', content=conanfile)
+
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("open", "# open"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("[]", "['bar']"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::name library "bar" not found in libdirs', output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs", "components['fake'].libs")
+                                                    .replace("open", "# open"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+
+        tools.save('conanfile.py', content=conanfile.replace("libs = []",
+                                                             "components['fake'].libs = ['bar']"))
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn('ERROR: [LIBRARY DOES NOT EXIST (KB-H054)] Component '
+                      'name::fake library "bar" not found in libdirs', output)
+
+        tools.save('conanfile.py', content=self.conanfile_header_only)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("[LIBRARY DOES NOT EXIST (KB-H054)] OK", output)
+        self.assertNotIn('does not contain any library', output)
+
+    def test_logging_level(self):
+        conanfile = textwrap.dedent("""\
+        from conans import ConanFile
+
+        class FoobarConan(ConanFile):
+            pass
+        """)
+        tools.save('conanfile.py', content=conanfile)
+        output = self.conan(['create', '.', 'name/version@user/test'])
+        self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+        self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+        self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": "oops"}):
+           output = self.conan(['create', '.', 'name/version@user/test'])
+           self.assertIn("ERROR: CONAN_HOOK_LOGGING_LEVEL is set to an incorrect value", output)
+
+        for level in ["INFO", "20"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+
+        for level in ["Warning", "30"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        for level in ["error", "40"]:
+            with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": level}):
+                output = self.conan(['create', '.', 'name/version@user/test'])
+                self.assertIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+                self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+                self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+
+        with tools.environment_append({"CONAN_HOOK_LOGGING_LEVEL": "9001"}):  # Over 9000
+            output = self.conan(['create', '.', 'name/version@user/test'])
+            self.assertNotIn("WARN: [HEADER_ONLY, NO COPY SOURCE (KB-H005)]", output)
+            self.assertNotIn("[FPIC MANAGEMENT (KB-H007)] OK", output)
+            self.assertNotIn("ERROR: [PACKAGE LICENSE (KB-H012)]", output)
+
     def test_os_rename_warning(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile, tools

@@ -107,6 +107,18 @@ class _HooksOutputErrorCollector(object):
         if self.kb_id:
             self.kb_url = kb_url(self.kb_id)
         self._error_level = int(os.getenv("CONAN_HOOK_ERROR_LEVEL", str(NOTSET)))
+        self._set_logging_level()
+
+    def _set_logging_level(self):
+        level = os.getenv("CONAN_HOOK_LOGGING_LEVEL", str(NOTSET))
+        name_level = {"ERROR": 40, "WARNING": 30, "WARN": 30, "INFO": 20, "DEBUG": 10, "NOTSET": 0}
+        if level.isdigit():
+            self._logging_level = int(level)
+        elif level.upper() in name_level:
+            self._logging_level = name_level[level.upper()]
+        else:
+            self._logging_level = NOTSET
+            self.error("CONAN_HOOK_LOGGING_LEVEL is set to an incorrect value")
 
     def _get_message(self, message):
         if self._test_name:
@@ -116,30 +128,36 @@ class _HooksOutputErrorCollector(object):
             return message
 
     def success(self, message):
-        self._output.success(self._get_message(message))
+        if self._logging_level <= INFO:
+            self._output.success(self._get_message(message))
 
     def debug(self, message):
         if self._error_level and self._error_level <= DEBUG:
             self._error = True
-        self._output.debug(self._get_message(message))
+        if self._logging_level <= DEBUG:
+            self._output.debug(self._get_message(message))
 
     def info(self, message):
         if self._error_level and self._error_level <= INFO:
             self._error = True
-        self._output.info(self._get_message(message))
+        if self._logging_level <= INFO:
+            self._output.info(self._get_message(message))
 
     def warn(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        if hasattr(self._output, "warn"):
-            self._output.warn(self._get_message(message))
-        else:
-            self._output.warning(self._get_message(message))
+
+        if self._logging_level <= WARNING:
+            if hasattr(self._output, "warn"):
+                self._output.warn(self._get_message(message))
+            else:
+                self._output.warning(self._get_message(message))
 
     def error(self, message):
         self._error = True
-        url_str = '({})'.format(self.kb_url) if self.kb_id else ""
-        self._output.error(self._get_message(message) + " " + url_str)
+        if self._logging_level <= ERROR:
+            url_str = '({})'.format(self.kb_url) if self.kb_id else ""
+            self._output.error(self._get_message(message) + " " + url_str)
 
     def __str__(self):
         return self._output._stream.getvalue()
