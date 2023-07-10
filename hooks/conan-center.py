@@ -951,11 +951,6 @@ def post_export(output, conanfile, conanfile_path, reference, **kwargs):
         if default_options and isinstance(default_options, dict) and default_options.get("shared") is True:
             out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
 
-    @run_test("KB-H056", output)
-    def test(out):
-        if str(conanfile.license).lower() in ["public domain", "public-domain", "public_domain"]:
-            out.error("Public Domain is not a SPDX license. Use 'Unlicense' instead.")
-
 
 @raise_if_error_output
 def pre_source(output, conanfile, conanfile_path, **kwargs):
