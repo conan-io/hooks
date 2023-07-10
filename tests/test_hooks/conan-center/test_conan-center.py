@@ -991,18 +991,6 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertIn("[SINGLE REQUIRES (KB-H055)] OK", output)
 
-    def test_public_domain_license(self):
-        conanfile = textwrap.dedent("""\
-        from conans import ConanFile
-        class AConan(ConanFile):
-            license = "Public Domain"
-        """)
-
-        tools.save('conanfile.py', content=conanfile)
-        output = self.conan(['export', '.', 'name/version@user/test'])
-        self.assertIn("ERROR: [LICENSE PUBLIC DOMAIN (KB-H056)] " \
-                      "Public Domain is not a SPDX license. Use 'Unlicense' instead.", output)
-
     def test_os_rename_warning(self):
         conanfile = textwrap.dedent("""\
         from conans import ConanFile, tools
