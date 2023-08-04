@@ -9,12 +9,14 @@ import platform
 import re
 import sys
 import subprocess
+from pathlib import Path
 
 from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 
 import yaml
 from conan.tools.apple import is_apple_os
 from conan.tools.files import collect_libs
+from conan.tools.scm import Version
 from conans import tools
 from conans.client.graph.python_requires import ConanPythonRequire
 from conans.client.loader import parse_conanfile
@@ -91,6 +93,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
              "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
              "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
+             "KB-H078": "USING GLIBC FINITE MATH FUNCTIONS",
              }
 
 
@@ -1228,6 +1231,39 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             for lib in libs:
                 out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.{}.".format(lib, missing_system_lib, attribute))
 
+    @run_test("KB-H078", output)
+    def test(out):
+        # Check that functions from finite-math.h in glibc are not used
+        # See https://github.com/conan-io/conan-center-index/issues/18951#issuecomment-1662472084
+        if _get_os(conanfile) not in ["Linux", "FreeBSD"]:
+            return
+        # This issue has been fixed in Clang since v10.0.0, but still exists in GCC as of v13.2
+        settings = _get_settings(conanfile)
+        if settings.get_safe("compiler") == "clang" and Version(settings.get_safe("compiler.version")) >= 10:
+            return
+        # No need to run the check on glibc v2.31 or later since the symbols are no longer available anyway
+        try:
+            libc_path = list(Path("/lib").rglob("libc.so.6"))[0]
+            glibc_info = subprocess.check_output([str(libc_path)]).decode()
+            glibc_minor_version = int(re.search(r"GLIBC 2\.(\d+)", glibc_info).group(1))
+            if glibc_minor_version >= 31:
+                return
+        except Exception as e:
+            raise e
+        ext_symbols = _list_external_elf_symbols(conanfile, out)
+        finite_math_pattern = re.compile(r"\w*__\w+_finite")
+        finite_math_warnings = []
+        for file, symbols in ext_symbols.items():
+            forbidden_symbols = [sym for sym in symbols if finite_math_pattern.fullmatch(sym)]
+            if forbidden_symbols:
+                finite_math_warnings.append(f"{file}: {', '.join(sorted(forbidden_symbols))}")
+        if finite_math_warnings:
+            out.error(
+                f"Package contains files that link against functions removed from glibc >= v2.31:\n"
+                + "\n".join(sorted(finite_math_warnings))
+                + "\nPlease add -fno-finite-math-only to compiler flags to disable the use of these functions in optimizations."
+            )
+
     @run_test("KB-H077", output)
     def test(out):
         if not is_apple_os(conanfile):
@@ -1604,6 +1640,40 @@ def _deplibs_from_shlibs(conanfile, out):
                     dep_lib_base = l.group(1).lower()
                     deplibs.setdefault(dep_lib_base, []).append(library)
     return deplibs
+
+def _list_external_elf_symbols(conanfile, out):
+    if _get_os(conanfile) not in ["Linux", "FreeBSD"]:
+        return {}
+    objdump = tools.get_env("OBJDUMP") or tools.which("objdump")
+    if not objdump:
+        out.warn("objdump not found")
+        return {}
+
+    def _objdump(path, is_dynamic):
+        cmd = [objdump, "--dynamic-syms" if is_dynamic else "--syms", path]
+        try:
+            objdump_output = subprocess.check_output(cmd, cwd=conanfile.package_folder).decode()
+        except subprocess.CalledProcessError:
+            out.warn(f"Running objdump on '{path}' failed. Is the environment variable OBJDUMP correctly configured?")
+            return []
+        return [l.rsplit(" ", 1)[-1] for l in objdump_output.splitlines() if "*UND*" in l]
+
+    def _is_elf(path):
+        with path.open("rb") as f:
+            return f.read(4) == b"\x7fELF"
+
+    symbols = {}
+    for a_file in (conanfile.package_path / "lib").rglob("*.a"):
+        if a_file.is_file() and not a_file.is_symlink():
+            symbols[a_file] = _objdump(a_file, is_dynamic=False)
+    for so_file in (conanfile.package_path / "lib").rglob("*.so*"):
+        if so_file.is_file() and not so_file.is_symlink() and _is_elf(so_file):
+            symbols[so_file] = _objdump(so_file, is_dynamic=True)
+    for exe_file in (conanfile.package_path / "bin").rglob("*"):
+        if (exe_file.is_file() and not exe_file.is_symlink()
+                and os.access(exe_file, os.X_OK) and _is_elf(exe_file)):
+            symbols[exe_file] = _objdump(exe_file, is_dynamic=True)
+    return {k.relative_to(conanfile.package_path): v for k, v in symbols.items()}
 
 
 def _get_non_relocatable_shared_libs(conanfile):
