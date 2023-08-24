@@ -562,7 +562,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H045", output)
     def test(out):
-        if "self.options.remove" in conanfile_content:
+        if "self.options.remove(" in conanfile_content:
             out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
 
     @run_test("KB-H046", output)
