@@ -6,4 +6,4 @@ pylint==2.13.9  # FIXME: Remove version pin for Conan >= 1.50.0
 astroid
 spdx_lookup
 yamllint
-pyyaml<=6.0
+pyyaml<6.0
