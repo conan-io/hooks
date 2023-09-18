@@ -1248,6 +1248,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
         glibc_minor_version = _get_glibc_minor_version()
         if glibc_minor_version is not None and glibc_minor_version >= 31:
             return
+        is_pre_built = _is_pre_built_package(conanfile)
         external_symbols = _list_external_elf_symbols(conanfile, out)
         finite_math_pattern = re.compile(r"\w*__\w+_finite")
         finite_math_warnings = []
@@ -1256,11 +1257,15 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             if forbidden_symbols:
                 finite_math_warnings.append(f"{file}: {', '.join(sorted(forbidden_symbols))}")
         if finite_math_warnings:
-            out.error(
-                f"Package contains files that link against functions removed from glibc >= v2.31:\n"
-                + "\n".join(sorted(finite_math_warnings))
-                + "\nPlease add -fno-finite-math-only to compiler flags to disable the use of these functions in optimizations."
+            msg = (
+                    f"Package contains files that link against functions removed from glibc >= v2.31:\n"
+                    + "\n".join(sorted(finite_math_warnings))
+                    + "\nPlease add -fno-finite-math-only to compiler flags to disable the use of these functions in optimizations."
             )
+            if is_pre_built:
+                out.warning(msg)
+            else:
+                out.error(msg)
 
     @run_test("KB-H077", output)
     def test(out):
@@ -1691,6 +1696,11 @@ def _get_glibc_minor_version():
         return None
     return glibc_minor_version
 
+def _is_pre_built_package(conanfile):
+    topics = getattr(conanfile, "topics")
+    if topics and isinstance(topics, (list, tuple)):
+        return "pre-built" in topics
+    return False
 
 def _get_non_relocatable_shared_libs(conanfile):
     if platform.system() != "Darwin":
