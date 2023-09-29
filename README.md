@@ -89,6 +89,13 @@ variable ``CONAN_HOOK_ERROR_LEVEL``:
    - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
    - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
 
+#### Conan 2.x support
+
+The Conan Center hook is **NOT** supported by Conan v2 yet. Do not try to run this file with Conan v2.
+
+There is an effort on the [disabled-hook_conan-center-v2.py](hooks/disabled-hook_conan-center-v2.py), but is not updated and should be broken by now.
+
+The support for Conan 2.x should be rethinked first, because others items like linter and extensions should be considered too.
 
 
 ### [Attribute checker](hooks/attribute_checker.py)
