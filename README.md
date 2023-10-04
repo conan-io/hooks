@@ -88,8 +88,8 @@ check as ``OK``, ``WARNING`` or ``ERROR``:
 
 If you want the hook to fail the execution, if an error is reported, you can adjust the environment
 variable ``CONAN_HOOK_ERROR_LEVEL``:
-   - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
-   - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
+   - ``CONAN_HOOK_ERROR_LEVEL=ERROR`` it will raise if any error happen.
+   - ``CONAN_HOOK_ERROR_LEVEL=WARNING`` it will raise if any error or warning happen.
 
 ### [Attribute checker](hooks/attribute_checker.py)
 

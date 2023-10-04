@@ -200,9 +200,10 @@ def pre_export(conanfile):
     def test(out):
         if not re.search(r"\s{4}name\s*=", conanfile_content):
             out.error("The 'name' attribute should be declared with the package name.")
+
         for attribute in ["version", "user", "channel"]:
-            if re.search(fr"\s{4}{attribute}\s*=", conanfile_content):
-                out.error(f"The attribute '{attribute}' should not be declared with the package name. Please, remove it.")
+            if re.search(fr"\s\s\s\s{attribute}\s*=", conanfile_content):
+                out.error(f"The attribute '{attribute}' should not be declared in the recipe. Please, remove it.")
 
     @run_test("KB-H003", conanfile)
     def test(out):
