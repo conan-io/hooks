@@ -6,7 +6,6 @@ import tempfile
 import uuid
 import subprocess
 
-from conan.cli.exit_codes import SUCCESS
 from tests.utils.environ_vars import context_env
 
 
@@ -32,23 +31,28 @@ class ConanClientV2TestCase(object):
     def hooks_dir(self):
         return os.path.join(self._home, "extensions", "hooks")
 
-    def conan(self, command, expected_return_code=SUCCESS):
+    def conan(self, command, expected_return_code=0):
         with context_env(**self._get_environ()):
+            result = b""
             try:
                 conan_command = str(" ").join(["conan"] + command)
                 result = subprocess.check_output(conan_command, shell=True, stderr=subprocess.STDOUT)
+                print(result.decode())
             except subprocess.CalledProcessError as error:
+                print(error.output.decode())
                 assert expected_return_code == error.returncode, "Expected to pass but Conan command failed."
             else:
-                assert SUCCESS == expected_return_code, "Conan command passed but expected to fail"
+                assert 0 == expected_return_code, "Conan command passed but expected to fail"
             return result.decode()
 
     def setup_method(self, method):
         if not os.path.isdir(self.hooks_dir):
             os.makedirs(self.hooks_dir)
         testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
+        test_package_dir = os.path.join(testcase_dir, 'test_package')
         os.makedirs(testcase_dir)
         os.chdir(testcase_dir)
+        os.makedirs(test_package_dir)
 
     @classmethod
     def setup_class(cls):

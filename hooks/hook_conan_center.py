@@ -17,6 +17,7 @@ from conan.tools.files import load, chdir, collect_libs
 from conan.tools.apple import is_apple_os
 from conan.tools.microsoft import is_msvc, VCVars
 
+
 try:
     from conans import Settings
 except ImportError:
@@ -61,14 +62,24 @@ kb_errors = {"KB-H001": "RECIPE METADATA",
 
 class _HooksOutputErrorCollector(object):
 
-    def __init__(self, conanfile, kb_id=None):
+    def __init__(self, conanfile, output, kb_id=None):
         self._conanfile = conanfile
+        self._output = output
         self._error = False
         self._test_name = kb_errors[kb_id] if kb_id else ""
         self.kb_id = kb_id
         if self.kb_id:
             self.kb_url = kb_url(self.kb_id)
-        self._error_level = int(os.getenv("CONAN_HOOK_ERROR_LEVEL", str(NOTSET)))
+        # FIXME: Move it to conf file. For now, we can not retrieve conf as external method
+        # conf_hook_level = conanfile.conf.get("hooks.conan_center:error_level", check_type=str) or ""
+        conf_hook_level = os.getenv("CONAN_HOOK_ERROR_LEVEL", "")
+        self._error_level = {
+            "error": ERROR,
+            "warning": WARNING,
+            "warn": WARNING,
+            "info": INFO,
+            "debug": DEBUG,
+        }.get(conf_hook_level.lower(), NOTSET)
 
     def _get_message(self, message):
         if self._test_name:
@@ -78,33 +89,30 @@ class _HooksOutputErrorCollector(object):
             return message
 
     def success(self, message):
-        self._conanfile.output.success(self._get_message(message))
+        self._output.success(self._get_message(message))
 
     def debug(self, message):
         if self._error_level and self._error_level <= DEBUG:
             self._error = True
-        self._conanfile.output.debug(self._get_message(message))
+        self._output.debug(self._get_message(message))
 
     def info(self, message):
         if self._error_level and self._error_level <= INFO:
             self._error = True
-        self._conanfile.output.info(self._get_message(message))
+        self._output.info(self._get_message(message))
 
-    def warn(self, message):
+    def warning(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        if hasattr(self._conanfile.output, "warn"):
-            self._conanfile.output.warn(self._get_message(message))
-        else:
-            self._conanfile.output.warning(self._get_message(message))
+        self._output.warning(self._get_message(message))
 
     def error(self, message):
         self._error = True
         url_str = '({})'.format(self.kb_url) if self.kb_id else ""
-        self._conanfile.output.error(self._get_message(message) + " " + url_str)
+        self._output.error(self._get_message(message) + " " + url_str)
 
     def __str__(self):
-        return self._conanfile.output._stream.getvalue()
+        return self._output._stream.getvalue()
 
     @property
     def failed(self):
@@ -117,9 +125,10 @@ class _HooksOutputErrorCollector(object):
 
 def raise_if_error_output(func):
     def wrapper(conanfile, *args, **kwargs):
-        output = _HooksOutputErrorCollector(conanfile)
+        output = _HooksOutputErrorCollector(conanfile, conanfile.output)
+        setattr(conanfile, "hook_output", output)
         ret = func(conanfile, *args, **kwargs)
-        output.raise_if_error()
+        conanfile.hook_output.raise_if_error()
         return ret
 
     return wrapper
@@ -131,7 +140,7 @@ def kb_url(kb_id):
 
 def run_test(kb_id, conanfile):
     def tmp(func):
-        out = _HooksOutputErrorCollector(conanfile, kb_id)
+        out = _HooksOutputErrorCollector(conanfile, conanfile.hook_output, kb_id)
         try:
             ret = func(out)
             if not out.failed:
@@ -175,19 +184,17 @@ def pre_export(conanfile):
         if str(conanfile.license).lower() in ["public domain", "public-domain", "public_domain"]:
             out.error("Public Domain is not a SPDX license. Please, check the correct license name")
 
-        topics = getattr(conanfile, "topics", [])
+        topics = getattr(conanfile, "topics", []) or []
         invalid_topics = ["conan", conanfile.name]
         for topic in topics:
             if topic in invalid_topics:
-                out.warn("The topic '{}' is invalid and should be removed from topics "
-                         "attribute.".format(topic))
+                out.warning(f"The topic '{topic}' is invalid and should be removed from topics attribute.")
             if topic != topic.lower():
-                out.warn("The topic '{}' is invalid; even names and acronyms should be formatted "
-                         "entirely in lowercase.".format(topic))
+                out.warning(f"The topic '{topic}' is invalid; even names and acronyms should be formatted entirely in lowercase.")
 
-            url = getattr(conanfile, "url", None)
-            if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
-                out.error("The attribute 'url' should point to: https://github.com/conan-io/conan-center-index")
+        url = getattr(conanfile, "url", None)
+        if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
+            out.error("The attribute 'url' should point to: https://github.com/conan-io/conan-center-index")
 
     @run_test("KB-H002", conanfile)
     def test(out):
@@ -201,14 +208,14 @@ def pre_export(conanfile):
     def test(out):
         no_copy_source = getattr(conanfile, "no_copy_source", None)
         if not settings and header_only and not no_copy_source:
-            out.warn("This recipe is a header only library as it does not declare "
+            out.warning("This recipe is a header only library as it does not declare "
                      "'settings'. Please include 'no_copy_source' to avoid unnecessary copy steps")
 
     @run_test("KB-H004", conanfile)
     def test(out):
         options = getattr(conanfile, "options", None)
         if settings and options and not header_only and "fPIC" not in options and not installer:
-            out.warn("This recipe does not include an 'fPIC' option. Make sure you are using the "
+            out.warning("This recipe does not include an 'fPIC' option. Make sure you are using the "
                      "right casing")
 
     @run_test("KB-H006", conanfile)
@@ -407,14 +414,14 @@ def pre_export(conanfile):
             if not found_checksums and has_sources and not is_google_source:
                 out.error("The checksum key 'sha256' must be declared and can not be empty.")
             elif found_checksums and 'sha256' not in found_checksums:
-                out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
+                out.warning(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
 
     @run_test("KB-H020", conanfile)
     def test(out):
         search_attrs = ["build_policy", "upload_policy", "revision_mode", "package_id_embed_mode", "package_id_non_embed_mode", "package_id_unknown_mode"]
         forbidden_attrs = []
         for attr in search_attrs:
-            if getattr(conanfile, attr, None):
+            if re.search(fr"\s{4}{attr}\s*=", conanfile_content):
                 forbidden_attrs.append(attr)
 
         if forbidden_attrs:
@@ -475,10 +482,10 @@ def pre_export(conanfile):
     def test(out):
         def _check_content(content, path):
             if "os.rename" in content:
-                out.warn(f"The 'os.rename' in {path} may cause permission error on Windows."
+                out.warning(f"The 'os.rename' in {path} may cause permission error on Windows."
                          " Use 'conan.tools.files.rename(self, src, dst)' instead.")
             elif "tools.rename(" in content and "tools.rename(self," not in content:
-                out.warn(f"The 'tools.rename' in {path} is outdated and may cause permission error on Windows."
+                out.warning(f"The 'tools.rename' in {path} is outdated and may cause permission error on Windows."
                          " Use 'conan.tools.files.rename(self, src, dst)' instead.")
 
         _check_content(conanfile_content, "conanfile.py")
@@ -543,7 +550,7 @@ def pre_export(conanfile):
                     if match:
                         out.error(f"The attribute '{attribute}' is not allowed on test_package/conanfile.py, remove it.")
             except Exception as e:
-                out.warn("Invalid conanfile: {}".format(e))
+                out.warning("Invalid conanfile: {}".format(e))
 
     @run_test("KB-H031", conanfile)
     def test(out):
@@ -552,10 +559,10 @@ def pre_export(conanfile):
             settings = settings if isinstance(settings, (list, tuple)) else [settings]
             missing = [x for x in ["os", "arch", "compiler", "build_type"] if x not in settings]
             if missing:
-                out.warn(f"The values '{missing}' are missing on 'settings' attribute. Update settings with the missing "
+                out.warning(f"The values '{missing}' are missing on 'settings' attribute. Update settings with the missing "
                          "values and use 'package_id(self)' method to manage the package ID.")
         else:
-            out.warn("No 'settings' detected in your conanfile.py. Please, be sure that your package is a header-only.")
+            out.warning("No 'settings' detected in your conanfile.py. Please, be sure that your package is a header-only.")
 
 
 
@@ -735,7 +742,7 @@ def post_package(conanfile):
         if not _static_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared=False' option did not contain any static artifact")
 
-        result, message = _package_type_well_managed(conanfile, conanfile.package_folder)
+        (result, message) = _package_type_well_managed(conanfile, conanfile.package_folder)
         if not result:
             out.error(message)
 
@@ -818,7 +825,7 @@ def post_package(conanfile):
         for missing_system_lib in missing_system_libs:
             libs = dict_deplibs_libs[missing_system_lib]
             for lib in libs:
-                out.warn(f"Library '{lib}' links to system library '{missing_system_lib}' but it is not in cpp_info.{attribute}.")
+                out.warning(f"Library '{lib}' links to system library '{missing_system_lib}' but it is not in cpp_info.{attribute}.")
 
     @run_test("KB-H034", conanfile)
     def test(out):
@@ -827,7 +834,7 @@ def post_package(conanfile):
             return
         not_relocatable_libs = _get_non_relocatable_shared_libs(conanfile)
         if not_relocatable_libs:
-            out.warn(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
+            out.warning(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
 
 
 @raise_if_error_output
@@ -936,7 +943,7 @@ def _package_type_well_managed(conanfile, folder):
         shared_libs = _get_files_with_extensions(conanfile, folder, shared_extensions)
         if shared_libs and package_type not in ["library", "shared-library"]:
             return False, f"Package type is '{package_type}' but contains shared libraries: {', '.join(shared_libs)}"
-    return True
+    return True, None
 
 
 def _get_libs_if_static_and_shared(conanfile):
@@ -1032,7 +1039,7 @@ def _files_match_settings(conanfile, folder, output):
             return False
         else:
             return True
-    output.warn("OS %s might not be supported. Skipping..." % settings_os)
+    output.warning("OS %s might not be supported. Skipping..." % settings_os)
     return True
 
 
@@ -1078,7 +1085,7 @@ def _check_short_paths(conanfile, conanfile_path, folder_path, max_length_path, 
                 for filename in filenames:
                     filepath = os.path.join(root, filename).replace("\\", "/")
                     if len(filepath) >= file_max_length_path:
-                        output.warn(
+                        output.warning(
                             f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
                             "Add 'short_paths = True' in your recipe.")
                         break
@@ -1113,7 +1120,7 @@ def _deplibs_from_shlibs(conanfile, out):
     if os_ == "Linux" or is_apple_os(conanfile) or not is_msvc(conanfile):
         objdump = os.getenv("OBJDUMP") or shutil.which("objdump")
         if not objdump:
-            out.warn("objdump not found")
+            out.warning("objdump not found")
             return deplibs
         for library in libraries:
             if _get_os(conanfile) == "Windows":
@@ -1123,7 +1130,7 @@ def _deplibs_from_shlibs(conanfile, out):
             try:
                 objdump_output = subprocess.check_output(cmd, cwd=conanfile.package_folder).decode()
             except subprocess.CalledProcessError:
-                out.warn(
+                out.warning(
                     "Running objdump on '{}' failed. Is the environment variable OBJDUMP correctly configured?".format(
                         library))
                 continue
@@ -1171,7 +1178,7 @@ def _deplibs_from_shlibs(conanfile, out):
                     conanfile.run(f"dumpbin -dependents {library}", buffer, env=["conanvcvars"])
                 dumpbin_output = buffer.getvalue()
             except subprocess.CalledProcessError:
-                out.warn("Running dumpbin on '{}' failed.".format(library))
+                out.warning("Running dumpbin on '{}' failed.".format(library))
                 continue
             for l in re.finditer(r"([a-z0-9\-_]+)\.dll", dumpbin_output, re.IGNORECASE):
                 dep_lib_base = l.group(1).lower()

@@ -51,7 +51,7 @@ class TestSettingsAttr(ConanClientV2TestCase):
 
     def test_missing_settings_single_value(self):
         save(TestSettingsAttr, 'conanfile.py', content=self.conanfile.replace("{}", "settings = 'os', 'arch', 'build_type'"))
-        output = self.conan(['export', '--name=package', '--version=0.1.0', '--user=acme', '--channel=testing', 'conanfile.py'])
+
         assert "WARN: [MANDATORY SETTINGS (KB-H070)] The values 'compiler' are missing on " \
                "'settings' attribute. Update settings with the missing values and use 'package_id(self)' method " \
                "to manage the package ID." in output
