@@ -546,12 +546,13 @@ def pre_export(conanfile):
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.isfile(test_package_path):
             try:
+                test_package_content = load(conanfile, test_package_path)
                 for attribute in ["default_options", "version", "name", "license", "author", "exports", "build_policy"]:
-                    match = re.search(rf"\s{4}({attribute})\s*=", conanfile_content)
+                    match = re.search(rf"\s\s\s\s({attribute})\s*=", test_package_content)
                     if match:
                         out.error(f"The attribute '{attribute}' is not allowed on test_package/conanfile.py, remove it.")
             except Exception as e:
-                out.warning("Invalid conanfile: {}".format(e))
+                out.warning(f"Invalid conanfile: {e}")
 
     @run_test("KB-H030", conanfile)
     def test(out):
