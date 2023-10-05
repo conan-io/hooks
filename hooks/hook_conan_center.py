@@ -36,27 +36,26 @@ kb_errors = {"KB-H001": "RECIPE METADATA",
              "KB-H011": "MATCHING CONFIGURATION",
              "KB-H012": "NOT ALLOWED CONFIG-FILES",
              "KB-H013": "METADATA FILES",
-             "KB-H014": "CMAKE FILE NOT IN BUILD FOLDERS",
-             "KB-H015": "EXPORT LICENSE",
-             "KB-H016": "TEST PACKAGE FOLDER",
-             "KB-H017": "META LINES",
-             "KB-H018": "CONANDATA.YML FORMAT",
-             "KB-H019": "SYSTEM REQUIREMENTS",
-             "KB-H020": "NOT ALLOWED ATTRIBUTES",
-             "KB-H021": "MISSING SYSTEM LIBS",
-             "KB-H022": "CMAKEFILE LINT",
-             "KB-H023": "DEFAULT SHARED OPTION VALUE",
-             "KB-H024": "CONFIG.YML HAS NEW VERSION",
-             "KB-H025": "LIBRARY DOES NOT EXIST",
-             "KB-H026": "SINGLE REQUIRES",
-             "KB-H027": "TOOLS RENAME",
-             "KB-H028": "FILE CONSISTENCY",
-             "KB-H029": "SHORT_PATHS USAGE",
-             "KB-H030": "TEST PACKAGE - NO DEFAULT OPTIONS",
-             "KB-H031": "MANDATORY SETTINGS",
-             "KB-H032": "INCLUDE PATH DOES NOT EXIST",
-             "KB-H033": "REQUIREMENT OVERRIDE PARAMETER",
-             "KB-H034": "APPLE RELOCATABLE SHARED LIBS",
+             "KB-H014": "EXPORT LICENSE",
+             "KB-H015": "TEST PACKAGE FOLDER",
+             "KB-H016": "META LINES",
+             "KB-H017": "CONANDATA.YML FORMAT",
+             "KB-H018": "SYSTEM REQUIREMENTS",
+             "KB-H019": "NOT ALLOWED ATTRIBUTES",
+             "KB-H020": "MISSING SYSTEM LIBS",
+             "KB-H021": "CMAKEFILE LINT",
+             "KB-H022": "DEFAULT SHARED OPTION VALUE",
+             "KB-H022": "CONFIG.YML HAS NEW VERSION",
+             "KB-H024": "LIBRARY DOES NOT EXIST",
+             "KB-H025": "SINGLE REQUIRES",
+             "KB-H026": "TOOLS RENAME",
+             "KB-H027": "FILE CONSISTENCY",
+             "KB-H028": "SHORT_PATHS USAGE",
+             "KB-H029": "TEST PACKAGE - NO DEFAULT OPTIONS",
+             "KB-H030": "MANDATORY SETTINGS",
+             "KB-H031": "INCLUDE PATH DOES NOT EXIST",
+             "KB-H032": "REQUIREMENT OVERRIDE PARAMETER",
+             "KB-H033": "APPLE RELOCATABLE SHARED LIBS",
              }
 
 
@@ -240,7 +239,7 @@ def pre_export(conanfile):
             out.error(f"The size of your recipe folder ({total_size_kb} KB) is larger than the maximum allowed"
                       " size ({max_folder_size}KB).")
 
-    @run_test("KB-H015", conanfile)
+    @run_test("KB-H014", conanfile)
     def test(out):
         for attr_it in ["exports", "exports_sources"]:
             exports = getattr(conanfile, attr_it, None)
@@ -252,7 +251,7 @@ def pre_export(conanfile):
                     if license_it in exports_it.lower():
                         out.error("The ConanCenterIndex does not allow exporting recipes. Instead, collect extract directly from source files.")
 
-    @run_test("KB-H016", conanfile)
+    @run_test("KB-H015", conanfile)
     def test(out):
         dir_path = os.path.dirname(conanfile_path)
         test_package_path = os.path.join(dir_path, "test_package")
@@ -261,7 +260,7 @@ def pre_export(conanfile):
         elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             out.error("There is no 'conanfile.py' in 'test_package' folder")
 
-    @run_test("KB-H017", conanfile)
+    @run_test("KB-H016", conanfile)
     def test(out):
         def _search_for_metaline(from_line, to_line, lines):
             for index in range(from_line, to_line):
@@ -298,7 +297,7 @@ def pre_export(conanfile):
             recipe_content = load(conanfile, recipe_path)
             _check_conanfile_content(recipe_content, recipe_path)
 
-    @run_test("KB-H019", conanfile)
+    @run_test("KB-H018", conanfile)
     def test(out):
         if conanfile.version == "system":
             out.info("'system' versions are allowed to install system requirements.")
@@ -308,7 +307,7 @@ def pre_export(conanfile):
         if "system.package_manager" in conanfile_content:
             out.error("Installing system requirements using 'system.package_manager' is not allowed. Please, use only Conan packages to install system requirements.")
 
-    @run_test("KB-H018", conanfile)
+    @run_test("KB-H017", conanfile)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
@@ -416,7 +415,7 @@ def pre_export(conanfile):
             elif found_checksums and 'sha256' not in found_checksums:
                 out.warning(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
 
-    @run_test("KB-H020", conanfile)
+    @run_test("KB-H019", conanfile)
     def test(out):
         search_attrs = ["build_policy", "upload_policy", "revision_mode", "package_id_embed_mode", "package_id_non_embed_mode", "package_id_unknown_mode"]
         forbidden_attrs = []
@@ -427,7 +426,7 @@ def pre_export(conanfile):
         if forbidden_attrs:
             out.error(f"Some attributes are affecting the packaging behavior and are not allowed, please, remove them: '{forbidden_attrs}'")
 
-    @run_test("KB-H022", conanfile)
+    @run_test("KB-H021", conanfile)
     def test(out):
         dir_path = os.path.dirname(conanfile_path)
         for (root, _, filenames) in os.walk(dir_path):
@@ -443,7 +442,7 @@ def pre_export(conanfile):
                         out.error(f"The CMake file '{cmake_path}' must contain a minimum version "
                                   "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.15))")
 
-    @run_test("KB-H024", conanfile)
+    @run_test("KB-H022", conanfile)
     def test(out):
         config_path = os.path.abspath(os.path.join(export_folder_path, os.path.pardir, "config.yml"))
         config_yml = load_yml(conanfile, config_path)
@@ -470,7 +469,7 @@ def pre_export(conanfile):
                 out.error(f'The version "{version}" exists in "{conandata_path}" but not in "{config_path}", so it will not be built.'
                           f' Please update "{config_path}" to include newly added version "{version}".')
 
-    @run_test("KB-H026", conanfile)
+    @run_test("KB-H025", conanfile)
     def test(out):
         for prefix in ["", "build_", "tool_"]:
             if hasattr(conanfile, f"{prefix}requires") and \
@@ -478,7 +477,7 @@ def pre_export(conanfile):
                 out.error(f"Both '{prefix}requires' attribute and '{prefix}requirements()' method should not "
                           "be declared at same recipe.")
 
-    @run_test("KB-H027", conanfile)
+    @run_test("KB-H026", conanfile)
     def test(out):
         def _check_content(content, path):
             if "os.rename" in content:
@@ -494,7 +493,7 @@ def pre_export(conanfile):
             test_package_content = load(conanfile, test_package_path)
             _check_content(test_package_content, "test_package/conanfile.py")
 
-    @run_test("KB-H028", conanfile)
+    @run_test("KB-H027", conanfile)
     def test(out):
         ext_to_be_checked = [".cmake", ".conf", ".cfg", ".diff", ".md", ".patch", ".py", ".txt",
                              ".yml", ".am", ".xml", ".json", ".in", ".ac", ".tsx", ".tmx",
@@ -540,7 +539,7 @@ def pre_export(conanfile):
         if os.path.isfile(config_yml):
             _check_final_newline(config_yml)
 
-    @run_test("KB-H030", conanfile)
+    @run_test("KB-H029", conanfile)
     def test(out):
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.isfile(test_package_path):
@@ -552,7 +551,7 @@ def pre_export(conanfile):
             except Exception as e:
                 out.warning("Invalid conanfile: {}".format(e))
 
-    @run_test("KB-H031", conanfile)
+    @run_test("KB-H030", conanfile)
     def test(out):
         settings = getattr(conanfile, "settings", None)
         if settings:
@@ -566,7 +565,7 @@ def pre_export(conanfile):
 
 
 
-    @run_test("KB-H033", conanfile)
+    @run_test("KB-H032", conanfile)
     def test(out):
         for method in ["self.requires", "self.build_requires", "self.test_requires"]:
             pattern = method + r'self.requires\(.*override=True.*\)'
@@ -578,7 +577,7 @@ def pre_export(conanfile):
 @raise_if_error_output
 def post_export(conanfile):
 
-    @run_test("KB-H023", conanfile)
+    @run_test("KB-H022", conanfile)
     def test(out):
         allowlist = (
             "glib",
@@ -665,7 +664,7 @@ def post_source(conanfile):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
-    @run_test("KB-H029", conanfile)
+    @run_test("KB-H028", conanfile)
     def test(out):
         _check_short_paths(conanfile, conanfile_path, conanfile.source_folder, 120, out)
 
@@ -800,11 +799,11 @@ def post_package(conanfile):
             if diff_files:
                 out.error(f"Files '{ext}' are not allowed as part of the package. Found files: {diff_files}. Please, move those files to self.package_metadata_folder.")
 
-    @run_test("KB-H029", conanfile)
+    @run_test("KB-H028", conanfile)
     def test(out):
         _check_short_paths(conanfile, conanfile_path, conanfile.package_folder, 160, out)
 
-    @run_test("KB-H021", conanfile)
+    @run_test("KB-H020", conanfile)
     def test(out):
         # FIXME: Need check for false-positive when showing third-party dependencies instead
         dict_deplibs_libs = _deplibs_from_shlibs(conanfile, out)
@@ -831,7 +830,7 @@ def post_package(conanfile):
             for lib in libs:
                 out.warning(f"Library '{lib}' links to system library '{missing_system_lib}' but it is not in cpp_info.{attribute}.")
 
-    @run_test("KB-H034", conanfile)
+    @run_test("KB-H033", conanfile)
     def test(out):
         # TODO: Complex hook that could be simplified/revisited
         if not is_apple_os(conanfile):
@@ -844,7 +843,7 @@ def post_package(conanfile):
 @raise_if_error_output
 def post_package_info(conanfile):
 
-    @run_test("KB-H025", conanfile)
+    @run_test("KB-H024", conanfile)
     def test(out):
         # TODO: Complex hook that could be simplified/revisited
         def _test_component(component):
@@ -864,7 +863,7 @@ def post_package_info(conanfile):
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
 
-    @run_test("KB-H032", conanfile)
+    @run_test("KB-H031", conanfile)
     def test(out):
         def _test_component(component):
             for d in component.includedirs:
