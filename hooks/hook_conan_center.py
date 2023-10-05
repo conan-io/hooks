@@ -310,6 +310,7 @@ def pre_export(conanfile):
     @run_test("KB-H017", conanfile)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        print(f"conandata_path: {conandata_path}")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
@@ -600,8 +601,6 @@ def post_export(conanfile):
             out.error("The option 'shared' must be 'False' by default. Update 'default_options' to 'shared=False'.")
 
 
-
-
 @raise_if_error_output
 def pre_source(conanfile):
     conanfile_path = os.path.join(conanfile.recipe_folder, "conanfile.py")
@@ -613,8 +612,7 @@ def pre_source(conanfile):
         if conanfile.version == "system":
             return
         if not os.path.exists(conandata_source):
-            out.error("Create a file 'conandata.yml' file with the sources "
-                      "to be downloaded.")
+            out.error("Create a file 'conandata.yml' file with the sources to be downloaded.")
 
         if "def source(self):" in conanfile_content:
             for line in conanfile_content.splitlines():
