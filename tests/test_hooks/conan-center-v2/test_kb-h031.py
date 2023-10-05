@@ -16,9 +16,6 @@ class TestKBH031(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     def _get_output_for(self, paths_created, paths_declared, component=""):
         conanfile = textwrap.dedent(f"""\
             from conan import ConanFile

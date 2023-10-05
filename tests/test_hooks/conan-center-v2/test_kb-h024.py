@@ -30,9 +30,6 @@ class TestKBH024(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     def test_library_doesnot_exist(self):
         save(self, 'conanfile.py', content=self.conanfile)
         output = self.conan(['create', '--name=name', '--version=0.1.0', 'conanfile.py'])

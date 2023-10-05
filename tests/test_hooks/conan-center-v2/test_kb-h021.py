@@ -33,9 +33,6 @@ class TestKBH021(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     def test_no_cmake_minimum_version(self):
         cmake = """project(test)
         """

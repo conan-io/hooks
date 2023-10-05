@@ -56,10 +56,7 @@ class TestKBH020(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
-    @pytest.mark.skip_if(platform.system() != "Linux", reason="Only for Linux")
+    @pytest.mark.skipif(platform.system() != "Linux", reason="Only for Linux")
     def test_missing_system_libs(self):
         save(self, 'conanfile.py', content=self.conanfile.format(placeholder="[]"))
         save(self, 'CMakeLists.txt', content=self.cmakefile)
@@ -67,7 +64,7 @@ class TestKBH020(ConanClientV2TestCase):
         output = self.conan(['create', '--name=foobar', '--version=0.1.0', 'conanfile.py'])
         assert "WARN: [MISSING SYSTEM LIBS (KB-H020)] Library" in output
 
-    @pytest.mark.skip_if(platform.system() != "Linux", reason="Only for Linux")
+    @pytest.mark.skipif(platform.system() != "Linux", reason="Only for Linux")
     def test_math_system_libs(self):
         save(self, 'conanfile.py', content=self.conanfile.format(placeholder="['m']"))
         save(self, 'CMakeLists.txt', content=self.cmakefile)

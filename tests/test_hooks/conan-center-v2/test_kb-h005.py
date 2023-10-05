@@ -19,9 +19,6 @@ class TestKBH005(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     def test_fpic_remove(self):
         conanfile = textwrap.dedent("""\
                 from conan import ConanFile

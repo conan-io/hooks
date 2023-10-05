@@ -51,6 +51,7 @@ class ConanClientV2TestCase(object):
         testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
         os.makedirs(testcase_dir)
         os.chdir(testcase_dir)
+        self.conan(['profile', 'detect', '--force'])
 
     @classmethod
     def setup_class(cls):

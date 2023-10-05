@@ -73,9 +73,6 @@ class TestKBH033(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     @staticmethod
     def cmakelists(install_name_dir="@rpath"):
         if install_name_dir == "@rpath":

@@ -30,12 +30,9 @@ class TestKBH008(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
     def test_header_only_with_cppstd(self):
-        save(self, 'test.h', content="#define FOO 1")
-        save(self, 'header.h', content="#define FOO 1")
+        save(self, 'src/test.h', content="#define FOO 1")
+        save(self, 'src/header.h', content="#define FOO 1")
         save(self, 'conanfile.py', content=self.conanfile.format(configure="pass"))
         output = self.conan(['create', '--name=foobar', '--version=0.1.0', 'conanfile.py'])
         assert "ERROR: [PURE-C MANAGEMENT (KB-H008)] Can't detect C++ source files but recipe does not remove 'self.settings.compiler.libcxx'" in output
