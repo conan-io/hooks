@@ -854,7 +854,8 @@ def post_package_info(conanfile):
                 libs_to_search = [l for l in libs_to_search if l not in libs_found]
                 libs_to_search = [l for l in libs_to_search if not os.path.isfile(os.path.join(p, l))]
             for l in libs_to_search:
-                out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
+                component_name = component.name if hasattr(component, "name") else conanfile.name
+                out.error(f"Component {conanfile.name}::{component_name} library '{l}' is listed in the recipe, "
                           "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
 
         if not conanfile.cpp_info.components:
