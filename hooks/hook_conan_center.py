@@ -651,8 +651,8 @@ def post_source(conanfile):
                     ("del self.settings.compiler.libcxx" not in low and
                      'self.settings.rm_safe("compiler.libcxx")' not in low and
                      "self.settings.rm_safe('compiler.libcxx')" not in low and
-                    "self.settings.compiler.rm_safe('libcxx')" not in low and
-                    'self.settings.compiler.rm_safe("libcxx")' not in low):
+                     "self.settings.compiler.rm_safe('libcxx')" not in low and
+                     'self.settings.compiler.rm_safe("libcxx")' not in low):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
@@ -869,8 +869,9 @@ def post_package_info(conanfile):
         def _test_component(component):
             for d in component.includedirs:
                 if not os.path.isdir(d):
+                    component_name = component.name if hasattr(component, "name") else conanfile.name
                     out.error(
-                        f"Component {conanfile.name}::{component.name} include dir '{d}' is listed in the recipe, "
+                        f"Component {conanfile.name}::{component_name} include dir '{d}' is listed in the recipe, "
                         "but not found in package folder. The include dir should probably be fixed or removed.")
 
         if not conanfile.cpp_info.components:
