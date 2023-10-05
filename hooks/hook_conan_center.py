@@ -180,9 +180,6 @@ def pre_export(conanfile):
         if getattr(conanfile, "author", None):
             out.error(f"Conanfile should not contain author attribute because all recipes are owned by the community. Please, remove it.")
 
-        if str(conanfile.license).lower() in ["public domain", "public-domain", "public_domain"]:
-            out.error("Public Domain is not a SPDX license. Please, check the correct license name")
-
         topics = getattr(conanfile, "topics", []) or []
         invalid_topics = ["conan", conanfile.name]
         for topic in topics:
@@ -310,7 +307,6 @@ def pre_export(conanfile):
     @run_test("KB-H017", conanfile)
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
-        print(f"conandata_path: {conandata_path}")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
@@ -566,12 +562,10 @@ def pre_export(conanfile):
         else:
             out.warning("No 'settings' detected in your conanfile.py. Please, be sure that your package is a header-only.")
 
-
-
     @run_test("KB-H032", conanfile)
     def test(out):
         for method in ["self.requires", "self.build_requires", "self.test_requires"]:
-            pattern = method + r'self.requires\(.*override=True.*\)'
+            pattern = r'(^|\n)\s*' + method + r'\(.*override=True.*\)'
             match = re.search(pattern, conanfile_content)
             if match:
                 out.error(f"{method}('package/version', override=True) is forbidden, do not force override parameter.")

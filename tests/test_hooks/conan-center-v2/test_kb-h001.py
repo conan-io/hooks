@@ -63,12 +63,6 @@ class TestKBH001(ConanClientV2TestCase):
         output = self.conan(['export', '--version=0.1.0', '--user=acme', '--channel=testing', 'conanfile.py'])
         assert "ERROR: [RECIPE METADATA (KB-H001)] Conanfile should not contain author attribute because all recipes are owned by the community. Please, remove it." in output
 
-    def test_public_domain_license(self):
-        for license in ['public domain', 'Public Domain', 'PUBLIC DOMAIN']:
-            save(self, 'conanfile.py', content=self.conanfile_base.format(placeholder='license = "{}"'.format(license)))
-            output = self.conan(['export', '--version=0.1.0', '--user=acme', '--channel=testing', 'conanfile.py'])
-            assert "ERROR: [RECIPE METADATA (KB-H001)] Public Domain is not a SPDX license. Please, check the correct license name" in output
-
     def test_topics_attribute(self):
         save(self, 'conanfile.py', content=self.conanfile_base.format(placeholder='topics = ("conan",)'))
         output = self.conan(['export', '--version=0.1.0', '--user=acme', '--channel=testing', 'conanfile.py'])

@@ -2,7 +2,7 @@ import os
 import shutil
 import textwrap
 from tests.utils.test_cases.conan_client_v2 import ConanClientV2TestCase
-from conan.tools.files import save, mkdir
+from conan.tools.files import save
 
 
 class TestKBH015(ConanClientV2TestCase):
@@ -28,7 +28,7 @@ class TestKBH015(ConanClientV2TestCase):
 
     def test_with_test_package_folder(self):
         save(self, 'conanfile.py', content=self.conanfile)
-        mkdir(self, 'test_package')
+        save(self, 'test_package/foo', content='')
         output = self.conan(['export', '--name=foobar', '--version=0.1.0', 'conanfile.py'])
         assert "ERROR: [TEST PACKAGE FOLDER (KB-H015)] There is no 'conanfile.py' in 'test_package' folder" in output
 
