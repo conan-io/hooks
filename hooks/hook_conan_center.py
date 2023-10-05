@@ -421,7 +421,7 @@ def pre_export(conanfile):
         search_attrs = ["build_policy", "upload_policy", "revision_mode", "package_id_embed_mode", "package_id_non_embed_mode", "package_id_unknown_mode"]
         forbidden_attrs = []
         for attr in search_attrs:
-            if re.search(fr"\s{4}{attr}\s*=", conanfile_content):
+            if re.search(fr"\s\s\s\s{attr}\s*=", conanfile_content):
                 forbidden_attrs.append(attr)
 
         if forbidden_attrs:
