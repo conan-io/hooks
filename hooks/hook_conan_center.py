@@ -45,7 +45,7 @@ kb_errors = {"KB-H001": "RECIPE METADATA",
              "KB-H020": "MISSING SYSTEM LIBS",
              "KB-H021": "CMAKEFILE LINT",
              "KB-H022": "DEFAULT SHARED OPTION VALUE",
-             "KB-H022": "CONFIG.YML HAS NEW VERSION",
+             "KB-H023": "CONFIG.YML HAS NEW VERSION",
              "KB-H024": "LIBRARY DOES NOT EXIST",
              "KB-H025": "SINGLE REQUIRES",
              "KB-H026": "TOOLS RENAME",
@@ -443,7 +443,7 @@ def pre_export(conanfile):
                         out.error(f"The CMake file '{cmake_path}' must contain a minimum version "
                                   "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.15))")
 
-    @run_test("KB-H022", conanfile)
+    @run_test("KB-H023", conanfile)
     def test(out):
         config_path = os.path.abspath(os.path.join(export_folder_path, os.path.pardir, "config.yml"))
         config_yml = load_yml(conanfile, config_path)

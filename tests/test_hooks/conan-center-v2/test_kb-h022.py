@@ -9,16 +9,8 @@ class TestKBH022(ConanClientV2TestCase):
     conanfile = textwrap.dedent("""\
             from conan import ConanFile            
             class AConan(ConanFile):
-                pass
-            """)
-    conandata = textwrap.dedent("""
-                        sources:
-                            1.0:
-                               url: fakeurl
-                               md5: 12323423423
-                            2.0:
-                               url: fakeurl
-                               md5: 12323423423
+                options = {"shared": [True, False]}
+                default_options = {"shared": {placeholder}}
             """)
 
     def _get_environ(self, **kwargs):
@@ -30,51 +22,12 @@ class TestKBH022(ConanClientV2TestCase):
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
-    def setup_method(self, method):
-        self.conan(['profile', 'detect', '--force'])
-
-    def test_regular_conandata_config(self):
-        config = textwrap.dedent("""
-        versions:
-          1.0:
-            folder: all
-          2.0:
-            folder: all
-        """)
-        save(self, "config.yml", content=config)
-        save(self, os.path.join('all', 'conanfile.py'), content=self.conanfile)
-        save(self, os.path.join("all", "conandata.yml"), content=self.conandata)
+    def test_default_shared_true(self):
+        save(self, os.path.join('all', 'conanfile.py'), content=self.conanfile.replace('{placeholder}', 'True'))
         output = self.conan(['export', 'all', '--name=name', '--version=0.1.0'])
-        assert "pre_export(): [CONFIG.YML HAS NEW VERSION (KB-H022)] OK" in output
+        assert "ERROR: [DEFAULT SHARED OPTION VALUE (KB-H022)] The option 'shared' must be 'False' by default" in output
 
-    def test_missing_version_in_config(self):
-        config = textwrap.dedent("""
-        versions:
-          1.0:
-            folder: all
-        """)
-        save(self, "config.yml", content=config)
-        save(self, os.path.join("all", "conandata.yml"), content=self.conandata)
-        save(self, os.path.join('all', 'conanfile.py'), content=self.conanfile)
+    def test_default_shared_false(self):
+        save(self, os.path.join('all', 'conanfile.py'), content=self.conanfile.replace('{placeholder}', 'False'))
         output = self.conan(['export', 'all', '--name=name', '--version=0.1.0'])
-        assert 'pre_export(): ERROR: [CONFIG.YML HAS NEW VERSION (KB-H022)] The version "2.0" exists in "conandata.yml"' in output
-
-    def test_missing_version_in_conandata(self):
-        config = textwrap.dedent("""
-        versions:
-          1.0:
-            folder: all
-          2.0:
-            folder: all
-        """)
-        conandata = textwrap.dedent("""
-                                sources:
-                                    1.0:
-                                       url: fakeurl
-                                       md5: 12323423423                                   
-                    """)
-        save(self, "config.yml", content=config)
-        save(self, os.path.join('all', 'conanfile.py'), content=self.conanfile)
-        save(self, os.path.join("all", "conandata.yml"), content=conandata)
-        output = self.conan(['export', 'all', '--name=name', '--version=0.1.0'])
-        assert "pre_export(): [CONFIG.YML HAS NEW VERSION (KB-H022)] OK" in output
+        assert "[DEFAULT SHARED OPTION VALUE (KB-H022)] OK" in output
