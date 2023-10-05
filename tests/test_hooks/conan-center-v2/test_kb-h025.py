@@ -1,7 +1,6 @@
 import os
 import textwrap
 import shutil
-from parameterized import parameterized
 from tests.utils.test_cases.conan_client_v2 import ConanClientV2TestCase
 from conan.tools.files import save
 
