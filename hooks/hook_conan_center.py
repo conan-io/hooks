@@ -777,7 +777,7 @@ def post_package(conanfile):
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
             out.error(f"Packaged artifacts does not match the settings used: os={_get_os(conanfile)}, compiler={conanfile.settings.get_safe('compiler')}")
 
-    @run_test("KB-H020", conanfile)
+    @run_test("KB-H012", conanfile)
     def test(out):
         allowlist = ["cmake", "msys2", "strawberryperl", "android-ndk", "pybind11", "emsdk", "ignition-cmake", "extra-cmake-modules"]
         forbidden_exts = ["Find*.cmake", "*Config.cmake", "*-config.cmake", "*.pc"]
