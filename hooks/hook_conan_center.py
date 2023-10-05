@@ -462,6 +462,7 @@ def pre_export(conanfile):
 
         versions_conandata = conandata_yml['sources'].keys()
         versions_config = config_yml['versions'].keys()
+
         conandata_path = os.path.relpath(conandata_path, export_folder_path)
         config_path = os.path.relpath(config_path, export_folder_path)
 
