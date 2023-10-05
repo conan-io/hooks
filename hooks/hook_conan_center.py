@@ -216,8 +216,7 @@ def pre_export(conanfile):
     def test(out):
         options = getattr(conanfile, "options", None)
         if settings and options and not header_only and "fPIC" not in options and not installer:
-            out.warning("This recipe does not include an 'fPIC' option. Make sure you are using the "
-                     "right casing")
+            out.warning("This recipe does not include an 'fPIC' option. Make sure you are using the right casing")
 
     @run_test("KB-H006", conanfile)
     def test(out):

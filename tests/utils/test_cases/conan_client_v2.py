@@ -49,10 +49,8 @@ class ConanClientV2TestCase(object):
         if not os.path.isdir(self.hooks_dir):
             os.makedirs(self.hooks_dir)
         testcase_dir = os.path.join(self._working_dir, str(uuid.uuid4()))
-        test_package_dir = os.path.join(testcase_dir, 'test_package')
         os.makedirs(testcase_dir)
         os.chdir(testcase_dir)
-        os.makedirs(test_package_dir)
 
     @classmethod
     def setup_class(cls):
