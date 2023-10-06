@@ -25,16 +25,16 @@ class TestKBH017(ConanClientV2TestCase):
     def _check_conandata(self, conandata):
         save(self, 'conanfile.py', content=self.conanfile)
         save(self, 'conandata.yml', content=conandata)
-        export_output = self.conan(['export', '--name=name', '--version=version', 'conanfile.py'])
+        export_output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "ERROR: [CONANDATA.YML FORMAT (KB-H017)]" not in export_output
         assert "[CONANDATA.YML FORMAT (KB-H017)] OK" in export_output
 
     def test_single_source(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
-                            url: "url1_1.69.0"
-                            sha256: "sha1_1.69.0"
+                      "0.1.0":
+                            url: "url1_0.1.0"
+                            sha256: "sha1_0.1.0"
                     patches:
                       "1.69.0":
                             patch_file: "001-1.69.0.patch"
@@ -45,14 +45,14 @@ class TestKBH017(ConanClientV2TestCase):
     def test_single_source_mirror(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                             url: [
                           "mirror1/url1_1.69.0",
                           "mirror2/url1_1.69.0",
                           ]
                             sha256: "sha1_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                             patch_file: "001-1.69.0.patch"
                             base_path: "source_subfolder/1.69.0"
                           """)
@@ -61,13 +61,13 @@ class TestKBH017(ConanClientV2TestCase):
     def test_multiple_sources(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           - url: "url1_1.69.0"
                             sha256: "sha1_1.69.0"
                           - url: "url2_1.69.0"
                             sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                             patch_file: "001-1.69.0.patch"
                             base_path: "source_subfolder/1.69.0"
                           """)
@@ -76,7 +76,7 @@ class TestKBH017(ConanClientV2TestCase):
     def test_multiple_sources_mirror(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           - url: [
                           "mirror1/url1_1.69.0",
                           "mirror2/url1_1.69.0",
@@ -88,7 +88,7 @@ class TestKBH017(ConanClientV2TestCase):
                           ]
                             sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                             patch_file: "001-1.69.0.patch"
                             base_path: "source_subfolder/1.69.0"
                           """)
@@ -97,7 +97,7 @@ class TestKBH017(ConanClientV2TestCase):
     def test_different_sources_per_config_level1(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               - url: "url1_1.69.0"
                                 sha256: "sha1_1.69.0"
@@ -105,7 +105,7 @@ class TestKBH017(ConanClientV2TestCase):
                               - url: "url2_1.69.0"
                                 sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                                 patch_file: "001-1.69.0-mac.patch"
                                 base_path: "source_subfolder/1.69.0"
@@ -118,7 +118,7 @@ class TestKBH017(ConanClientV2TestCase):
     def test_different_sources_per_config_level1_mirror(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               - url: [
                           "mirror1/url1_1.69.0",
@@ -132,7 +132,7 @@ class TestKBH017(ConanClientV2TestCase):
                           ]
                                 sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                                 patch_file: "001-1.69.0-mac.patch"
                                 base_path: "source_subfolder/1.69.0"
@@ -145,7 +145,7 @@ class TestKBH017(ConanClientV2TestCase):
     def test_different_sources_per_config_level2(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               "apple-clang":
                                   - url: "url1_1.69.0"
@@ -155,7 +155,7 @@ class TestKBH017(ConanClientV2TestCase):
                                     url: "url2_1.69.0"
                                     sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               "apple-clang":
                                     patch_file: "001-1.69.0-mac.patch"
@@ -170,7 +170,7 @@ class TestKBH017(ConanClientV2TestCase):
     def test_different_sources_per_config_level2_mirror(self):
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               "apple-clang":
                                   - url: [
@@ -186,7 +186,7 @@ class TestKBH017(ConanClientV2TestCase):
                           ]
                                     sha256: "sha2_1.69.0"
                     patches:
-                      "1.69.0":
+                      "0.1.0":
                           "Macos":
                               "apple-clang":
                                     patch_file: "001-1.69.0-mac.patch"
@@ -202,7 +202,7 @@ class TestKBH017(ConanClientV2TestCase):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
                     sources:
-                      "1.69.0":
+                      "0.1.0":
                           url: "url1.69.0"
                           sha256: "sha256_1.69.0"
                           sha1: "md5_1.69.0"
@@ -218,8 +218,8 @@ class TestKBH017(ConanClientV2TestCase):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
-              1.73:
-                url: "url1.69.0"
+              1.69:
+                url: "url1.69.0"                
         """)
 
         save(self, 'conandata.yml', content=conandata)
@@ -240,31 +240,31 @@ class TestKBH017(ConanClientV2TestCase):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
-              "1.70.0":
+              "0.1.0":
                 url: "url1.69.0"
                 sha256: "sha1.69.0"
                 other: "more_data"
             """)
         save(self, 'conandata.yml', content=conandata)
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
-        assert "[CONANDATA.YML FORMAT (KB-H017)] OK" in output
+        assert "ERROR: [CONANDATA.YML FORMAT (KB-H017)] Additional entries ['other'] not allowed in 'sources':'0.1.0' of conandata.yml" in output
 
     def test_unknown_subentry_patches(self):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             patches:
-              "1.70.0":
-                patches: "1.70.0.patch"
+              "0.1.0":
+                patches: "0.1.0.patch"
             """)
         save(self, 'conandata.yml', content=conandata)
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
-        assert "[CONANDATA.YML FORMAT (KB-H017)] OK" in output
+        assert "ERROR: [CONANDATA.YML FORMAT (KB-H017)] Additional entries ['patches'] not allowed in 'patches':'0.1.0' of conandata.yml" in output
 
     def test_unknown_subentry_in_list(self):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             patches:
-              "1.70.0":
+              "0.1.0":
                 - patch_file: "001-1.70.0.patch"
                   base_path: "source_subfolder/1.70.0"
                   other_field: "whatever"
@@ -274,14 +274,14 @@ class TestKBH017(ConanClientV2TestCase):
             """)
         save(self, 'conandata.yml', content=conandata)
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
-        assert "[CONANDATA.YML FORMAT (KB-H017)] OK" in output
+        assert "ERROR: [CONANDATA.YML FORMAT (KB-H017)] Additional entries ['other_field'] not allowed in 'patches':'0.1.0' of conandata.yml" in output
 
     def test_empty_checksum(self):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent("""
             sources:
-              "1.70.0":
-                url: "url1.69.0"
+              "0.1.0":
+                url: "url_0.1.0"
                 sha256: ""
             """)
         save(self, 'conandata.yml', content=conandata)
@@ -294,7 +294,7 @@ class TestKBH017(ConanClientV2TestCase):
         for checksum in ['md5', 'sha1']:
             conandata = textwrap.dedent(f"""
                 sources:
-                  "1.70.0":
+                  "0.1.0":
                     url: "url1.69.0"
                     {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
                 """)
@@ -305,7 +305,7 @@ class TestKBH017(ConanClientV2TestCase):
 
             conandata = textwrap.dedent(f"""
                             sources:
-                              "1.69.0":
+                              "0.1.0":
                                 url: "url1.69.0"
                                 {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
                               "1.70.0":
@@ -321,7 +321,7 @@ class TestKBH017(ConanClientV2TestCase):
         save(self, 'conanfile.py', content=self.conanfile)
         conandata = textwrap.dedent(f"""
             sources:
-                "1.70.0":
+                "0.1.0":
                     url: "url1.69.0"
             """)
         save(self, 'conandata.yml', content=conandata)
@@ -334,7 +334,7 @@ class TestKBH017(ConanClientV2TestCase):
                       "1.69.0":
                         url: "url1.69.0"
                         sha256: "sha1.69.0"
-                      "1.70.0":
+                      "0.1.0":
                         url: "url1.70.0"
                     patches:
                       "1.70.0":
@@ -386,7 +386,7 @@ class TestKBH017(ConanClientV2TestCase):
                   }
         """)
         save(self, 'conandata.yml', content=conandata)
-        output = self.conan(['export', '.', 'zulu-openjdk/11.0.12@user/testing'])
+        output = self.conan(['export', '--name=zulu-openjdk', '--version=11.0.12', 'conanfile.py'])
         assert "[CONANDATA.YML FORMAT (KB-H017)] OK" in output
 
     def test_google_source(self):
@@ -403,7 +403,7 @@ class TestKBH017(ConanClientV2TestCase):
 
     def test_blend2d_empty_checksum(self):
         conandata = textwrap.dedent("""sources:
-  "0.0.18":
+  "0.1.0":
     url: "https://blend2d.com/download/blend2d-beta18.zip"
     sha256: ""
   "0.0.17":
@@ -411,7 +411,7 @@ class TestKBH017(ConanClientV2TestCase):
     sha256: "06ee8fb0bea281d09291e498900093139426501a1a7f09dba0ec801dd340635e"
 
 patches:
-  "0.0.18":
+  "0.1.0":
     - base_path: "source_subfolder"
       patch_file: "patches/0.0.17-0001-disable-embed-asmjit.patch"
   "0.0.17":

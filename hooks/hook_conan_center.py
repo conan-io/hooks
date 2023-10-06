@@ -400,11 +400,13 @@ def pre_export(conanfile):
                                               allowed_patches):
                         return
                 if entry == "sources":
+                    print("+++++ validatin source recusive")
                     if not validate_recursive(element, conandata_yml[entry][version], "sources",
                                               allowed_sources):
                         return
             for element in conandata_yml[entry][version]:
                 if entry == "sources":
+                    print("+++++ validatin source recusive 2")
                     has_sources = True
                     validate_checksum_recursive(element, conandata_yml[entry][version])
             if not found_checksums and has_sources and not is_google_source:
@@ -905,13 +907,9 @@ def _shared_files_well_managed(conanfile, folder):
     shared_name = "shared"
     try:
         options_dict = {key: value for key, value in conanfile.options.values.as_list()}
-        print(f"++++++++++++++++++++++++++options_dict: {options_dict}")
     except Exception:
         options_dict = {key: value for key, value in conanfile.options.items()}
-        print(f"==========================options_dict: {options_dict}")
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
-        print("______ HAS SHARED OPTION TRUE _______")
-        print(f"++++++++++++++++++++++++++folder: {folder}")
         if not _get_files_with_extensions(conanfile, folder, shared_extensions):
             return False
     return True
