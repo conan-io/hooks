@@ -911,13 +911,9 @@ def _shared_files_well_managed(conanfile, folder):
         print(f"==========================options_dict: {options_dict}")
     if shared_name in options_dict.keys() and options_dict[shared_name] == "True":
         print("______ HAS SHARED OPTION TRUE _______")
+        print(f"++++++++++++++++++++++++++folder: {folder}")
         if not _get_files_with_extensions(conanfile, folder, shared_extensions):
             return False
-
-    package_type = getattr(conanfile, "package_type", None)
-    if package_type and package_type in ["library", "shared-library"]:
-            return False
-
     return True
 
 
