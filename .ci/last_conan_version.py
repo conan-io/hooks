@@ -22,8 +22,6 @@ def update_tox(last_version):
     minor_prev = str(int(minor)-1)
     minor_prev_prev = str(int(minor)-2)
 
-    conan_prev = conan_prev.format(major=major, minor=minor, minor_prev=minor_prev, minor_prev_prev=minor_prev_prev)
-    conan_prev_prev = conan_prev_prev.format(major=major, minor=minor, minor_prev=minor_prev, minor_prev_prev=minor_prev_prev)
     sys.stdout.write(" - prev is {major}.{minor_prev}\n".format(major=major, minor_prev=minor_prev, minor_prev_prev=minor_prev_prev))
     sys.stdout.write(" - prevprev is {major}.{minor_prev_prev}\n".format(major=major, minor_prev=minor_prev, minor_prev_prev=minor_prev_prev))
 
@@ -32,15 +30,8 @@ def update_tox(last_version):
     with open(tox_file, 'r') as f:
         content = f.read()
 
-    assert 'conanprev: conan-unknown' in content, "Unexpected tox.ini content"
-    assert 'conanprevprev: conan-unknown' in content, "Unexpected tox.ini content"
-
-    content = content.replace('conanprev: conan-unknown', 'conanprev: {}'.format(conan_prev))
-    content = content.replace('conanprevprev: conan-unknown', 'conanprevprev: {}'.format(conan_prev_prev))
-
     with open(tox_file, 'w') as f:
         f.write(content)
-
 
 
 if __name__ == '__main__':
