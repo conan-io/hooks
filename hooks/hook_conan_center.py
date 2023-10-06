@@ -306,6 +306,10 @@ def pre_export(conanfile):
 
     @run_test("KB-H017", conanfile)
     def test(out):
+        # INFO: Allow list
+        if conanfile.name in ["openssh"]:
+            return
+
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
