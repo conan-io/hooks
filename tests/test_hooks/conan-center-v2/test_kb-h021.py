@@ -48,6 +48,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
 
@@ -57,6 +58,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "ERROR: [CMAKEFILE LINT (KB-H021)] The" in output
         assert "requires CMake 3.15 at least" in output
@@ -68,6 +70,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
 
@@ -78,6 +81,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
 
@@ -114,6 +118,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
 
@@ -122,6 +127,7 @@ class TestKBH021(ConanClientV2TestCase):
         project(test)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
         assert "ERROR: [CMAKEFILE LINT (KB-H021)]" not in output
@@ -131,5 +137,6 @@ class TestKBH021(ConanClientV2TestCase):
         cmake_minimum_required(VERSION 3.15)
         """)
         save(self, 'CMakeLists.txt', content=cmake)
+        save(self, 'conanfile.py', content=self.conanfile.format(placeholder="exports_sources = 'CMakeLists.txt'"))
         output = self.conan(['export', '--name=name', '--version=0.1.0', 'conanfile.py'])
         assert "[CMAKEFILE LINT (KB-H021)] OK" in output
