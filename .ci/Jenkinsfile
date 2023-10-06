@@ -108,81 +108,6 @@ pipeline {
                 }
             }
         }
-        stage("Windows") {
-            failFast true
-            parallel {
-                stage('Windows - py36') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py36 - Generate environment') {
-                            environment {
-                                PYVER = 'py36'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py36 - conanv1') {
-                            environment {
-                                TOXENV = 'py36-conanv1'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                        stage('Windows - py36 - conanrel2') {
-                            environment {
-                                TOXENV = 'py36-conanrel2'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                        stage('Windows - py36 - conanv2') {
-                            environment {
-                                TOXENV = 'py36-conanv2'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                    }
-                }
-                stage('Windows - py38') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py38 - Generate environment') {
-                            environment {
-                                PYVER = 'py38'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py38 - conanv1') {
-                            environment {
-                                TOXENV = 'py38-conanv1'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                        stage('Windows - py38 - conanv2') {
-                            environment {
-                                TOXENV = 'py38-conanv2'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                    }
-                }
-            }
-        }
         stage("Linux") {
             failFast true
             parallel {
@@ -308,6 +233,81 @@ pipeline {
                                     pyenv activate conan
                                     tox
                                 '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage("Windows") {
+            failFast true
+            parallel {
+                stage('Windows - py36') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py36 - Generate environment') {
+                            environment {
+                                PYVER = 'py36'
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                            }
+                        }
+                        stage('Windows - py36 - conanv1') {
+                            environment {
+                                TOXENV = 'py36-conanv1'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                        stage('Windows - py36 - conanrel2') {
+                            environment {
+                                TOXENV = 'py36-conanrel2'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                        stage('Windows - py36 - conanv2') {
+                            environment {
+                                TOXENV = 'py36-conanv2'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                    }
+                }
+                stage('Windows - py38') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py38 - Generate environment') {
+                            environment {
+                                PYVER = 'py38'
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                            }
+                        }
+                        stage('Windows - py38 - conanv1') {
+                            environment {
+                                TOXENV = 'py38-conanv1'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                        stage('Windows - py38 - conanv2') {
+                            environment {
+                                TOXENV = 'py38-conanv2'
+                            }
+                            steps {
+                                bat 'tox --recreate'
                             }
                         }
                     }
