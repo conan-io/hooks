@@ -37,9 +37,7 @@ class ConanClientV2TestCase(object):
             try:
                 conan_command = str(" ").join(["conan"] + command)
                 result = subprocess.check_output(conan_command, shell=True, stderr=subprocess.STDOUT)
-                print(result.decode())
             except subprocess.CalledProcessError as error:
-                print(error.output.decode())
                 assert expected_return_code == error.returncode, "Expected to pass but Conan command failed."
             else:
                 assert 0 == expected_return_code, "Conan command passed but expected to fail"
