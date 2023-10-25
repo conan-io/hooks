@@ -371,13 +371,14 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H030", output)
     def test(out):
-        if conanfile.name in ["openssh"]:
-            return
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
+        if conanfile.name in ["openssh", "gmp"]:
+            allowed_patches.append("patch_os")
+
         weak_checksums = ["md5", "sha1"]
         checksums = ["md5", "sha1", "sha256"]
         found_checksums = []
