@@ -376,8 +376,13 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
-        if conanfile.name in ["openssh", "gmp"]:
-            allowed_patches.append("patch_os")
+
+        extra_allowed_patches = {
+            "openssh": ["patch_os", "patch_os_version"],
+            "gmp": ["patch_os"]
+        }
+
+        allowed_patches.extend(extra_allowed_patches.get(conanfile.name, []))
 
         weak_checksums = ["md5", "sha1"]
         checksums = ["md5", "sha1", "sha256"]
