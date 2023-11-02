@@ -1122,6 +1122,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "extra-cmake-modules",
             "gnu-config",
             "gtk-doc-stub",
+            "makefile-project-workspace-creator",
             "ms-gsl",
             "poppler-data",
             "wayland-protocols",
