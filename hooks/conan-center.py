@@ -1119,6 +1119,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "autoconf-archive",
             "automake",
             "cccl",
+            "depot_tools",
             "extra-cmake-modules",
             "gnu-config",
             "gtk-doc-stub",
