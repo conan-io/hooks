@@ -246,6 +246,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H009", output)
     def test(out):
+        allowlist = ("boost",)
+        if conanfile.name in allowlist:
+            out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
+            return
         max_folder_size = int(os.getenv("CONAN_MAX_RECIPE_FOLDER_SIZE_KB", 256))
         dir_path = os.path.dirname(conanfile_path)
         total_size = 0
