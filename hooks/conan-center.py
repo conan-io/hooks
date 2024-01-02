@@ -1180,7 +1180,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H016", output)
     def test(out):
         if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11", "ignition-cmake",
-                              "extra-cmake-modules", "emsdk"]:
+                              "extra-cmake-modules", "emsdk", "gettext"]:
             return
         bad_files = _get_files_following_patterns(conanfile.package_folder, ["Find*.cmake",
                                                                              "*Config.cmake",
