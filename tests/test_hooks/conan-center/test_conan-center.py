@@ -767,7 +767,6 @@ class ConanCenterTests(ConanClientTestCase):
         set(CMAKE_VERBOSE_MAKEFILE ON)
         """
         tools.save('CMakeLists.txt', content=cmake)
-        print("CWD: %s" % os.getcwd())
         output = self.conan(['create', '.', 'name/version@user/test'])
         self.assertIn("ERROR: [CMAKE VERBOSE MAKEFILE (KB-H046)] The CMake definition "
                       "'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed."

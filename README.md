@@ -59,9 +59,11 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 
 These are the hooks currently available in this repository
 
-### [Conan Center](hooks/conan-center.py)
+### [Conan Center](hooks/hook_conan_center.py)
 
-This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
+**NOTE**: This hook requires Conan 2.x
+
+This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/2/tutorial/conan_repositories/conan_center.html)
 in [Conan Center](https://conan.io/center/).
 
 It is mostly intended for users who want to contribute packages to Conan Center. With this hook
@@ -86,17 +88,8 @@ check as ``OK``, ``WARNING`` or ``ERROR``:
 
 If you want the hook to fail the execution, if an error is reported, you can adjust the environment
 variable ``CONAN_HOOK_ERROR_LEVEL``:
-   - ``CONAN_HOOK_ERROR_LEVEL=40`` it will raise if any error happen.
-   - ``CONAN_HOOK_ERROR_LEVEL=30`` it will raise if any error or warning happen.
-
-#### Conan 2.x support
-
-The Conan Center hook is **NOT** supported by Conan v2 yet. Do not try to run this file with Conan v2.
-
-There is an effort on the [disabled-hook_conan-center-v2.py](hooks/disabled-hook_conan-center-v2.py), but is not updated and should be broken by now.
-
-The support for Conan 2.x should be rethinked first, because others items like linter and extensions should be considered too.
-
+   - ``CONAN_HOOK_ERROR_LEVEL=ERROR`` it will raise if any error happen.
+   - ``CONAN_HOOK_ERROR_LEVEL=WARNING`` it will raise if any error or warning happen.
 
 ### [Attribute checker](hooks/attribute_checker.py)
 

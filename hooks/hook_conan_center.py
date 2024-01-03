@@ -1,6 +1,3 @@
-import ast
-import collections
-
 import fnmatch
 import inspect
 import os
@@ -16,99 +13,72 @@ from logging import WARNING, ERROR, INFO, DEBUG, NOTSET
 import yaml
 from conans.util.runners import check_output_runner
 
-from conan.api.conan_api import ConanAPI
-
-
-from conan.tools.files import load, save, chdir, collect_libs
-from conan.tools.scm import Version
+from conan.tools.files import load, chdir, collect_libs
 from conan.tools.apple import is_apple_os
 from conan.tools.microsoft import is_msvc, VCVars
+
 
 try:
     from conans import Settings
 except ImportError:
     from conans.model.settings import Settings
 
-kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
-             "KB-H002": "REFERENCE LOWERCASE",
-             "KB-H003": "RECIPE METADATA",
-             "KB-H005": "HEADER_ONLY, NO COPY SOURCE",
-             "KB-H006": "FPIC OPTION",
-             "KB-H007": "FPIC MANAGEMENT",
-             "KB-H008": "VERSION RANGES",
-             "KB-H009": "RECIPE FOLDER SIZE",
-             "KB-H010": "IMMUTABLE SOURCES",
-             "KB-H011": "LIBCXX MANAGEMENT",
-             "KB-H012": "PACKAGE LICENSE",
-             "KB-H013": "DEFAULT PACKAGE LAYOUT",
-             "KB-H014": "MATCHING CONFIGURATION",
-             "KB-H015": "SHARED ARTIFACTS",
-             "KB-H016": "CMAKE-MODULES-CONFIG-FILES",
-             "KB-H017": "PDB FILES NOT ALLOWED",
-             "KB-H018": "LIBTOOL FILES PRESENCE",
-             "KB-H019": "CMAKE FILE NOT IN BUILD FOLDERS",
-             "KB-H020": "PC-FILES",
-             "KB-H021": "MS RUNTIME FILES",
-             "KB-H022": "CPPSTD MANAGEMENT",
-             "KB-H023": "EXPORT LICENSE",
-             "KB-H024": "TEST PACKAGE FOLDER",
-             "KB-H025": "META LINES",
-             "KB-H026": "LINTER WARNINGS",
-             "KB-H027": "CONAN CENTER INDEX URL",
-             "KB-H028": "CMAKE MINIMUM VERSION",
-             "KB-H029": "TEST PACKAGE - RUN ENVIRONMENT",
-             "KB-H030": "CONANDATA.YML FORMAT",
-             "KB-H031": "CONANDATA.YML REDUCE",
-             "KB-H032": "SYSTEM REQUIREMENTS",
-             "KB-H034": "TEST PACKAGE - NO IMPORTS()",
-             "KB-H037": "NO AUTHOR",
-             "KB-H039": "NOT ALLOWED ATTRIBUTES",
-             "KB-H040": "NO TARGET NAME",
-             "KB-H041": "NO FINAL ENDLINE",
-             "KB-H043": "MISSING SYSTEM LIBS",
-             "KB-H044": "NO REQUIRES.ADD()",
-             "KB-H045": "DELETE OPTIONS",
-             "KB-H046": "CMAKE VERBOSE MAKEFILE",
-             "KB-H048": "CMAKE VERSION REQUIRED",
-             "KB-H049": "CMAKE WINDOWS EXPORT ALL SYMBOLS",
-             "KB-H050": "DEFAULT SHARED OPTION VALUE",
-             "KB-H051": "DEFAULT OPTIONS AS DICTIONARY",
-             "KB-H052": "CONFIG.YML HAS NEW VERSION",
-             "KB-H053": "PRIVATE IMPORTS",
-             "KB-H054": "LIBRARY DOES NOT EXIST",
-             "KB-H055": "SINGLE REQUIRES",
-             "KB-H056": "LICENSE PUBLIC DOMAIN",
-             "KB-H057": "TOOLS RENAME",
-             "KB-H058": "ILLEGAL CHARACTERS",
-             "KB-H059": "CLASS NAME",
-             "KB-H060": "NO CRLF",
-             "KB-H061": "NO BUILD SYSTEM FUNCTIONS",
-             "KB-H062": "TOOLS CROSS BUILDING",
-             "KB-H064": "INVALID TOPICS",
-             "KB-H065": "NO REQUIRED_CONAN_VERSION",
-             "KB-H066": "SHORT_PATHS USAGE",
-             "KB-H068": "TEST_TYPE MANAGEMENT",
-             "KB-H069": "TEST PACKAGE - NO DEFAULT OPTIONS",
-             "KB-H070": "MANDATORY SETTINGS",
-             "KB-H071": "INCLUDE PATH DOES NOT EXIST",
-             "KB-H072": "PYLINT EXECUTION",
-             "KB-H074": "STATIC ARTIFACTS",
-             "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
-             "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
-             "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
+kb_errors = {"KB-H001": "RECIPE METADATA",
+             "KB-H002": "RECIPE REFERENCE",
+             "KB-H003": "HEADER_ONLY, NO COPY SOURCE",
+             "KB-H004": "FPIC OPTION",
+             "KB-H005": "FPIC MANAGEMENT",
+             "KB-H006": "RECIPE FOLDER SIZE",
+             "KB-H007": "IMMUTABLE SOURCES",
+             "KB-H008": "PURE-C MANAGEMENT",
+             "KB-H009": "PACKAGE LICENSE",
+             "KB-H010": "DEFAULT PACKAGE LAYOUT",
+             "KB-H011": "MATCHING CONFIGURATION",
+             "KB-H012": "NOT ALLOWED CONFIG-FILES",
+             "KB-H013": "METADATA FILES",
+             "KB-H014": "EXPORT LICENSE",
+             "KB-H015": "TEST PACKAGE FOLDER",
+             "KB-H016": "META LINES",
+             "KB-H017": "CONANDATA.YML FORMAT",
+             "KB-H018": "SYSTEM REQUIREMENTS",
+             "KB-H019": "NOT ALLOWED ATTRIBUTES",
+             "KB-H020": "MISSING SYSTEM LIBS",
+             "KB-H021": "CMAKEFILE LINT",
+             "KB-H022": "DEFAULT SHARED OPTION VALUE",
+             "KB-H023": "CONFIG.YML HAS NEW VERSION",
+             "KB-H024": "LIBRARY DOES NOT EXIST",
+             "KB-H025": "SINGLE REQUIRES",
+             "KB-H026": "TOOLS RENAME",
+             "KB-H027": "FILE CONSISTENCY",
+             "KB-H028": "SHORT_PATHS USAGE",
+             "KB-H029": "TEST PACKAGE - NO DEFAULT OPTIONS",
+             "KB-H030": "MANDATORY SETTINGS",
+             "KB-H031": "INCLUDE PATH DOES NOT EXIST",
+             "KB-H032": "REQUIREMENT OVERRIDE PARAMETER",
+             "KB-H033": "APPLE RELOCATABLE SHARED LIBS",
              }
 
 
 class _HooksOutputErrorCollector(object):
 
-    def __init__(self, conanfile, kb_id=None):
+    def __init__(self, conanfile, output, kb_id=None):
         self._conanfile = conanfile
+        self._output = output
         self._error = False
         self._test_name = kb_errors[kb_id] if kb_id else ""
         self.kb_id = kb_id
         if self.kb_id:
             self.kb_url = kb_url(self.kb_id)
-        self._error_level = int(os.getenv("CONAN_HOOK_ERROR_LEVEL", str(NOTSET)))
+        # FIXME: Move it to conf file. For now, we can not retrieve conf as external method
+        # conf_hook_level = conanfile.conf.get("hooks.conan_center:error_level", check_type=str) or ""
+        conf_hook_level = os.getenv("CONAN_HOOK_ERROR_LEVEL", "")
+        self._error_level = {
+            "error": ERROR,
+            "warning": WARNING,
+            "warn": WARNING,
+            "info": INFO,
+            "debug": DEBUG,
+        }.get(conf_hook_level.lower(), NOTSET)
 
     def _get_message(self, message):
         if self._test_name:
@@ -118,33 +88,30 @@ class _HooksOutputErrorCollector(object):
             return message
 
     def success(self, message):
-        self._conanfile.output.success(self._get_message(message))
+        self._output.success(self._get_message(message))
 
     def debug(self, message):
         if self._error_level and self._error_level <= DEBUG:
             self._error = True
-        self._conanfile.output.debug(self._get_message(message))
+        self._output.debug(self._get_message(message))
 
     def info(self, message):
         if self._error_level and self._error_level <= INFO:
             self._error = True
-        self._conanfile.output.info(self._get_message(message))
+        self._output.info(self._get_message(message))
 
-    def warn(self, message):
+    def warning(self, message):
         if self._error_level and self._error_level <= WARNING:
             self._error = True
-        if hasattr(self._conanfile.output, "warn"):
-            self._conanfile.output.warn(self._get_message(message))
-        else:
-            self._conanfile.output.warning(self._get_message(message))
+        self._output.warning(self._get_message(message))
 
     def error(self, message):
         self._error = True
         url_str = '({})'.format(self.kb_url) if self.kb_id else ""
-        self._conanfile.output.error(self._get_message(message) + " " + url_str)
+        self._output.error(self._get_message(message) + " " + url_str)
 
     def __str__(self):
-        return self._conanfile.output._stream.getvalue()
+        return self._output._stream.getvalue()
 
     @property
     def failed(self):
@@ -157,9 +124,10 @@ class _HooksOutputErrorCollector(object):
 
 def raise_if_error_output(func):
     def wrapper(conanfile, *args, **kwargs):
-        output = _HooksOutputErrorCollector(conanfile)
+        output = _HooksOutputErrorCollector(conanfile, conanfile.output)
+        setattr(conanfile, "hook_output", output)
         ret = func(conanfile, *args, **kwargs)
-        output.raise_if_error()
+        conanfile.hook_output.raise_if_error()
         return ret
 
     return wrapper
@@ -171,7 +139,7 @@ def kb_url(kb_id):
 
 def run_test(kb_id, conanfile):
     def tmp(func):
-        out = _HooksOutputErrorCollector(conanfile, kb_id)
+        out = _HooksOutputErrorCollector(conanfile, conanfile.hook_output, kb_id)
         try:
             ret = func(out)
             if not out.failed:
@@ -201,52 +169,52 @@ def pre_export(conanfile):
 
     @run_test("KB-H001", conanfile)
     def test(out):
-        if settings and "cppstd" in settings:
-            out.error("The 'cppstd' setting is deprecated. Use the 'compiler.cppstd' "
-                      "subsetting instead")
-
-    @run_test("KB-H002", conanfile)
-    def test(out):
-        if str(conanfile.name) != str(conanfile.name).lower():
-            out.error("The library name has to be lowercase")
-        if str(conanfile.version) != str(conanfile.version).lower():
-            out.error("The library version has to be lowercase")
-
-    @run_test("KB-H003", conanfile)
-    def test(out):
         def _message_attr(attributes, out_method):
             for field in attributes:
                 field_value = getattr(conanfile, field, None)
                 if not field_value:
-                    out_method("Conanfile doesn't have '%s' attribute. " % field)
+                    out_method(f"The mandatory attribute '{field}' is missing. Please, add it to the recipe.")
 
-        if not re.search(r"(\s{4}|\t)name\s*=", conanfile_content):
-            out.error("Conanfile doesn't have 'name' attribute.")
         _message_attr(["url", "license", "description", "homepage", "topics"], out.error)
 
-    @run_test("KB-H005", conanfile)
+        if getattr(conanfile, "author", None):
+            out.error(f"Conanfile should not contain author attribute because all recipes are owned by the community. Please, remove it.")
+
+        topics = getattr(conanfile, "topics", []) or []
+        invalid_topics = ["conan", conanfile.name]
+        for topic in topics:
+            if topic in invalid_topics:
+                out.warning(f"The topic '{topic}' is invalid and should be removed from topics attribute.")
+            if topic != topic.lower():
+                out.warning(f"The topic '{topic}' is invalid; even names and acronyms should be formatted entirely in lowercase.")
+
+        url = getattr(conanfile, "url", None)
+        if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
+            out.error("The attribute 'url' should point to: https://github.com/conan-io/conan-center-index")
+
+    @run_test("KB-H002", conanfile)
+    def test(out):
+        if not re.search(r"\s{4}name\s*=", conanfile_content):
+            out.error("The 'name' attribute should be declared with the package name.")
+
+        for attribute in ["version", "user", "channel"]:
+            if re.search(fr"\s\s\s\s{attribute}\s*=", conanfile_content):
+                out.error(f"The attribute '{attribute}' should not be declared in the recipe. Please, remove it.")
+
+    @run_test("KB-H003", conanfile)
     def test(out):
         no_copy_source = getattr(conanfile, "no_copy_source", None)
         if not settings and header_only and not no_copy_source:
-            out.warn("This recipe is a header only library as it does not declare "
+            out.warning("This recipe is a header only library as it does not declare "
                      "'settings'. Please include 'no_copy_source' to avoid unnecessary copy steps")
 
-    @run_test("KB-H006", conanfile)
+    @run_test("KB-H004", conanfile)
     def test(out):
         options = getattr(conanfile, "options", None)
         if settings and options and not header_only and "fPIC" not in options and not installer:
-            out.warn("This recipe does not include an 'fPIC' option. Make sure you are using the "
-                     "right casing")
+            out.warning("This recipe does not include an 'fPIC' option. Make sure you are using the right casing")
 
-    @run_test("KB-H008", conanfile)
-    def test(out):
-        # This regex takes advantage that a conan reference is always a string
-        vrange_match = re.compile(r'.*[\'"][a-zA-Z0-9_+.-]+/\[.+\]@[a-zA-Z0-9_+./-]+[\'"].*')
-        for num, line in enumerate(conanfile_content.splitlines(), 1):
-            if vrange_match.match(line):
-                out.error("Possible use of version ranges, line %s:\n %s" % (num, line))
-
-    @run_test("KB-H009", conanfile)
+    @run_test("KB-H006", conanfile)
     def test(out):
         max_folder_size = int(os.getenv("CONAN_MAX_RECIPE_FOLDER_SIZE_KB", 256))
         dir_path = os.path.dirname(conanfile_path)
@@ -263,12 +231,12 @@ def pre_export(conanfile):
                     total_size += os.path.getsize(file_path)
 
         total_size_kb = total_size / 1024
-        out.success("Total recipe size: %s KB" % total_size_kb)
+        out.success(f"Total recipe size: {total_size_kb} KB")
         if total_size_kb > max_folder_size:
-            out.error("The size of your recipe folder ({} KB) is larger than the maximum allowed"
-                      " size ({}KB).".format(total_size_kb, max_folder_size))
+            out.error(f"The size of your recipe folder ({total_size_kb} KB) is larger than the maximum allowed"
+                      " size ({max_folder_size}KB).")
 
-    @run_test("KB-H023", conanfile)
+    @run_test("KB-H014", conanfile)
     def test(out):
         for attr_it in ["exports", "exports_sources"]:
             exports = getattr(conanfile, attr_it, None)
@@ -278,10 +246,9 @@ def pre_export(conanfile):
             for exports_it in exports:
                 for license_it in ["copying", "license", "copyright"]:
                     if license_it in exports_it.lower():
-                        out.error("This recipe is exporting a license file. "
-                                  "Remove %s from `%s`" % (exports_it, attr_it))
+                        out.error("The ConanCenterIndex does not allow exporting recipes. Instead, collect extract directly from source files.")
 
-    @run_test("KB-H024", conanfile)
+    @run_test("KB-H015", conanfile)
     def test(out):
         dir_path = os.path.dirname(conanfile_path)
         test_package_path = os.path.join(dir_path, "test_package")
@@ -290,21 +257,28 @@ def pre_export(conanfile):
         elif not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
             out.error("There is no 'conanfile.py' in 'test_package' folder")
 
-    @run_test("KB-H025", conanfile)
+    @run_test("KB-H016", conanfile)
     def test(out):
         def _search_for_metaline(from_line, to_line, lines):
             for index in range(from_line, to_line):
                 line_number = index + 1
                 if "# -*- coding:" in lines[index] or \
-                   "# coding=" in lines[index]:
+                        "# coding=" in lines[index]:
                     out.error("PEP 263 (encoding) is not allowed in the conanfile. "
-                              "Remove the line {}".format(line_number))
+                              f"Remove the line {line_number}")
                 if "#!" in lines[index]:
                     out.error("Shebang (#!) detected in your recipe. "
-                              "Remove the line {}".format(line_number))
+                              f"Remove the line {line_number}")
                 if "# vim:" in lines[index]:
                     out.error("vim editor configuration detected in your recipe. "
-                              "Remove the line {}".format(line_number))
+                              f"Remove the line {line_number}")
+
+        def _check_conanfile_content(content, path):
+            patterns = [r'#\s*pylint\s*:\s*skip-file\s*', '#\s*pylint\s*:\s*disable-all\s*',
+                        '#\s*pylint\s*:\s*disable=']
+            for pattern in patterns:
+                if re.search(pattern, content):
+                    out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
 
         conanfile_lines = conanfile_content.splitlines()
         first_lines_range = 5 if len(conanfile_lines) > 5 else len(conanfile_lines)
@@ -313,70 +287,35 @@ def pre_export(conanfile):
         last_lines_range = len(conanfile_lines) - 3 if len(conanfile_lines) > 8 else len(conanfile_lines)
         _search_for_metaline(last_lines_range, len(conanfile_lines), conanfile_lines)
 
-    @run_test("KB-H027", conanfile)
-    def test(out):
-        url = getattr(conanfile, "url", None)
-        if url and not url.startswith("https://github.com/conan-io/conan-center-index"):
-            out.error("The attribute 'url' should point to: "
-                      "https://github.com/conan-io/conan-center-index")
+        recipe_folder = os.path.dirname(conanfile_path)
+        recipes = _get_files_following_patterns(conanfile, recipe_folder, [r"conanfile.py", ])
+        for recipe in recipes:
+            recipe_path = os.path.join(recipe_folder, recipe)
+            recipe_content = load(conanfile, recipe_path)
+            _check_conanfile_content(recipe_content, recipe_path)
 
-    @run_test("KB-H028", conanfile)
-    def test(out):
-        def _find_cmake_minimum(folder):
-            for (root, _, filenames) in os.walk(folder):
-                for filename in filenames:
-                    if filename.lower().startswith("cmake") and \
-                       (filename.endswith(".txt") or filename.endswith(".cmake")) and \
-                       not _skip_test_package(root, folder):
-                        cmake_path = os.path.join(root, filename)
-                        cmake_content = load(conanfile, cmake_path).lower()
-                        for line in cmake_content.splitlines():
-                            if line.startswith("#") or re.search(r"^\s+#", line) or len(line.strip()) == 0:
-                                continue
-                            elif "cmake_minimum_required(version" in line or \
-                                 "cmake_minimum_required (version" in line:
-                                break
-                            else:
-                                file_path = os.path.join(os.path.relpath(root), filename)
-                                out.error("The CMake file '%s' must contain a minimum version "
-                                          "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.1.2))" %
-                                          file_path)
-
-        dir_path = os.path.dirname(conanfile_path)
-        _find_cmake_minimum(dir_path)
-
-    @run_test("KB-H029", conanfile)
-    def test(out):
-        test_package_path = os.path.join(export_folder_path, "test_package")
-        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
-            return
-
-        test_package_conanfile = load(conanfile, os.path.join(test_package_path, "conanfile.py"))
-        if "RunEnvironment" in test_package_conanfile and \
-           not re.search(r"self\.run\(.*, run_environment=True\)", test_package_conanfile):
-            out.error("The 'RunEnvironment()' build helper is no longer needed. "
-                      "It has been integrated into the self.run(..., run_environment=True)")
-
-    @run_test("KB-H032", conanfile)
+    @run_test("KB-H018", conanfile)
     def test(out):
         if conanfile.version == "system":
             out.info("'system' versions are allowed to install system requirements.")
             return
-        if "def system_requirements" in conanfile_content and \
-           "SystemPackageTool" in conanfile_content:
-            import re
-            match = re.search(r'(\S+)\s?=\s?(tools.)?SystemPackageTool', conanfile_content)
-            if ("SystemPackageTool().install" in conanfile_content) or \
-               (match and "{}.install".format(match.group(1)) in conanfile_content):
-                out.error("The method 'SystemPackageTool.install' is not allowed in the recipe.")
+        if "def system_requirements" in conanfile_content:
+            out.error("The method 'system_requirements()' is not allowed for regular packages. Please, use only Conan packages to install system requirements.")
+        if "system.package_manager" in conanfile_content:
+            out.error("Installing system requirements using 'system.package_manager' is not allowed. Please, use only Conan packages to install system requirements.")
 
-    @run_test("KB-H030", conanfile)
+    @run_test("KB-H017", conanfile)
     def test(out):
+        # INFO: Allow list
+        if conanfile.name in ["openssh"]:
+            return
+
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
         allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
-        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
+        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source",
+                           "patch_description"]
         weak_checksums = ["md5", "sha1"]
         checksums = ["md5", "sha1", "sha256"]
         found_checksums = []
@@ -399,15 +338,14 @@ def pre_export(conanfile):
             return
         entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
         if entries:
-            out.error("First level entries %s not allowed. Use only first level entries %s in "
-                      "conandata.yml" % (entries, allowed_first_level))
+            out.error(f"First level entries {entries} not allowed. Use only first level entries {allowed_first_level} in conandata.yml")
 
         google_source_regex = re.compile(r"https://\w+.googlesource.com/")
 
         for entry in conandata_yml:
             if entry in ['sources', 'patches']:
                 if not isinstance(conandata_yml[entry], dict):
-                    out.error("Expecting a dictionary with versions as keys under '{}' element".format(entry))
+                    out.error(f"Expecting a dictionary with versions as keys under '{entry}' element")
                 else:
                     versions = conandata_yml[entry].keys()
                     if any([not isinstance(it, str) for it in versions]):
@@ -416,8 +354,7 @@ def pre_export(conanfile):
             def validate_one(e, name, allowed):
                 not_allowed = _not_allowed_entries(e, allowed)
                 if not_allowed:
-                    out.error("Additional entries %s not allowed in '%s':'%s' of "
-                              "conandata.yml" % (not_allowed, name, version))
+                    out.error(f"Additional entries {not_allowed} not allowed in '{name}':'{version}' of conandata.yml")
                     return False
                 return True
 
@@ -477,151 +414,36 @@ def pre_export(conanfile):
             if not found_checksums and has_sources and not is_google_source:
                 out.error("The checksum key 'sha256' must be declared and can not be empty.")
             elif found_checksums and 'sha256' not in found_checksums:
-                out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
+                out.warning(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
 
-    @run_test("KB-H034", conanfile)
+    @run_test("KB-H019", conanfile)
     def test(out):
-        test_package_path = os.path.join(export_folder_path, "test_package")
-        if not os.path.exists(os.path.join(test_package_path, "conanfile.py")):
-            return
-
-        test_package_conanfile = load(conanfile, os.path.join(test_package_path, "conanfile.py"))
-        if "def imports" in test_package_conanfile:
-            out.error("The method `imports` is not allowed in test_package/conanfile.py")
-
-    @run_test("KB-H037", conanfile)
-    def test(out):
-        author = getattr(conanfile, "author", None)
-        if author:
-            if isinstance(author, str):
-                author = '"%s"' % author
-            out.error("Conanfile should not contain author. Remove 'author = {}'".format(author))
-
-    @run_test("KB-H039", conanfile)
-    def test(out):
-        search_attrs = ["scm", "build_policy"]
+        search_attrs = ["build_policy", "upload_policy", "revision_mode", "package_id_embed_mode", "package_id_non_embed_mode", "package_id_unknown_mode"]
         forbidden_attrs = []
         for attr in search_attrs:
-            if getattr(conanfile, attr, None):
+            if re.search(fr"\s\s\s\s{attr}\s*=", conanfile_content):
                 forbidden_attrs.append(attr)
-        if re.search(r"revision_mode\s=", conanfile_content):
-            forbidden_attrs.append("revision_mode")
 
         if forbidden_attrs:
-            out.error("Conanfile should not contain attributes: '{}'"
-                      .format(", ".join(forbidden_attrs)))
+            out.error(f"Some attributes are affecting the packaging behavior and are not allowed, please, remove them: '{forbidden_attrs}'")
 
-    @run_test("KB-H040", conanfile)
+    @run_test("KB-H021", conanfile)
     def test(out):
-        match = re.search(r"self\.cpp_info\.(name|filename)\s?=", conanfile_content)
-        if match:
-            out.error("CCI uses the name of the package for cmake generator and filename by default."
-                      " Replace 'cpp_info.{0}' by 'cpp_info.{0}s[<generator>]'.".format(match.group(1)))
-
-        match = re.search(r"self\.cpp_info\.(names|filenames)\[\s?['\"](cmake|cmake_multi)['\"]\s?\]", conanfile_content)
-        if match:
-            out.error("CCI uses the name of the package for {0} generator. "
-                      "Conanfile should not contain 'self.cpp_info.{1}['{0}']'. "
-                      "Use 'cmake_find_package' and 'cmake_find_package_multi' instead.".format(match.group(2),
-                                                                                                 match.group(1)))
-
-    @run_test("KB-H041", conanfile)
-    def test(out):
-        checked_fileexts = ".c", ".cc", ".cpp", ".cxx", ".h", ".hxx", ".hpp", \
-                           ".py", ".txt", ".yml", ".cmake", ".xml", ".patch", ".md"
-
-        files_noext = "Makefile", "GNUMakefile"
-
-        def _check_final_newline(path):
-            try:
-                last_char = load(conanfile, path)[-1]
-            except (OSError, IndexError):
-                return  # File is empty ==> ignore
-            if last_char not in ("\n", "\r"):
-                out.error("File '{}' does not end with an endline".format(path))
-
-        for root, _, filenames in os.walk(export_folder_path):
-            if _skip_test_package(root, export_folder_path):
-                # Discard any file in temp builds
-                continue
+        dir_path = os.path.dirname(conanfile_path)
+        for (root, _, filenames) in os.walk(dir_path):
             for filename in filenames:
-                _, fileext = os.path.splitext(filename)
-                if filename in files_noext or fileext.lower() in checked_fileexts:
-                    _check_final_newline(os.path.join(root, filename))
+                if filename.lower().startswith("cmake") and (filename.endswith(".txt") or filename.endswith(".cmake")):
+                    cmake_path = os.path.join(root, filename)
+                    cmake_content = load(conanfile, cmake_path).lower()
+                    if "cmake_verbose_makefile" in cmake_content.lower():
+                        out.error(f"The CMake definition 'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed. Please, remove it from {cmake_path}.")
+                    if re.search(r"cmake_minimum_required\(version [\"']?2", cmake_content):
+                        out.error(f"The {cmake_path} requires CMake 3.15 at least. Update to 'cmake_minimum_required(VERSION 3.15)'.")
+                    if "cmake_minimum_required" not in cmake_content:
+                        out.error(f"The CMake file '{cmake_path}' must contain a minimum version "
+                                  "declared at the beginning (e.g. cmake_minimum_required(VERSION 3.15))")
 
-        config_yml = os.path.join(export_folder_path, os.path.pardir, "config.yml")
-        if os.path.isfile(config_yml):
-            _check_final_newline(config_yml)
-
-    @run_test("KB-H044", conanfile)
-    def test(out):
-        for forbidden in ["self.requires.add", "self.build_requires.add"]:
-            if forbidden in conanfile_content:
-                out.error("The method '{}()' is not allowed. Use '{}()' instead."
-                          .format(forbidden, forbidden.replace(".add", "")))
-
-    @run_test("KB-H045", conanfile)
-    def test(out):
-        if "self.options.remove" in conanfile_content:
-            out.error("Found 'self.options.remove'. Replace it by 'del self.options.<opt>'.")
-
-    @run_test("KB-H046", conanfile)
-    def test(out):
-
-        def check_for_verbose_flag(cmakelists_path):
-            cmake_content = load(conanfile, cmakelists_path)
-            if "cmake_verbose_makefile" in cmake_content.lower():
-                out.error("The CMake definition 'set(CMAKE_VERBOSE_MAKEFILE ON)' is not allowed. "
-                          "Remove it from {}.".format(os.path.relpath(cmakelists_path)))
-
-        dir_path = os.path.dirname(conanfile_path)
-        test_package_path = os.path.join(dir_path, "test_package")
-        for cmake_path in [os.path.join(dir_path, "CMakeLists.txt"),
-                           os.path.join(test_package_path, "CMakeLists.txt")]:
-            if os.path.exists(cmake_path):
-                check_for_verbose_flag(cmake_path)
-
-    @run_test("KB-H048", conanfile)
-    def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        cmake_test_pkg = os.path.join(dir_path, "test_package", "CMakeLists.txt")
-        if os.path.isfile(cmake_test_pkg):
-            cmake_content = load(conanfile, cmake_test_pkg)
-            if re.search(r"cmake_minimum_required\(version [\"']?2", cmake_content.lower()):
-                out.error("The test_package/CMakeLists.txt requires CMake 3.1 at least."
-                          " Update to 'cmake_minimum_required(VERSION 3.1)'.")
-
-        cmake_path = os.path.join(dir_path, "CMakeLists.txt")
-        if os.path.isfile(cmake_path):
-            cmake_content = load(conanfile, cmake_path)
-            if re.search(r"cmake_minimum_required\(version [\"']?2", cmake_content.lower()) and \
-               "cxx_standard" in cmake_content.lower():
-                out.error("The CMake definition CXX_STANDARD requires CMake 3.1 at least."
-                          " Update to 'cmake_minimum_required(VERSION 3.1)'.")
-
-    @run_test("KB-H049", conanfile)
-    def test(out):
-        dir_path = os.path.dirname(conanfile_path)
-        cmake_path = os.path.join(dir_path, "CMakeLists.txt")
-        if os.path.isfile(cmake_path):
-            cmake_content = load(conanfile, cmake_path)
-            match = re.search(r"cmake_minimum_required\s?\(VERSION (\d?\.?\d?\.?\d+)\)",
-                              cmake_content, re.I)
-            if match and Version(match.group(1)) < "3.4":
-                for cmake_def in ["CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS", "WINDOWS_EXPORT_ALL_SYMBOLS"]:
-                    if cmake_def in cmake_content:
-                        out.error("The CMake definition {} requires CMake 3.4 at least. Update "
-                                "CMakeLists.txt to 'cmake_minimum_required(VERSION 3.4)'."
-                                .format(cmake_def))
-                        break
-
-    @run_test("KB-H051", conanfile)
-    def test(out):
-        default_options = getattr(conanfile, "default_options")
-        if default_options and not isinstance(default_options, dict):
-            out.error("Use a dictionary to declare 'default_options'")
-
-    @run_test("KB-H052", conanfile)
+    @run_test("KB-H023", conanfile)
     def test(out):
         config_path = os.path.abspath(os.path.join(export_folder_path, os.path.pardir, "config.yml"))
         config_yml = load_yml(conanfile, config_path)
@@ -640,296 +462,123 @@ def pre_export(conanfile):
 
         versions_conandata = conandata_yml['sources'].keys()
         versions_config = config_yml['versions'].keys()
+
         conandata_path = os.path.relpath(conandata_path, export_folder_path)
         config_path = os.path.relpath(config_path, export_folder_path)
 
         for version in versions_conandata:
             if version not in versions_config:
-                out.error('The version "{}" exists in "{}" but not in "{}", so it will not be built.'
-                          ' Please update "{}" to include newly added '
-                          'version "{}".'.format(version, conandata_path, config_path, config_path,
-                                                 version))
+                out.error(f'The version "{version}" exists in "{conandata_path}" but not in "{config_path}", so it will not be built.'
+                          f' Please update "{config_path}" to include newly added version "{version}".')
 
-    @run_test("KB-H053", conanfile)
+    @run_test("KB-H025", conanfile)
     def test(out):
-        def _is_private_import(line):
-            if line in ["from conans.model import Generator"]:
-                return False
-            allowed_list = ["tools", "errors"]
-            for pattern in ["from conans.", "import conans."]:
-                if line.startswith(pattern):
-                    for allowed in allowed_list:
-                        if line.startswith(pattern + allowed):
-                            return False
-                    return True
-            return False
+        for prefix in ["", "build_", "tool_"]:
+            if hasattr(conanfile, f"{prefix}requires") and \
+                    callable(getattr(conanfile, f"{prefix}requirements", None)):
+                out.error(f"Both '{prefix}requires' attribute and '{prefix}requirements()' method should not "
+                          "be declared at same recipe.")
 
-        def _check_private_imports(filename, content):
-            for num, line in enumerate(content.splitlines(), 1):
-                if _is_private_import(line):
-                    out.error("The file {} imports private conan API on line {}, "
-                              "this is strongly discouraged.".format(filename, num))
-                    out.error(line)
-
-        _check_private_imports("conanfile.py", conanfile_content)
-        test_package_dir = os.path.join(os.path.dirname(conanfile_path), "test_package")
-        test_package_path = os.path.join(test_package_dir, "conanfile.py")
-        if os.path.exists(test_package_path):
-            test_package_content = load(conanfile, test_package_path)
-            _check_private_imports("test_package/conanfile.py", test_package_content)
-
-    @run_test("KB-H055", conanfile)
-    def test(out):
-        for prefix in ["", "build_"]:
-            if hasattr(conanfile, "{}requires".format(prefix)) and \
-               callable(getattr(conanfile, "{}requirements".format(prefix), None)):
-                out.error("Both '{0}requires' attribute and '{0}requirements()' method should not "
-                          "be declared at same recipe.".format(prefix))
-
-    @run_test("KB-H057", conanfile)
+    @run_test("KB-H026", conanfile)
     def test(out):
         def _check_content(content, path):
             if "os.rename" in content:
-                out.warn("The 'os.rename' in {} may cause permission error on Windows."
-                         " Use 'conan.tools.files.rename(self, src, dst)' instead.".format(path))
-            elif "tools.rename(" in content and not "tools.rename(self," in content:
-                out.warn("The 'tools.rename' in {} is outdated and may cause permission error on Windows."
-                         " Use 'conan.tools.files.rename(self, src, dst)' instead.".format(path))
+                out.warning(f"The 'os.rename' in {path} may cause permission error on Windows."
+                         " Use 'conan.tools.files.rename(self, src, dst)' instead.")
+            elif "tools.rename(" in content and "tools.rename(self," not in content:
+                out.warning(f"The 'tools.rename' in {path} is outdated and may cause permission error on Windows."
+                         " Use 'conan.tools.files.rename(self, src, dst)' instead.")
+
         _check_content(conanfile_content, "conanfile.py")
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.exists(test_package_path):
             test_package_content = load(conanfile, test_package_path)
             _check_content(test_package_content, "test_package/conanfile.py")
 
-    @run_test("KB-H058", conanfile)
-    def test(out):
-        disallowed_chars = '<>:"/\\|?*%,; '
-        recipe_folder = os.path.dirname(conanfile_path)
-        for root, _, files in os.walk(recipe_folder):
-            for file in files:
-                if any(it in disallowed_chars for it in file):
-                    out.error("The file '{}' uses illegal charecters ({}) for its name."
-                              " Please, rename that file.".format(file, disallowed_chars))
-                if file.endswith("."):
-                    out.error("The file '{}' ends with a dot. Please, remove the dot from the end."
-                              .format(file, disallowed_chars))
-
-    @run_test("KB-H059", conanfile)
-    def test(out):
-        class_name = type(conanfile).__name__
-        if class_name in ("LibnameConan", "ConanFileDefault"):
-            camel_name = "".join(s.title() for s in re.split("[^a-zA-Z0-9]", conanfile.name))
-            out.warn("Class name '{}' is not allowed. For example, use '{}Conan' instead.".format(class_name, camel_name))
-
-    @run_test("KB-H060", conanfile)
+    @run_test("KB-H027", conanfile)
     def test(out):
         ext_to_be_checked = [".cmake", ".conf", ".cfg", ".diff", ".md", ".patch", ".py", ".txt",
                              ".yml", ".am", ".xml", ".json", ".in", ".ac", ".tsx", ".tmx",
                              ".proto", ".capnp", ".c", ".cc", ".c++", ".cpp", ".cxx", ".c++m",
                              ".cppm", ".cxxm", ".h++", ".hh", ".hxx", ".hpp", ".qrc", ".pro",
                              ".build", ".s", ".asm"]
+        files_noext = "Makefile", "GNUMakefile"
+        disallowed_chars = '<>:"/\\|+?*%,; '
         recipe_folder = os.path.dirname(conanfile_path)
         for root, _, files in os.walk(recipe_folder):
             if _skip_test_package(root, recipe_folder):
                 continue
+            for file in files:
+                if any(it in disallowed_chars for it in file):
+                    out.error(f"The file '{file}' uses illegal characters ({disallowed_chars}) for its name. Please, rename that file.")
+                if file.endswith("."):
+                    out.error(f"The file '{file}' ends with a dot. Please, remove the dot from the end.")
             for filename in files:
                 if not any(filename.lower().endswith(ext) for ext in ext_to_be_checked):
                     continue
                 lines = open(os.path.join(root, filename), 'rb').readlines()
                 if any(line.endswith(b'\r\n') for line in lines):
-                    out.error("The file '{}' uses CRLF. Please, replace by LF."
-                              .format(filename))
+                    out.error(f"The file '{filename}' uses CRLF. Please, replace by LF to avoid errors with diff tools.")
 
-    @run_test("KB-H061", conanfile)
-    def test(out):
-        Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
-        BuildInfo = collections.namedtuple("BuildInfo", ("loc", "what", "func"))
-        class BuildInfoVisitor(ast.NodeVisitor):
-            METHODS_NO_BUILDINFO = (
-                "build_requirements",
-                "config_options",
-                "configure",
-                "package_id",
-                "package_info",
-                "requirements",
-                "source",
-                "validate",
-            )
-
-            def __init__(self):
-                self.invalids = []
-                self.function_def_stack = []
-                ast.NodeVisitor.__init__(self)
-
-            def visit_FunctionDef(self, node):
-                self.function_def_stack.append(node.name)
-                self.generic_visit(node)
-                self.function_def_stack.pop()
-
-            def visit_Attribute(self, node):
-                methods_stack_no_build_info_allowed = [fdef for fdef in self.function_def_stack if fdef in self.METHODS_NO_BUILDINFO]
-                if methods_stack_no_build_info_allowed:
-                    # FIXME: Not all python 2.7 interpretors have node.end_lineno or node.end_col_offset
-                    if (node.attr == "os_info" and isinstance(node.value, ast.Name) and node.value.id == "tools") or \
-                       (node.attr.startswith("is_") and isinstance(node.value, ast.Name) and node.value.id == "os_info"):
-                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), getattr(node, "end_col_offset", node.col_offset)), "tools.os_info", methods_stack_no_build_info_allowed[0]))
-                    elif isinstance(node.value, ast.Name) and node.value.id == "platform":
-                        self.invalids.append(BuildInfo(Location(node.lineno, node.col_offset, getattr(node, "end_lineno", node.lineno), getattr(node, "end_col_offset", node.col_offset)), "platform", methods_stack_no_build_info_allowed[0]))
-                self.generic_visit(node)
-
-        to_test = [(conanfile_path, conanfile_content),]
-        test_conanfile_path = os.path.join(export_folder_path, "test_package", "conanfile.py")
-        if os.path.isfile(test_conanfile_path):
-            to_test.append((test_conanfile_path, load(conanfile, test_conanfile_path)))
-
-        for dut_conanfile_path, dut_conanfile_contents in to_test:
+        def _check_final_newline(path):
             try:
-                node = ast.parse(dut_conanfile_contents)
-            except SyntaxError:
-                out.error("A SyntaxError was thrown while parsing '{}'".format(dut_conanfile_path))
+                last_char = load(conanfile, path)[-1]
+            except (OSError, IndexError):
+                return  # File is empty ==> ignore
+            if last_char not in ("\n", "\r"):
+                out.error(f"File '{path}' does not end with an endline. Please, add it to avoid issues with some diff tools.")
+
+        for root, _, filenames in os.walk(export_folder_path):
+            if _skip_test_package(root, export_folder_path):
+                # Discard any file in temp builds
                 continue
-            visitor = BuildInfoVisitor()
-            visitor.visit(node)
-            for build_info in visitor.invalids:
-                out.error("{}:{} Build system dependent functions detected. (Use of {} is forbidden in {})".format(
-                    dut_conanfile_path, build_info.loc.line, build_info.what, build_info.func))
+            for filename in filenames:
+                _, fileext = os.path.splitext(filename)
+                if filename in files_noext or fileext.lower() in ext_to_be_checked:
+                    _check_final_newline(os.path.join(root, filename))
 
+        config_yml = os.path.join(export_folder_path, os.path.pardir, "config.yml")
+        if os.path.isfile(config_yml):
+            _check_final_newline(config_yml)
 
-    @run_test("KB-H062", conanfile)
-    def test(out):
-        def _check_content(content, path):
-            if "tools.cross_building(self.settings)" in content:
-                out.warn("The 'tools.cross_building(self.settings)' syntax in {} may not work correctly "
-                         "in some scenarios. Consider using tools.cross_building(self).".format(path))
-
-        _check_content(conanfile_content, "conanfile.py")
-        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package",
-                                         "conanfile.py")
-        if os.path.exists(test_package_path):
-            test_package_content = load(conanfile, test_package_path)
-            _check_content(test_package_content, test_package_path)
-
-    @run_test("KB-H064", conanfile)
-    def test(out):
-        topics = getattr(conanfile, "topics")
-        if topics and isinstance(topics, (list, tuple)):
-            invalid_topics = ["conan"]
-            for topic in topics:
-                if topic in invalid_topics:
-                    out.warn("The topic '{}' is invalid and should be removed from topics "
-                             "attribute.".format(topic))
-                if topic != topic.lower():
-                    out.warn("The topic '{}' is invalid; even names and acronyms should be formatted "
-                             "entirely in lowercase.".format(topic))
-
-    @run_test("KB-H065", conanfile)
-    def test(out):
-        def _find_required_conan_version(conanfile_content):
-            match = re.search(r"^\s*required_conan_version\s*=\s*[\"']>=\s*([\d\.]+)[\"']",
-                              conanfile_content, re.MULTILINE)
-            if match:
-                return Version(match.group(1))
-            return None
-
-        conanfile_content = load(conanfile, conanfile_path)
-
-        found_strip_root = False
-        lines = conanfile_content.splitlines()
-        for idx, line in enumerate(lines):
-            # check current and next line
-            if 'tools.get' in line and any('strip_root=True' in l for l in lines[idx:idx+2]):
-                found_strip_root = True
-
-        version = _find_required_conan_version(conanfile_content)
-        required_version = Version('1.33.0')
-        if found_strip_root and (not version or version < required_version):
-            out.warn("tools.get with strip_root=True is available since Conan {0}. "
-                     "Please add `required_conan_version >= \"{0}\"`"
-                     "".format(str(required_version)))
-
-    @run_test("KB-H068", conanfile)
+    @run_test("KB-H029", conanfile)
     def test(out):
         test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
         if os.path.isfile(test_package_path):
             try:
-                test_conanfile = _load_conanfile(test_package_path)
-                test_type = getattr(test_conanfile, "test_type", None)
-                if test_type and test_type != "explicit":
-                    out.error(f"The attribute 'test_type' only should be used with 'explicit' value.: {test_type}")
+                test_package_content = load(conanfile, test_package_path)
+                for attribute in ["default_options", "version", "name", "license", "author", "exports", "build_policy"]:
+                    match = re.search(rf"\s\s\s\s({attribute})\s*=", test_package_content)
+                    if match:
+                        out.error(f"The attribute '{attribute}' is not allowed on test_package/conanfile.py, remove it.")
             except Exception as e:
-                out.warn("Invalid conanfile: {}".format(e))
+                out.warning(f"Invalid conanfile: {e}")
 
-    @run_test("KB-H069", conanfile)
-    def test(out):
-        test_package_path = os.path.join(os.path.dirname(conanfile_path), "test_package", "conanfile.py")
-        if os.path.isfile(test_package_path):
-            try:
-                test_conanfile = _load_conanfile(test_package_path)
-                default_options = getattr(test_conanfile, "default_options", None)
-                if default_options:
-                    out.error(f"The attribute 'default_options' is not allowed on test_package/conanfile.py, remove it.")
-            except Exception as e:
-                out.warn("Invalid conanfile: {}".format(e))
-
-
-    @run_test("KB-H070", conanfile)
+    @run_test("KB-H030", conanfile)
     def test(out):
         settings = getattr(conanfile, "settings", None)
         if settings:
             settings = settings if isinstance(settings, (list, tuple)) else [settings]
             missing = [x for x in ["os", "arch", "compiler", "build_type"] if x not in settings]
             if missing:
-                out.warn("The values '{}' are missing on 'settings' attribute. Update settings with the missing "
-                         "values and use 'package_id(self)' method to manage the package ID.".format("', '".join(missing)))
+                out.warning(f"The values '{missing}' are missing on 'settings' attribute. Update settings with the missing "
+                         "values and use 'package_id(self)' method to manage the package ID.")
         else:
-            out.warn("No 'settings' detected in your conanfile.py. Add 'settings' attribute and use 'package_id(self)' method to manage the package ID.")
+            out.warning("No 'settings' detected in your conanfile.py. Please, be sure that your package is a header-only.")
 
-    @run_test("KB-H072", conanfile)
+    @run_test("KB-H032", conanfile)
     def test(out):
-        def _check_conanfile_content(content, path):
-            patterns = [r'#\s*pylint\s*:\s*skip-file\s*', '#\s*pylint\s*:\s*disable-all\s*', '#\s*pylint\s*:\s*disable=']
-            for pattern in patterns:
-                if re.search(pattern, content):
-                    out.error(f"Pylint can not be skipped, remove '#pylint' line from '{path}'")
-
-        recipe_folder = os.path.dirname(conanfile_path)
-        recipes = _get_files_following_patterns(conanfile, recipe_folder, [r"conanfile.py", ])
-        for recipe in recipes:
-            recipe_path = os.path.join(recipe_folder, recipe)
-            recipe_content = load(conanfile, recipe_path)
-            _check_conanfile_content(recipe_content, recipe_path)
-
-    @run_test("KB-H075", conanfile)
-    def test(out):
-        match = re.search(r'self.requires\(.*override=True.*\)', conanfile_content)
-        if match:
-            out.error("self.requires('package/version', override=True) is forbidden, do not force override parameter.")
+        for method in ["self.requires", "self.build_requires", "self.test_requires"]:
+            pattern = r'(^|\n)\s*' + method + r'\(.*override=True.*\)'
+            match = re.search(pattern, conanfile_content)
+            if match:
+                out.error(f"{method}('package/version', override=True) is forbidden, do not force override parameter.")
 
 
 @raise_if_error_output
 def post_export(conanfile):
-    export_folder_path = os.path.dirname(conanfile.export_folder)
 
-    @run_test("KB-H031", conanfile)
-    def test(out):
-        conandata_path = os.path.join(export_folder_path, "conandata.yml")
-        version = str(conanfile.version)
-
-        conandata_yml = load_yml(conanfile, conandata_path)
-        if not conandata_yml:
-            return
-        info = {}
-        for entry in conandata_yml:
-            if version not in conandata_yml[entry]:
-                continue
-            info[entry] = {}
-            info[entry][version] = conandata_yml[entry][version]
-        out.info("Saving conandata.yml: {}".format(info))
-        new_conandata_yml = yaml.safe_dump(info, default_flow_style=False)
-        out.info("New conandata.yml contents: {}".format(new_conandata_yml))
-        save(conanfile, conandata_path, new_conandata_yml)
-
-    @run_test("KB-H050", conanfile)
+    @run_test("KB-H022", conanfile)
     def test(out):
         allowlist = (
             "glib",
@@ -944,17 +593,12 @@ def post_export(conanfile):
             "vulkan-loader",
         )
         if conanfile.name in allowlist:
-            out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
+            out.info(f"'{conanfile.name}' is part of the allowlist, skipping.")
             return
 
         default_options = getattr(conanfile, "default_options")
         if default_options and isinstance(default_options, dict) and default_options.get("shared") is True:
-            out.error("The option 'shared' must be 'False' by default. Update 'default_options'.")
-
-    @run_test("KB-H056", conanfile)
-    def test(out):
-        if str(conanfile.license).lower() in ["public domain", "public-domain", "public_domain"]:
-            out.error("Public Domain is not a SPDX license. Use 'Unlicense' instead.")
+            out.error("The option 'shared' must be 'False' by default. Update 'default_options' to 'shared=False'.")
 
 
 @raise_if_error_output
@@ -963,32 +607,23 @@ def pre_source(conanfile):
     conandata_source = os.path.join(os.path.dirname(conanfile_path), "conandata.yml")
     conanfile_content = load(conanfile, conanfile_path)
 
-    @run_test("KB-H010", conanfile)
+    @run_test("KB-H007", conanfile)
     def test(out):
         if conanfile.version == "system":
             return
         if not os.path.exists(conandata_source):
-            out.error("Create a file 'conandata.yml' file with the sources "
-                      "to be downloaded.")
+            out.error("Create a file 'conandata.yml' file with the sources to be downloaded.")
 
         if "def source(self):" in conanfile_content:
-            invalid_content = ["git checkout master", "git checkout devel", "git checkout develop"]
-            if "git clone" in conanfile_content and "git checkout" in conanfile_content:
-                fixed_sources = True
-                for invalid in invalid_content:
-                    if invalid in conanfile_content:
-                        fixed_sources = False
-                        break
-            else:
-                fixed_sources = True
-                if ('**self.conan_data["sources"]' not in conanfile_content and
-                    'tools.get' not in conanfile_content) and \
-                   ('self.conan_data["sources"]' not in conanfile_content and
-                    'tools.download' not in conanfile_content):
-                    fixed_sources = False
+            for line in conanfile_content.splitlines():
+                if line.strip().startswith("#"):
+                    continue
+                if "git clone" in line or "git checkout" in line:
+                    out.error("Git commands not allowed in 'source()' method. Use the conan.tools.files.get() with self.conan_data instead.")
+                    break
 
-            if not fixed_sources:
-                out.error("Use 'tools.get(**self.conan_data[\"sources\"][\"XXXXX\"])' "
+            if 'self.conan_data' not in conanfile_content and 'get(self' not in conanfile_content and 'download(self' not in conanfile_content:
+                out.error("Use 'get(self, **self.conan_data[\"sources\"][\"XXXXX\"])' "
                           "in the source() method to get the sources.")
 
 
@@ -1001,42 +636,40 @@ def post_source(conanfile):
             cpp_extensions = ["cc", "c++", "cpp", "cxx", "c++m", "cppm", "cxxm", "h++", "hh", "hxx", "hpp"]
             c_extensions = ["c", "h"]
             return not _get_files_with_extensions(conanfile, conanfile.source_folder, cpp_extensions) and \
-                       _get_files_with_extensions(conanfile, conanfile.source_folder, c_extensions)
+                _get_files_with_extensions(conanfile, conanfile.source_folder, c_extensions)
 
-    @run_test("KB-H011", conanfile)
+    @run_test("KB-H008", conanfile)
     def test(out):
         if _is_pure_c():
             conanfile_content = load(conanfile, conanfile_path)
             low = conanfile_content.lower()
 
             if conanfile.settings.get_safe("compiler") and \
-                ("del self.settings.compiler.libcxx" not in low and \
-                 'self.settings.rm_safe("compiler.libcxx")' not in low and \
-                 "self.settings.rm_safe('compiler.libcxx')" not in low):
+                    ("del self.settings.compiler.libcxx" not in low and
+                     'self.settings.rm_safe("compiler.libcxx")' not in low and
+                     "self.settings.rm_safe('compiler.libcxx')" not in low and
+                     "self.settings.compiler.rm_safe('libcxx')" not in low and
+                     'self.settings.compiler.rm_safe("libcxx")' not in low):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.libcxx'")
 
-    @run_test("KB-H022", conanfile)
-    def test(out):
-        if _is_pure_c():
-            conanfile_content = load(conanfile, conanfile_path)
-            low = conanfile_content.lower()
             if conanfile.settings.get_safe("compiler") and \
-                ("del self.settings.compiler.cppstd" not in low and \
-                 'self.settings.rm_safe("compiler.cppstd")' not in low and \
-                 "self.settings.rm_safe('compiler.cppstd')" not in low):
+                    ("del self.settings.compiler.cppstd" not in low and
+                     'self.settings.rm_safe("compiler.cppstd")' not in low and
+                     "self.settings.rm_safe('compiler.cppstd')" not in low and
+                     'self.settings.compiler.rm_safe("cppstd")' not in low and
+                     "self.settings.compiler.rm_safe('cppstd')" not in low):
                 out.error("Can't detect C++ source files but recipe does not remove "
                           "'self.settings.compiler.cppstd'")
 
-    @run_test("KB-H066", conanfile)
+    @run_test("KB-H028", conanfile)
     def test(out):
         _check_short_paths(conanfile, conanfile_path, conanfile.source_folder, 120, out)
 
 
 @raise_if_error_output
 def pre_build(conanfile):
-
-    @run_test("KB-H007", conanfile)
+    @run_test("KB-H005", conanfile)
     def test(out):
         has_fpic = conanfile.options.get_safe("fPIC")
         error = False
@@ -1058,30 +691,33 @@ def pre_build(conanfile):
 def post_package(conanfile):
     conanfile_path = os.path.join(conanfile.recipe_folder, "conanfile.py")
 
-    @run_test("KB-H012", conanfile)
+    @run_test("KB-H009", conanfile)
     def test(out):
         if conanfile.version == "system":
             return
+
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
-            out.error("No 'licenses' folder found in package: %s " % conanfile.package_folder)
+            out.error(f"No 'licenses' folder found in package folder: {conanfile.package_folder}")
             return
-        licenses = []
+
+        if not os.listdir(licenses_folder):
+            out.error(f"No license files found in the license folder: {licenses_folder}")
+            return
+
         for root, dirnames, filenames in os.walk(licenses_folder):
             for filename in filenames:
-                licenses.append(filename)
-        if not licenses:
-            out.error("Not known valid licenses files "
-                      "found at: %s\n"
-                      "Files: %s" % (licenses_folder, ", ".join(licenses)))
+                license_path = os.path.join(licenses_folder, filename)
+                if os.stat(license_path).st_size == 0:
+                    out.error(f"Empty license file found: {filename}")
 
-    @run_test("KB-H013", conanfile)
+    @run_test("KB-H010", conanfile)
     def test(out):
         if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "mingw-builds",
                               "openjdk", "mono", "gcc", "mold"]:
             return
 
-        base_known_folders = ["lib", "bin", "include", "res", "licenses"]
+        base_known_folders = ["lib", "bin", "include", "res", "licenses", "metadata"]
         known_folders = {
             'icu': base_known_folders + ['config', ]
         }.get(conanfile.name, base_known_folders)
@@ -1096,12 +732,26 @@ def post_package(conanfile):
         if out.failed:
             out.info("If you are trying to package a tool put all the contents under the 'bin' folder")
 
-    @run_test("KB-H014", conanfile)
+    @run_test("KB-H011", conanfile)
     def test(out):
         if conanfile.version == "system":
             return
 
-        # INFO: allowlist for package names
+        if not _shared_files_well_managed(conanfile, conanfile.package_folder):
+            out.error("Package with 'shared=True' option did not contain any shared artifact")
+
+        if not _static_files_well_managed(conanfile, conanfile.package_folder):
+            out.error("Package with 'shared=False' option did not contain any static artifact")
+
+        (result, message) = _package_type_well_managed(conanfile, conanfile.package_folder)
+        if not result:
+            out.error(message)
+
+        libs_both_static_shared = _get_libs_if_static_and_shared(conanfile)
+        if libs_both_static_shared:
+            out.error(f"Package contains both shared and static flavors of these libraries: {', '.join(libs_both_static_shared)}. Please, remove according the to shared option.")
+
+        # INFO: allow list for package names
         if conanfile.name in [
             "autoconf",
             "autoconf-archive",
@@ -1122,88 +772,53 @@ def post_package(conanfile):
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
-            out.error("Packaged artifacts does not match the settings used: os=%s, compiler=%s"
-                      % (_get_os(conanfile), conanfile.settings.get_safe("compiler")))
+            out.error(f"Packaged artifacts does not match the settings used: os={_get_os(conanfile)}, compiler={conanfile.settings.get_safe('compiler')}")
 
-    @run_test("KB-H015", conanfile)
+    @run_test("KB-H012", conanfile)
     def test(out):
-        if not _shared_files_well_managed(conanfile, conanfile.package_folder):
-            out.error("Package with 'shared=True' option did not contain any shared artifact")
-
-    @run_test("KB-H074", conanfile)
-    def test(out):
-        if not _static_files_well_managed(conanfile, conanfile.package_folder):
-            out.error("Package with 'shared=False' option did not contain any static artifact")
-
-    @run_test("KB-H020", conanfile)
-    def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl", "android-ndk", "emsdk"]:
-            return
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, ["*.pc"])
-        if bad_files:
-            out.error("The conan-center repository doesn't allow the packages to contain `pc` "
-                      "files. The packages have to "
-                      "be located using generators and the declared `cpp_info` information")
+        allowlist = ["cmake", "msys2", "strawberryperl", "android-ndk", "pybind11", "emsdk", "ignition-cmake", "extra-cmake-modules"]
+        forbidden_exts = ["Find*.cmake", "*Config.cmake", "*-config.cmake", "*.pc"]
+        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, forbidden_exts)
+        if bad_files and conanfile.name not in allowlist:
+            out.error("The CCI doesn't allow the packages to contain build configuration files."
+                      " Please, remove all files from the package folder."
+                      " In case these files are really required, declare them in `cpp_info` information")
             out.error("Found files: {}".format("; ".join(bad_files)))
 
-    @run_test("KB-H016", conanfile)
-    def test(out):
-        if conanfile.name in ["cmake", "msys2", "strawberryperl", "pybind11", "ignition-cmake",
-                              "extra-cmake-modules", "emsdk"]:
-            return
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, ["Find*.cmake",
-                                                                             "*Config.cmake",
-                                                                             "*-config.cmake"])
-        if bad_files:
-            out.error("The conan-center repository doesn't allow the packages to contain CMake "
-                      "find modules or config files. The packages have to "
-                      "be located using generators and the declared `cpp_info` information")
-
-            out.error("Found files: {}".format("; ".join(bad_files)))
-
-    @run_test("KB-H017", conanfile)
-    def test(out):
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, ["*.pdb"])
-        if bad_files:
-            out.error("The conan-center repository doesn't allow PDB files")
-            out.error("Found files: {}".format("; ".join(bad_files)))
-
-    @run_test("KB-H018", conanfile)
-    def test(out):
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, ["*.la"])
-        if bad_files:
-            out.error("Libtool files found (*.la). Do not package *.la files "
-                      "but library files (.a) ")
-            out.error("Found files: {}".format("; ".join(bad_files)))
-
-    @run_test("KB-H021", conanfile)
+    @run_test("KB-H013", conanfile)
     def test(out):
         if conanfile.name in ["powershell", "android-ndk", "emsdk"]:
             return
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder,
-                                                  ["msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"])
-        if bad_files:
-            out.error("The conan-center repository doesn't allow Microsoft Visual Studio runtime files.")
-            out.error("Found files: {}".format("; ".join(bad_files)))
 
-    @run_test("KB-H066", conanfile)
+        for ext in ["*.pdb", "*.la", "msvcr*.dll", "msvcp*.dll", "vcruntime*.dll", "concrt*.dll"]:
+            pdb_files = _get_files_following_patterns(conanfile, conanfile.package_folder, [ext])
+            metadata_files = _get_files_following_patterns(conanfile, conanfile.package_metadata_folder, [ext])
+            diff_files = [x for x in pdb_files if x not in metadata_files]
+            if diff_files:
+                out.error(f"Files '{ext}' are not allowed as part of the package. Found files: {diff_files}. Please, move those files to self.package_metadata_folder.")
+
+    @run_test("KB-H028", conanfile)
     def test(out):
         _check_short_paths(conanfile, conanfile_path, conanfile.package_folder, 160, out)
 
-    @run_test("KB-H043", conanfile)
+    @run_test("KB-H020", conanfile)
     def test(out):
+        # FIXME: Need check for false-positive when showing third-party dependencies instead
         dict_deplibs_libs = _deplibs_from_shlibs(conanfile, out)
         all_system_libs = _all_system_libs(_get_os(conanfile))
 
         needed_system_libs = set(dict_deplibs_libs.keys()).intersection(all_system_libs)
 
         if _get_os(conanfile) == "Macos":
-
-            deps_system_libs = set([frameworks for dep in conanfile.dependencies.values() for frameworks in dep.cpp_info.frameworks])
+            deps_system_libs = set(
+                [frameworks for dep in conanfile.dependencies.values() for frameworks in dep.cpp_info.frameworks])
         else:
-            deps_system_libs = set([system_libs for dep in conanfile.dependencies.values() for system_libs in dep.cpp_info.system_libs])
+            deps_system_libs = set(
+                [system_libs for dep in conanfile.dependencies.values() for system_libs in dep.cpp_info.system_libs])
 
-        conanfile_system_libs = set(m.group(2) for m in re.finditer(r"""(["'])([a-zA-Z0-9._-]+)(\1)""", load(conanfile, conanfile_path))).intersection(all_system_libs)
+        conanfile_system_libs = set(m.group(2) for m in re.finditer(r"""(["'])([a-zA-Z0-9._-]+)(\1)""",
+                                                                    load(conanfile, conanfile_path))).intersection(
+            all_system_libs)
 
         missing_system_libs = needed_system_libs.difference(deps_system_libs.union(conanfile_system_libs))
 
@@ -1211,80 +826,24 @@ def post_package(conanfile):
         for missing_system_lib in missing_system_libs:
             libs = dict_deplibs_libs[missing_system_lib]
             for lib in libs:
-                out.warn("Library '{}' links to system library '{}' but it is not in cpp_info.{}.".format(lib, missing_system_lib, attribute))
+                out.warning(f"Library '{lib}' links to system library '{missing_system_lib}' but it is not in cpp_info.{attribute}.")
 
-    @run_test("KB-H076", conanfile)
+    @run_test("KB-H033", conanfile)
     def test(out):
-        libs_both_static_shared = _get_libs_if_static_and_shared(conanfile)
-        if len(libs_both_static_shared):
-            out.error("Package contains both shared and static flavors of these "
-                      f"libraries: {', '.join(libs_both_static_shared)}")
-
-    @run_test("KB-H077", conanfile)
-    def test(out):
+        # TODO: Complex hook that could be simplified/revisited
         if not is_apple_os(conanfile):
             return
         not_relocatable_libs = _get_non_relocatable_shared_libs(conanfile)
         if not_relocatable_libs:
-            out.warn(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
+            out.warning(f"install_name dir of these shared libs is not @rpath: {', '.join(not_relocatable_libs)}")
 
 
 @raise_if_error_output
 def post_package_info(conanfile):
 
-    @run_test("KB-H019", conanfile)
+    @run_test("KB-H024", conanfile)
     def test(out):
-        if conanfile.name in ["android-ndk", "cmake", "msys2", "strawberryperl"]:
-            return
-        # FIXME: Need to be ported to Conan v2
-        return
-        
-        bad_files = _get_files_following_patterns(conanfile, conanfile.package_folder, ["*.cmake"])
-        build_dirs = {bd.replace("\\", "/") for bd in conanfile.cpp_info.build_paths}
-        dependencies = conanfile.dependencies.value()
-        for dependency in dependencies:
-            for component in conanfile.dependencies[dependency].cpp_info.components.values():
-                build_dirs.update({bd.replace("\\", "/") for bd in component.build_paths})
-        files_missplaced = []
-
-        build_modules = []
-        if isinstance(conanfile.cpp_info.build_modules, dict):
-            build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package"])
-            build_modules.extend(conanfile.cpp_info.build_modules["cmake_find_package_multi"])
-        else:
-            out.warn("cpp_info.build_modules is not a dictionary")
-        for component_name, component in conanfile.cpp_info.components.items():
-            if isinstance(component.build_modules, dict):
-                build_modules.extend(component.build_modules["cmake_find_package"])
-                build_modules.extend(component.build_modules["cmake_find_package_multi"])
-            else:
-                out.warn('cpp_info.components["%s"].build_modules is not a dictionary' % component_name)
-        build_modules = [bm.replace("\\", "/") for bm in build_modules]
-
-        for filename in bad_files:
-            if any(os.path.samefile(filename, module) for module in build_modules):
-                continue
-            for bdir in build_dirs:
-                bdir = os.path.relpath(bdir, conanfile.package_folder)
-                bdir = bdir.replace("\\", "/")
-                bdir = "" if bdir == "." else bdir
-                bdir = "./{}".format(bdir)
-                # https://github.com/conan-io/conan/issues/5401
-                if bdir == "./":
-                    if os.path.dirname(filename) == ".":
-                        break
-                elif os.path.commonprefix([bdir, filename]) == bdir:
-                    break
-            else:
-                files_missplaced.append(filename)
-
-        if files_missplaced:
-            out.warn("The *.cmake files have to be placed in a folder declared as "
-                     "`cpp_info.builddirs`. Currently folders declared: {}".format(build_dirs))
-            out.warn("Found files: {}".format("; ".join(files_missplaced)))
-
-    @run_test("KB-H054", conanfile)
-    def test(out):
+        # TODO: Complex hook that could be simplified/revisited
         def _test_component(component):
             libs_to_search = list(component.libs)
             for p in component.libdirs:
@@ -1294,21 +853,25 @@ def post_package_info(conanfile):
                 libs_to_search = [l for l in libs_to_search if l not in libs_found]
                 libs_to_search = [l for l in libs_to_search if not os.path.isfile(os.path.join(p, l))]
             for l in libs_to_search:
-                out.error(f"Component {conanfile.name}::{component.name} library '{l}' is listed in the recipe, "
-                           "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
+                component_name = component.name if hasattr(component, "name") else conanfile.name
+                out.error(f"Component {conanfile.name}::{component_name} library '{l}' is listed in the recipe, "
+                          "but not found installed at self.cpp_info.libdirs. Make sure you compiled the library correctly. If so, then the library name should probably be fixed. Otherwise, then the component should be removed.")
 
         if not conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info.components[c])
 
-    @run_test("KB-H071", conanfile)
+    @run_test("KB-H031", conanfile)
     def test(out):
         def _test_component(component):
             for d in component.includedirs:
                 if not os.path.isdir(d):
-                    out.error(f"Component {conanfile.name}::{component.name} include dir '{d}' is listed in the recipe, "
-                               "but not found in package folder. The include dir should probably be fixed or removed.")
+                    component_name = component.name if hasattr(component, "name") else conanfile.name
+                    out.error(
+                        f"Component {conanfile.name}::{component_name} include dir '{d}' is listed in the recipe, "
+                        "but not found in package folder. The include dir should probably be fixed or removed.")
+
         if not conanfile.cpp_info.components:
             _test_component(conanfile.cpp_info)
         for c in conanfile.cpp_info.components:
@@ -1365,6 +928,20 @@ def _static_files_well_managed(conanfile, folder):
         if not _get_files_with_extensions(conanfile, folder, static_extensions):
             return False
     return True
+
+
+def _package_type_well_managed(conanfile, folder):
+    shared_extensions = ["dll", "so", "dylib"]
+    static_extensions = ["a", "lib"]
+    package_type = getattr(conanfile, "package_type", None)
+    if package_type:
+        static_libs = _get_files_with_extensions(conanfile, folder, static_extensions)
+        if static_libs and package_type not in ["library", "static-library"]:
+            return False, f"Package type is '{package_type}' but contains static libraries: {', '.join(static_libs)}"
+        shared_libs = _get_files_with_extensions(conanfile, folder, shared_extensions)
+        if shared_libs and package_type not in ["library", "shared-library"]:
+            return False, f"Package type is '{package_type}' but contains shared libraries: {', '.join(shared_libs)}"
+    return True, None
 
 
 def _get_libs_if_static_and_shared(conanfile):
@@ -1460,7 +1037,7 @@ def _files_match_settings(conanfile, folder, output):
             return False
         else:
             return True
-    output.warn("OS %s might not be supported. Skipping..." % settings_os)
+    output.warning("OS %s might not be supported. Skipping..." % settings_os)
     return True
 
 
@@ -1489,9 +1066,11 @@ def _get_os(conanfile):
         return None
     return settings.get_safe("os") or settings.get_safe("os_build")
 
+
 def _skip_test_package(root, filename):
     filename = os.path.relpath(root, filename).replace("\\", "/")
     return filename.startswith("test_package/build") or filename.startswith("test_package/test_output")
+
 
 def _check_short_paths(conanfile, conanfile_path, folder_path, max_length_path, output):
     conanfile_content = load(conanfile, conanfile_path)
@@ -1504,10 +1083,11 @@ def _check_short_paths(conanfile, conanfile_path, folder_path, max_length_path, 
                 for filename in filenames:
                     filepath = os.path.join(root, filename).replace("\\", "/")
                     if len(filepath) >= file_max_length_path:
-                        output.warn(
+                        output.warning(
                             f"The file '{filepath}' has a very long path and may exceed Windows max path length. "
                             "Add 'short_paths = True' in your recipe.")
                         break
+
 
 def _get_compiler(conanfile):
     settings = _get_settings(conanfile)
@@ -1538,7 +1118,7 @@ def _deplibs_from_shlibs(conanfile, out):
     if os_ == "Linux" or is_apple_os(conanfile) or not is_msvc(conanfile):
         objdump = os.getenv("OBJDUMP") or shutil.which("objdump")
         if not objdump:
-            out.warn("objdump not found")
+            out.warning("objdump not found")
             return deplibs
         for library in libraries:
             if _get_os(conanfile) == "Windows":
@@ -1548,7 +1128,9 @@ def _deplibs_from_shlibs(conanfile, out):
             try:
                 objdump_output = subprocess.check_output(cmd, cwd=conanfile.package_folder).decode()
             except subprocess.CalledProcessError:
-                out.warn("Running objdump on '{}' failed. Is the environment variable OBJDUMP correctly configured?".format(library))
+                out.warning(
+                    "Running objdump on '{}' failed. Is the environment variable OBJDUMP correctly configured?".format(
+                        library))
                 continue
             if _get_os(conanfile) == "Windows":
                 for dep_lib_match in re.finditer(r"DLL Name: (.*).dll", objdump_output, re.IGNORECASE):
@@ -1578,7 +1160,8 @@ def _deplibs_from_shlibs(conanfile, out):
                             continue
                         deplibs.setdefault(match.group(1), []).append(library)
             else:
-                dep_libs_fn = list(l.replace("NEEDED", "").strip() for l in objdump_output.splitlines() if "NEEDED" in l)
+                dep_libs_fn = list(
+                    l.replace("NEEDED", "").strip() for l in objdump_output.splitlines() if "NEEDED" in l)
                 for dep_lib_fn in dep_libs_fn:
                     dep_lib_match = re.match(r"lib(.*).{}(?:\.[0-9]+)*".format(shlext), dep_lib_fn)
                     if not dep_lib_match:
@@ -1593,7 +1176,7 @@ def _deplibs_from_shlibs(conanfile, out):
                     conanfile.run(f"dumpbin -dependents {library}", buffer, env=["conanvcvars"])
                 dumpbin_output = buffer.getvalue()
             except subprocess.CalledProcessError:
-                out.warn("Running dumpbin on '{}' failed.".format(library))
+                out.warning("Running dumpbin on '{}' failed.".format(library))
                 continue
             for l in re.finditer(r"([a-z0-9\-_]+)\.dll", dumpbin_output, re.IGNORECASE):
                 dep_lib_base = l.group(1).lower()
@@ -1658,7 +1241,8 @@ _WIN32_LIBS = {
     "winstrm", "wintrust", "wlanapi", "wlanui", "wldap32", "wmcodecdspuuid", "wmdrmsdk", "wmiutils",
     "wmvcore", "workspaceax", "ws2_32", "wsbapp_uuid", "wscapi", "wsdapi", "wsmsvc", "wsnmp32", "wsock32",
     "wtsapi32", "wuguid", "xaswitch", "xinput", "xmllite", "xolehlp", "xpsprint",
-}.difference({"kernel32", "user32", "gdi32", "winspool", "shell32", "ole32", "oleaut32", "uuid", "comdlg32", "advapi32"})
+}.difference(
+    {"kernel32", "user32", "gdi32", "winspool", "shell32", "ole32", "oleaut32", "uuid", "comdlg32", "advapi32"})
 
 # /System/Library/Frameworks
 _OSX_LIBS = {
@@ -1699,10 +1283,3 @@ _OSX_LIBS = {
     '_SceneKit_SwiftUI', '_SpriteKit_SwiftUI', '_StoreKit_SwiftUI', 'iTunesLibrary', 'vecLib',
     'vmnet'
 }
-
-
-def _load_conanfile(conanfile_path):
-    conan_api = ConanAPI()
-    path = conan_api.local.get_conanfile_path(conanfile_path, os.getcwd(), py=True)
-    conanfile = conan_api.graph.load_conanfile_class(path)
-    return conanfile
