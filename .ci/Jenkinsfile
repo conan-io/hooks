@@ -4,39 +4,39 @@ pipeline {
         stage("Macos") {
             failFast true
             parallel {
-                stage('Macos - py36') {
-                    agent {
-                        label 'M2Macos'
-                    }
-                    stages {
-                        stage('Macos - py36 - Generate environment') {
-                            environment {
-                                PYVER = 'py36'
-                            }
-                            steps {
-                                sh '.ci/generate_env_macos.sh'
-                            }
-                        }
-                        stage('Macos - py36 - conandev') {
-                            environment {
-                                PYVER = 'py36'
-                                TOXENV = 'py36-conandev'
-                            }
-                            steps {
-                                sh '.ci/run_tox.sh'
-                            }
-                        }
-                        stage('Macos - py36 - conancurrent') {
-                            environment {
-                                PYVER = 'py36'
-                                TOXENV = 'py36-conancurrent'
-                            }
-                            steps {
-                                sh '.ci/run_tox.sh'
-                            }
-                        }
-                    }
-                }
+                // stage('Macos - py36') {
+                //     agent {
+                //         label 'M2Macos'
+                //     }
+                //     stages {
+                //         stage('Macos - py36 - Generate environment') {
+                //             environment {
+                //                 PYVER = 'py36'
+                //             }
+                //             steps {
+                //                 sh '.ci/generate_env_macos.sh'
+                //             }
+                //         }
+                //         stage('Macos - py36 - conandev') {
+                //             environment {
+                //                 PYVER = 'py36'
+                //                 TOXENV = 'py36-conandev'
+                //             }
+                //             steps {
+                //                 sh '.ci/run_tox.sh'
+                //             }
+                //         }
+                //         stage('Macos - py36 - conancurrent') {
+                //             environment {
+                //                 PYVER = 'py36'
+                //                 TOXENV = 'py36-conancurrent'
+                //             }
+                //             steps {
+                //                 sh '.ci/run_tox.sh'
+                //             }
+                //         }
+                //     }
+                // }
                 stage('Macos - py38') {
                     agent {
                         label 'M2Macos'
