@@ -1,6 +1,6 @@
 set PATH=%PATH%;C:/Python36/Scripts/
 pip install --timeout 100 --retries 10 tox==3.7.0 tox-venv==0.3.1 requests virtualenv
-python .ci/last_conan_version.py
+REM python .ci/last_conan_version.py
 
 set TEST_FOLDER=D:/J/t/Hooks/%BUILD_NUMBER%/%PYVER%
 
