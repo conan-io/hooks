@@ -24,5 +24,5 @@ ${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
   python -m pip install --upgrade pip && \
-  python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
+  python -m pip install --upgrade --requirement .ci/requirements_macos.txt
 #  python .ci/last_conan_version.py
