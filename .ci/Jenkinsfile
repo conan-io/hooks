@@ -93,37 +93,6 @@ pipeline {
         stage("Windows") {
             failFast true
             parallel {
-                stage('Windows - py36') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py36 - Generate environment') {
-                            environment {
-                                PYVER = 'py36'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py36 - conanv1current') {
-                            environment {
-                                TOXENV = 'py36-conanv1current'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                    //    stage('Windows - py36 - conanv2current') {
-                    //         environment {
-                    //             TOXENV = 'py36-conanv2current'
-                    //         }
-                    //         steps {
-                    //             bat 'tox --recreate'
-                    //         }
-                    //     }
-                    }
-                }
                 stage('Windows - py38') {
                     agent {
                         label 'Windows'
@@ -140,6 +109,37 @@ pipeline {
                         stage('Windows - py38 - conanv1current') {
                             environment {
                                 TOXENV = 'py38-conanv1current'
+                            }
+                            steps {
+                                bat 'tox --recreate'
+                            }
+                        }
+                    //    stage('Windows - py36 - conanv2current') {
+                    //         environment {
+                    //             TOXENV = 'py36-conanv2current'
+                    //         }
+                    //         steps {
+                    //             bat 'tox --recreate'
+                    //         }
+                    //     }
+                    }
+                }
+                stage('Windows - py39') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py39 - Generate environment') {
+                            environment {
+                                PYVER = 'py39'
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conanv1current') {
+                            environment {
+                                TOXENV = 'py39-conanv1current'
                             }
                             steps {
                                 bat 'tox --recreate'
