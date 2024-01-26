@@ -46,6 +46,7 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_VERSION = "1.62.0"
+                                PYTEST_ARGS = "--ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
