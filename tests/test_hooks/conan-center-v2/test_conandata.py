@@ -4,10 +4,10 @@ import unittest
 
 from conan.tools.files import save
 
-from tests.utils.test_cases.conan_client import ConanClientTestCase
+from tests.utils.test_cases.conan_client_v2 import ConanClientV2TestCase
 
 
-class ConanData(ConanClientTestCase):
+class ConanData(ConanClientV2TestCase):
     conanfile = textwrap.dedent("""\
         import os
         from conan import ConanFile
