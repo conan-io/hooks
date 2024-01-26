@@ -45,5 +45,5 @@ class TestConanData(ConanClientV2TestCase):
         save(None, 'conanfile.py', content=self.conanfile)
         save(None, 'conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', '--version=1.69.0'])
-        self.assertNotIn("1.70.0", export_output)
-        self.assertIn("1.69.0", export_output)
+        assert "1.70.0" not in export_output
+        assert "1.69.0" in export_output
