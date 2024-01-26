@@ -19,10 +19,10 @@ case "${PYVER}" in
 esac
 
 mkdir -p ${TEST_FOLDER} || echo "ok"
-${PYVER} -m pip install tox==3.7.0 tox-venv==0.3.1 requests
 ${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
   python -m pip install --upgrade pip && \
   python -m pip install --upgrade --requirement .ci/requirements_macos.txt
+  python -m pip install conan==${CONAN_VERSION}
 #  python .ci/last_conan_version.py
