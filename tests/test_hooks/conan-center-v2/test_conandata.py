@@ -13,6 +13,7 @@ class TestConanData(ConanClientV2TestCase):
         from conan import ConanFile
 
         class AConan(ConanFile):
+            name = "name"
 
             def source(self):
                 pass
@@ -43,6 +44,6 @@ class TestConanData(ConanClientV2TestCase):
         """)
         save(None, 'conanfile.py', content=self.conanfile)
         save(None, 'conandata.yml', content=conandata)
-        export_output = self.conan(['export', '.', 'name/1.69.0@jgsogo/test'])
+        export_output = self.conan(['export', '.', '--version=1.69.0'])
         self.assertNotIn("1.70.0", export_output)
         self.assertIn("1.69.0", export_output)
