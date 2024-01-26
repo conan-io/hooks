@@ -12,7 +12,7 @@ pipeline {
                         stage('Macos - py36 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_VERSION = "==1.*"
+                                CONAN_REQUIREMENT = "conan==1.*"
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -23,7 +23,7 @@ pipeline {
                         stage('Macos - py36 - Conan v2 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_VERSION = "==2.*"
+                                CONAN_REQUIREMENT = "conan==2.*"
                                 PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -41,7 +41,7 @@ pipeline {
                         stage('Macos - py38 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "==1.*"
+                                CONAN_REQUIREMENT = "conan==1.*"
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -52,7 +52,7 @@ pipeline {
                         stage('Macos - py38 - Conan v1 prev') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "==1.61.0"
+                                CONAN_REQUIREMENT = "conan==1.61.0"
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -63,7 +63,7 @@ pipeline {
                         stage('Macos - py38 - conan v2 latest') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "==2.*"
+                                CONAN_REQUIREMENT = "conan==2.*"
                                 PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -74,7 +74,7 @@ pipeline {
                         stage('Macos - py38 - conan v2 prev') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "==2.0.16"
+                                CONAN_REQUIREMENT = "conan==2.0.16"
                                 PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -86,73 +86,91 @@ pipeline {
                 }
             }
         }
-        // stage("Windows") {
-        //     failFast true
-        //     parallel {
-        //         stage('Windows - py38') {
-        //             agent {
-        //                 label 'Windows'
-        //             }
-        //             stages {
-        //                 stage('Windows - py38 - Generate environment') {
-        //                     environment {
-        //                         PYVER = 'py38'
-        //                     }
-        //                     steps {
-        //                         bat '.ci/generate_env_windows.bat'
-        //                     }
-        //                 }
-        //                 stage('Windows - py38 - conanv1current') {
-        //                     environment {
-        //                         TOXENV = 'py38-conanv1current'
-        //                     }
-        //                     steps {
-        //                         bat 'tox --recreate'
-        //                     }
-        //                 }
-        //             //    stage('Windows - py36 - conanv2current') {
-        //             //         environment {
-        //             //             TOXENV = 'py36-conanv2current'
-        //             //         }
-        //             //         steps {
-        //             //             bat 'tox --recreate'
-        //             //         }
-        //             //     }
-        //             }
-        //         }
-        //         stage('Windows - py39') {
-        //             agent {
-        //                 label 'Windows'
-        //             }
-        //             stages {
-        //                 stage('Windows - py39 - Generate environment') {
-        //                     environment {
-        //                         PYVER = 'py39'
-        //                     }
-        //                     steps {
-        //                         bat '.ci/generate_env_windows.bat'
-        //                     }
-        //                 }
-        //                 stage('Windows - py39 - conanv1current') {
-        //                     environment {
-        //                         TOXENV = 'py39-conanv1current'
-        //                     }
-        //                     steps {
-        //                         bat 'tox --recreate'
-        //                     }
-        //                 }
-        //                 // stage('Windows - py38 - conanv2current') {
-        //                 //     environment {
-        //                 //         TOXENV = 'py38-conanv2current'
-        //                 //     }
-        //                 //     steps {
-        //                 //         bat 'tox --recreate'
-        //                 //     }
-        //                 // }
-        //             }
-        //         }
-        //     }
-        // }
+        stage("Windows") {
+            failFast true
+            parallel {
+                stage('Windows - py38') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py38 - conan v1 latest') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py38 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==2.*'
+                                PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                    }
+                }
+                stage('Windows - py39') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py39 - conan v1 dev') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v1 latest') {
+                            environment {
+                               PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v2 dev') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = '==2.*'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // stage("Linux") {
         //     failFast true
         //     parallel {
