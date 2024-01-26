@@ -7,7 +7,7 @@ from conan.tools.files import save
 from tests.utils.test_cases.conan_client_v2 import ConanClientV2TestCase
 
 
-class ConanData(ConanClientV2TestCase):
+class TestConanData(ConanClientV2TestCase):
     conanfile = textwrap.dedent("""\
         import os
         from conan import ConanFile
@@ -24,7 +24,7 @@ class ConanData(ConanClientV2TestCase):
                                                    'hooks', 'hook_reduce_conandata')})
         return kwargs
 
-    def test_single_source(self):
+    def test_reduce_conandata(self):
         conandata = textwrap.dedent("""
             sources:
               "1.69.0":
