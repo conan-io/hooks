@@ -19,7 +19,7 @@ class TestConanData(ConanClientV2TestCase):
         """)
 
     def _get_environ(self, **kwargs):
-        kwargs = super(ConanData, self)._get_environ(**kwargs)
+        kwargs = super(TestConanData, self)._get_environ(**kwargs)
         kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
                                                    'hooks', 'hook_reduce_conandata')})
         return kwargs
