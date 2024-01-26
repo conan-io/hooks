@@ -20,4 +20,4 @@ esac
 
 source ${TEST_FOLDER}/bin/activate
 
-${PYVER} -m pytest tests
+python -m pytest ${TEST_FOLDER}/tests
