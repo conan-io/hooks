@@ -9,10 +9,10 @@ pipeline {
                         label 'M2Macos'
                     }
                     stages {
-                        stage('Macos - py36 - Conan 1.62.0') {
+                        stage('Macos - py36 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_VERSION = "1.62.0"
+                                CONAN_VERSION = "==1.*"
                                 PYTEST_ARGS = "--ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -20,11 +20,11 @@ pipeline {
                                 sh '.ci/run_tests.sh'
                             }
                         }
-                        stage('Macos - py36 - Conan 1.61.0') {
+                        stage('Macos - py36 - Conan v2 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_VERSION = "1.61.0"
-                                PYTEST_ARGS = "--ignore=tests/test_hooks/conan-center-v2"
+                                CONAN_VERSION = "==2.*"
+                                PYTEST_ARGS = ""
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
@@ -38,10 +38,10 @@ pipeline {
                         label 'M2Macos'
                     }
                     stages {
-                        stage('Macos - py38 - Conan 1.62.0') {
+                        stage('Macos - py38 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "1.62.0"
+                                CONAN_VERSION = "==1.*"
                                 PYTEST_ARGS = "--ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -49,10 +49,10 @@ pipeline {
                                 sh '.ci/run_tests.sh'
                             }
                         }
-                        stage('Macos - py38 - Conan 1.61.0') {
+                        stage('Macos - py38 - Conan v1 prev') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_VERSION = "1.61.0"
+                                CONAN_VERSION = "==1.61.0"
                                 PYTEST_ARGS = "--ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
@@ -60,24 +60,26 @@ pipeline {
                                 sh '.ci/run_tests.sh'
                             }
                         }
-                        // stage('Macos - py38 - conanv2dev') {
-                        //     environment {
-                        //         PYVER = 'py38'
-                        //         TOXENV = 'py38-conanv2dev'
-                        //     }
-                        //     steps {
-                        //         sh '.ci/run_tox.sh'
-                        //     }
-                        // }
-                        // stage('Macos - py38 - conanv2current') {
-                        //     environment {
-                        //         PYVER = 'py38'
-                        //         TOXENV = 'py38-conanv2current'
-                        //     }
-                        //     steps {
-                        //         sh '.ci/run_tox.sh'
-                        //     }
-                        // }
+                        stage('Macos - py38 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_VERSION = "==2.*"
+                            }
+                            steps {
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
+                            }
+                        }
+                        stage('Macos - py38 - conan v2 prev') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_VERSION = "==2.0.16"
+                            }
+                            steps {
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
+                            }
+                        }
                     }
                 }
             }

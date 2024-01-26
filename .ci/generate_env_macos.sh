@@ -25,4 +25,4 @@ ${PYVER} -m venv ${TEST_FOLDER} && \
   python -m pip install --upgrade pip && \
   python -m pip install -r tests/requirements_test.txt
   python -m pip install --upgrade --requirement .ci/requirements_macos.txt
-  python -m pip install conan==${CONAN_VERSION}
+  python -m pip install conan${CONAN_VERSION}
