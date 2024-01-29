@@ -8,7 +8,7 @@ eval "$(pyenv init -)"
 case "${PYVER}" in
     py36)
         pyenv install 3.6.13 || true  # Do not fail if already installed
-        pyenv virtualenv 3.6.13 ${VIRTUALENV_NAME}
+        pyenv virtualenv 3.6.13 kkk
         ;;
     py38)
         pyenv install 3.8.6 || true  # Do not fail if already installed
