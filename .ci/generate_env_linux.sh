@@ -7,19 +7,15 @@ eval "$(pyenv init -)"
 
 case "${PYVER}" in
     py36)
-        pyenv install 3.6.13
+        pyenv install 3.6.13 || true  # Do not fail if already installed
         pyenv virtualenv 3.6.13 conan
         ;;
-    py37)
-        pyenv install 3.7.12
-        pyenv virtualenv 3.7.12 conan
-        ;;
     py38)
-        pyenv install 3.8.6
+        pyenv install 3.8.6 || true  # Do not fail if already installed
         pyenv virtualenv 3.8.6 conan
         ;;
     py39)
-        pyenv install 3.9.2
+        pyenv install 3.9.2 || true  # Do not fail if already installed
         pyenv virtualenv 3.9.2 conan
         ;;
 esac
