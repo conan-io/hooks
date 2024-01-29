@@ -49,5 +49,4 @@ class TestConanData(ConanClientV2TestCase):
         save(None, 'conandata.yml', content=conandata)
         export_output = self.conan(['export', '.', '--version=1.69.0'])
         assert '1.70.0' not in export_output
-        assert 'Saving conandata.yml' in export_output
-        assert 'New conandata.yml contents: sources:\n  "1.69.0"' in export_output, f"This is the output: ${export_output}"
+        assert "Saving conandata.yml: {'sources': {'1.69.0': {'url': 'url1_1.69.0', 'sha256': 'sha1_1.69.0'}}, 'patches': {'1.69.0': {'patch_file': '001-1.69.0.patch', 'base_path': 'source_subfolder/1.69.0'}}}" in export_output, export_output
