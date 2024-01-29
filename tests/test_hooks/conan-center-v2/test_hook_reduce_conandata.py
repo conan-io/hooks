@@ -21,8 +21,11 @@ class TestConanData(ConanClientV2TestCase):
 
     def _get_environ(self, **kwargs):
         kwargs = super(TestConanData, self)._get_environ(**kwargs)
-        kwargs.update({'CONAN_HOOKS': os.path.join(os.path.dirname(__file__), '..', '..', '..',
-                                                   'hooks', 'hook_reduce_conandata')})
+        if not os.path.isdir(self.hooks_dir):
+            os.makedirs(self.hooks_dir)
+        if not os.path.isfile(os.path.join(self.hooks_dir, 'hook_reduce_conandata.py')):
+            hook_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'hooks', 'hook_reduce_conandata.py')
+            shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 
     def test_reduce_conandata(self):
