@@ -198,7 +198,7 @@ pipeline {
                         stage('Linux - py36 - conan v1 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_REQUIREMENT = 'conan=1.*'
+                                CONAN_REQUIREMENT = 'conan==1.*'
                                 VIRTUALENV_NAME = 'py36conanv1latest'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
@@ -214,7 +214,7 @@ pipeline {
                         stage('Linux - py36 - conan v1 prev') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_REQUIREMENT = 'conan=1.61.0'
+                                CONAN_REQUIREMENT = 'conan==1.61.0'
                                 VIRTUALENV_NAME = 'py36conanv1prev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
@@ -246,7 +246,7 @@ pipeline {
                         stage('Linux - py36 - conan v2 latest') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_REQUIREMENT = 'conan=2.*'
+                                CONAN_REQUIREMENT = 'conan==2.*'
                                 VIRTUALENV_NAME = 'py36conanv2latest'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
@@ -262,7 +262,7 @@ pipeline {
                         stage('Linux - py36 - conan v2 prev') {
                             environment {
                                 PYVER = 'py36'
-                                CONAN_REQUIREMENT = 'conan=2.0.16'
+                                CONAN_REQUIREMENT = 'conan==2.0.16'
                                 VIRTUALENV_NAME = 'py36conanv2prev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
@@ -301,7 +301,7 @@ pipeline {
                         stage('Linux - py38 - conan v1 latest') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_REQUIREMENT = 'conan=1.*'
+                                CONAN_REQUIREMENT = 'conan==1.*'
                                 VIRTUALENV_NAME = 'py38conanv1latest'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
@@ -317,7 +317,7 @@ pipeline {
                         stage('Linux - py38 - conan v1 prev') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_REQUIREMENT = 'conan=1.61.0'
+                                CONAN_REQUIREMENT = 'conan==1.61.0'
                                 VIRTUALENV_NAME = 'py38conanv1prev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
@@ -349,7 +349,7 @@ pipeline {
                         stage('Linux - py38 - conan v2 latest') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_REQUIREMENT = 'conan=2.*'
+                                CONAN_REQUIREMENT = 'conan==2.*'
                                 VIRTUALENV_NAME = 'py38conanv2latest'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
@@ -365,7 +365,7 @@ pipeline {
                         stage('Linux - py38 - conan v2 prev') {
                             environment {
                                 PYVER = 'py38'
-                                CONAN_REQUIREMENT = 'conan=2.0.16'
+                                CONAN_REQUIREMENT = 'conan==2.0.16'
                                 VIRTUALENV_NAME = 'py38conanv2prev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
