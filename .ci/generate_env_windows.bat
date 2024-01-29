@@ -16,5 +16,6 @@ IF "%PYVER%"=="py36" (
 
 virtualenv --python "C:/%PYVER%/python.exe" %TEST_FOLDER% && %TEST_FOLDER%/Scripts/activate && python --version
 python -m pip install pip --upgrade
+python -m pip install --requirement tests/requirements_test.txt
 python -m pip install %CONAN_REQUIREMENT%
 conan --version
