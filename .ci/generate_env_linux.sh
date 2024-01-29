@@ -29,3 +29,4 @@ python --version
 pip install --upgrade pip
 pip3 install --requirement .ci/requirements_linux.txt
 pip3 install ${CONAN_REQUIREMENT}
+conan --version

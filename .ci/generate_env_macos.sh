@@ -23,6 +23,7 @@ ${PYVER} -m venv ${TEST_FOLDER} && \
   source ${TEST_FOLDER}/bin/activate && \
   python --version && \
   python -m pip install --upgrade pip && \
-  python -m pip install -r tests/requirements_test.txt
-  python -m pip install --upgrade --requirement .ci/requirements_macos.txt
-  python -m pip install ${CONAN_REQUIREMENT}
+  python -m pip install -r tests/requirements_test.txt && \
+  python -m pip install --upgrade --requirement .ci/requirements_macos.txt && \
+  python -m pip install ${CONAN_REQUIREMENT} && \
+  conan --version
