@@ -183,13 +183,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                VIRTUALENV_NAME = 'py36conanv1dev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -198,13 +199,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan=1.*'
+                                VIRTUALENV_NAME = 'py36conanv1latest'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -213,13 +215,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan=1.61.0'
+                                VIRTUALENV_NAME = 'py36conanv1prev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -228,13 +231,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                VIRTUALENV_NAME = 'py36conanv2dev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -243,13 +247,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan=2.*'
+                                VIRTUALENV_NAME = 'py36conanv2latest'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -258,13 +263,14 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan=2.0.16'
+                                VIRTUALENV_NAME = 'py36conanv2prev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -280,13 +286,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                VIRTUALENV_NAME = 'py38conanv1dev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -295,13 +302,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan=1.*'
+                                VIRTUALENV_NAME = 'py38conanv1latest'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -310,13 +318,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan=1.61.0'
+                                VIRTUALENV_NAME = 'py38conanv1prev'
                                 PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -325,13 +334,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                VIRTUALENV_NAME = 'py38conanv2dev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -340,13 +350,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan=2.*'
+                                VIRTUALENV_NAME = 'py38conanv2latest'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -355,13 +366,14 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan=2.0.16'
+                                VIRTUALENV_NAME = 'py38conanv2prev'
                                 PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
+                                    pyenv activate ${VIRTUALENV_NAME}
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
