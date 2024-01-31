@@ -1,7 +1,7 @@
 set PATH=%PATH%;C:/Python36/Scripts/
 pip install --timeout 100 --retries 10 requests virtualenv
 
-set TEST_FOLDER=D:/J/t/Hooks/%BUILD_NUMBER%/%PYVER%
+set TEST_FOLDER=%WORKSPACE%/%PYVER%
 
 IF "%PYVER%"=="py39" (
     set PYVER="Python39"
