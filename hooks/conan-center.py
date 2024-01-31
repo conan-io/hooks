@@ -1138,7 +1138,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "googleapis",
             "grpc-proto",
             "scons",
-            "directx-headers"
+            "directx-headers",
+            "tz",
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
