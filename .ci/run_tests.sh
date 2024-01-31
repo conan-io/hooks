@@ -19,5 +19,6 @@ case "${PYVER}" in
 esac
 
 source ${TEST_FOLDER}/bin/activate
-
+python --version
+conan --version
 python -m pytest ${PYTEST_ARGS}

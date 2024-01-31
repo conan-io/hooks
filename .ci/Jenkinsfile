@@ -191,6 +191,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -207,6 +209,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -223,6 +227,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -239,6 +245,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -255,6 +263,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -271,6 +281,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -294,6 +306,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -310,6 +324,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -326,6 +342,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -342,6 +360,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -358,6 +378,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
@@ -374,6 +396,8 @@ pipeline {
                                 sh '''
                                     eval "$(pyenv init -)"
                                     pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
                                     python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
