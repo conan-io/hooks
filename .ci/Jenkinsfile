@@ -6,66 +6,80 @@ pipeline {
             parallel {
                 stage('Macos - py36') {
                     agent {
-                        label 'M1Macos'
+                        label 'M2Macos'
                     }
                     stages {
-                        stage('Macos - py36 - Generate environment') {
+                        stage('Macos - py36 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py36'
+                                CONAN_REQUIREMENT = "conan==1.*"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
                             }
                         }
-                        stage('Macos - py36 - conandev') {
+                        stage('Macos - py36 - Conan v2 latest') {
                             environment {
                                 PYVER = 'py36'
-                                TOXENV = 'py36-conandev'
+                                CONAN_REQUIREMENT = "conan==2.*"
+                                PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
-                                sh '.ci/run_tox.sh'
-                            }
-                        }
-                        stage('Macos - py36 - conancurrent') {
-                            environment {
-                                PYVER = 'py36'
-                                TOXENV = 'py36-conancurrent'
-                            }
-                            steps {
-                                sh '.ci/run_tox.sh'
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
                             }
                         }
                     }
                 }
                 stage('Macos - py38') {
                     agent {
-                        label 'M1Macos'
+                        label 'M2Macos'
                     }
                     stages {
-                        stage('Macos - py38 - Generate environment') {
+                        stage('Macos - py38 - Conan v1 latest') {
                             environment {
                                 PYVER = 'py38'
+                                CONAN_REQUIREMENT = "conan==1.*"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
                             }
                         }
-                        stage('Macos - py38 - conandev') {
+                        stage('Macos - py38 - Conan v1 prev') {
                             environment {
                                 PYVER = 'py38'
-                                TOXENV = 'py38-conandev'
+                                CONAN_REQUIREMENT = "conan==1.61.0"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
-                                sh '.ci/run_tox.sh'
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
                             }
                         }
-                        stage('Macos - py38 - conancurrent') {
+                        stage('Macos - py38 - conan v2 latest') {
                             environment {
                                 PYVER = 'py38'
-                                TOXENV = 'py38-conancurrent'
+                                CONAN_REQUIREMENT = "conan==2.*"
+                                PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
-                                sh '.ci/run_tox.sh'
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
+                            }
+                        }
+                        stage('Macos - py38 - conan v2 prev') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = "conan==2.0.16"
+                                PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_macos.sh'
+                                sh '.ci/run_tests.sh'
                             }
                         }
                     }
@@ -75,48 +89,82 @@ pipeline {
         stage("Windows") {
             failFast true
             parallel {
-                stage('Windows - py36') {
-                    agent {
-                        label 'Windows'
-                    }
-                    stages {
-                        stage('Windows - py36 - Generate environment') {
-                            environment {
-                                PYVER = 'py36'
-                            }
-                            steps {
-                                bat '.ci/generate_env_windows.bat'
-                            }
-                        }
-                        stage('Windows - py36 - conancurrent') {
-                            environment {
-                                TOXENV = 'py36-conancurrent'
-                            }
-                            steps {
-                                bat 'tox --recreate'
-                            }
-                        }
-                    }
-                }
                 stage('Windows - py38') {
                     agent {
                         label 'Windows'
                     }
                     stages {
-                        stage('Windows - py38 - Generate environment') {
+                        stage('Windows - py38 - conan v1 latest') {
                             environment {
                                 PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
                             }
                         }
-                        stage('Windows - py38 - conancurrent') {
+                        stage('Windows - py38 - conan v2 latest') {
                             environment {
-                                TOXENV = 'py38-conancurrent'
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==2.*'
+                                PYTEST_ARGS = "./tests/test_hooks/conan-center-v2"
                             }
                             steps {
-                                bat 'tox --recreate'
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                    }
+                }
+                stage('Windows - py39') {
+                    agent {
+                        label 'Windows'
+                    }
+                    stages {
+                        stage('Windows - py39 - conan v1 dev') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v1 latest') {
+                            environment {
+                               PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v2 dev') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
+                            }
+                        }
+                        stage('Windows - py39 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py39'
+                                CONAN_REQUIREMENT = 'conan==2.*'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                bat '.ci/generate_env_windows.bat'
+                                bat '.ci/run_tests.bat'
                             }
                         }
                     }
@@ -131,35 +179,111 @@ pipeline {
                         label 'Linux'
                     }
                     stages {
-                        stage('Linux - py36 - Generate environment') {
+                        stage('Linux - py36 - conan v1 dev') {
                             environment {
                                 PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                VIRTUALENV_NAME = 'py36conanv1dev'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
-                            }
-                        }
-                        stage('Linux - py36 - conandev') {
-                            environment {
-                                TOXENV = 'py36-conandev'
-                            }
-                            steps {
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
                         }
-                        stage('Linux - py36 - conancurrent') {
+                        stage('Linux - py36 - conan v1 latest') {
                             environment {
-                                TOXENV = 'py36-conancurrent'
+                                PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                VIRTUALENV_NAME = 'py36conanv1latest'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
+                                sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py36 - conan v1 prev') {
+                            environment {
+                                PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'conan==1.61.0'
+                                VIRTUALENV_NAME = 'py36conanv1prev'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py36 - conan v2 dev') {
+                            environment {
+                                PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                VIRTUALENV_NAME = 'py36conanv2dev'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py36 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'conan==2.*'
+                                VIRTUALENV_NAME = 'py36conanv2latest'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py36 - conan v2 prev') {
+                            environment {
+                                PYVER = 'py36'
+                                CONAN_REQUIREMENT = 'conan==2.0.16'
+                                VIRTUALENV_NAME = 'py36conanv2prev'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
                         }
@@ -170,35 +294,111 @@ pipeline {
                         label 'Linux'
                     }
                     stages {
-                        stage('Linux - py38 - Generate environment') {
+                        stage('Linux - py38 - conan v1 dev') {
                             environment {
                                 PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
+                                VIRTUALENV_NAME = 'py38conanv1dev'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
-                            }
-                        }
-                        stage('Linux - py38 - conandev') {
-                            environment {
-                                TOXENV = 'py38-conandev'
-                            }
-                            steps {
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
                         }
-                        stage('Linux - py38 - conancurrent') {
+                        stage('Linux - py38 - conan v1 latest') {
                             environment {
-                                TOXENV = 'py38-conancurrent'
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==1.*'
+                                VIRTUALENV_NAME = 'py38conanv1latest'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
                             }
                             steps {
+                                sh '.ci/generate_env_linux.sh'
                                 sh '''
                                     eval "$(pyenv init -)"
-                                    pyenv activate conan
-                                    tox
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py38 - conan v1 prev') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==1.61.0'
+                                VIRTUALENV_NAME = 'py38conanv1prev'
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py38 - conan v2 dev') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop2'
+                                VIRTUALENV_NAME = 'py38conanv2dev'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py38 - conan v2 latest') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==2.*'
+                                VIRTUALENV_NAME = 'py38conanv2latest'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
+                                '''
+                            }
+                        }
+                        stage('Linux - py38 - conan v2 prev') {
+                            environment {
+                                PYVER = 'py38'
+                                CONAN_REQUIREMENT = 'conan==2.0.16'
+                                VIRTUALENV_NAME = 'py38conanv2prev'
+                                PYTEST_ARGS = "tests/test_hooks/conan-center-v2"
+                            }
+                            steps {
+                                sh '.ci/generate_env_linux.sh'
+                                sh '''
+                                    eval "$(pyenv init -)"
+                                    pyenv activate ${VIRTUALENV_NAME}
+                                    python --version
+                                    conan --version
+                                    python -m pytest ${PYTEST_ARGS}
                                 '''
                             }
                         }

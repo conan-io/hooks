@@ -23,7 +23,7 @@ class TestSettingsAttr(ConanClientV2TestCase):
         if not os.path.isdir(self.hooks_dir):
             os.makedirs(self.hooks_dir)
         if not os.path.isfile(os.path.join(self.hooks_dir, 'hook_conan-center-v2.py')):
-            hook_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'hooks', 'hook_conan-center-v2.py')
+            hook_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'hooks', 'disabled-hook_conan-center-v2.py')
             shutil.copy2(hook_path, self.hooks_dir)
         return kwargs
 

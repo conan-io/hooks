@@ -11,7 +11,7 @@ case "${PYVER}" in
         PYVER="/Users/jenkins/.pyenv/versions/3.6.15/bin/python"
         ;;
     py38)
-        PYVER="/Users/jenkins/.pyenv/versions/3.8.13/bin/python"
+        PYVER="/Users/jenkins/.pyenv/versions/3.8.12/bin/python"
         ;;
     py39)
         PYVER="/Users/jenkins/.pyenv/versions/3.9.11/bin/python"
@@ -19,5 +19,6 @@ case "${PYVER}" in
 esac
 
 source ${TEST_FOLDER}/bin/activate
-
-${PYVER} -m tox --recreate
+python --version
+conan --version
+python -m pytest ${PYTEST_ARGS}
