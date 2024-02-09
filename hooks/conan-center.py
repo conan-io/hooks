@@ -1140,6 +1140,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
             "scons",
             "directx-headers",
             "tz",
+            "battery-embed",
         ]:
             return
         if not _files_match_settings(conanfile, conanfile.package_folder, out):
