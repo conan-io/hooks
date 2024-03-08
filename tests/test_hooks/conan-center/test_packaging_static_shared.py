@@ -75,12 +75,13 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
         class AConan(ConanFile):
             settings = "os", "arch", "compiler", "build_type"
             options = {"shared": [True, False]}
-            default_options = {"shared": True}
+            default_options = {"shared": False}
 
             def package(self):
                 libdir = os.path.join(self.package_folder, "lib")
                 bindir = os.path.join(self.package_folder, "bin")
                 os.makedirs(libdir)
+                os.makedirs(bindir)
                 # Issue related: https://github.com/conan-io/hooks/issues/528
                 open(os.path.join(libdir, "libfoo.dll.lib"), "w")
                 open(os.path.join(bindir, "libfoo.dll"), "w")
@@ -130,5 +131,6 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
     def test_shared_windows(self):
         tools.save("conanfile.py", content=self.conanfile_test_shared_windows)
         output = self.conan([
-            "create", ".", "name/version@user/test"])
-        self.assertNotIn("[LIBRARY DOES NOT EXIST (KB-H054)]", output)
+            "create", ".", "name/version@user/test", "-o", "shared=True"])
+        self.assertNotIn("[LIBRARY DOES NOT EXIST (KB-H054)] Component name::name library 'foo' is listed in the "
+                         "recipe, but not found installed at self.cpp_info.libdirs", output)
