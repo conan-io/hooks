@@ -68,6 +68,26 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
                 self.cpp_info.libs = ["foo"]
         """)
 
+    conanfile_test_shared_windows = textwrap.dedent("""\
+        from conan import ConanFile
+        import os
+
+        class AConan(ConanFile):
+            settings = "os", "arch", "compiler", "build_type"
+            options = {"shared": [True, False]}
+            default_options = {"shared": True}
+
+            def package(self):
+                libdir = os.path.join(self.package_folder, "lib")
+                bindir = os.path.join(self.package_folder, "bin")
+                os.makedirs(libdir)
+                # Issue related: https://github.com/conan-io/hooks/issues/528
+                open(os.path.join(libdir, "libfoo.dll.lib"), "w")
+                open(os.path.join(bindir, "libfoo.dll"), "w")
+
+            def package_info(self):
+                self.cpp_info.libs = ["foo"]
+        """)
     def _get_environ(self, **kwargs):
         kwargs = super(TestPackagingStaticSharedLibraries, self)._get_environ(**kwargs)
         kwargs.update({
@@ -106,3 +126,9 @@ class TestPackagingStaticSharedLibraries(ConanClientTestCase):
             self.assertIn("[EITHER STATIC OR SHARED OF EACH LIB (KB-H076)] OK", output)
         else:
             self.assertIn("ERROR: [EITHER STATIC OR SHARED OF EACH LIB (KB-H076)] Package contains both shared and static flavors of these libraries: libfoo, libfoobar", output)
+
+    def test_shared_windows(self):
+        tools.save("conanfile.py", content=self.conanfile_test_shared_windows)
+        output = self.conan([
+            "create", ".", "name/version@user/test"])
+        self.assertNotIn("[LIBRARY DOES NOT EXIST (KB-H054)]", output)
