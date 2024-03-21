@@ -369,7 +369,7 @@ class ConanData(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertIn("First level entries ['random_field'] not allowed. Use only first "
-                      "level entries ['sources', 'patches'] in conandata.yml", output)
+                      "level entries ['sources', 'patches', 'extra'] in conandata.yml", output)
 
     def test_unknown_subentry_sources(self):
         tools.save('conanfile.py', content=self.conanfile)
