@@ -373,7 +373,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
-        allowed_first_level = ["sources", "patches"]
+        allowed_first_level = ["sources", "patches", "extra"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
         if conanfile.name in ["openssh", "gmp"]:
