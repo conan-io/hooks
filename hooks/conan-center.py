@@ -377,7 +377,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
-        allowed_first_level = ["sources", "patches"]
         allowed_sources = ["md5", "sha1", "sha256", "url"]
         allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
 
@@ -408,10 +407,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_yml = load_yml(conandata_path)
         if not conandata_yml:
             return
-        entries = _not_allowed_entries(list(conandata_yml.keys()), allowed_first_level)
-        if entries:
-            out.error("First level entries %s not allowed. Use only first level entries %s in "
-                      "conandata.yml" % (entries, allowed_first_level))
 
         google_source_regex = re.compile(r"https://\w+.googlesource.com/")
 
