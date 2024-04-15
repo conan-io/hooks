@@ -1204,7 +1204,6 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', '.', 'name/version@user/test'])
         self.assertNotIn("[NO REQUIRED_CONAN_VERSION (KB-H065)] tools.get", output)
 
-
     def test_no_collect_libs_warning(self):
         conanfile = textwrap.dedent("""\
             from conans import ConanFile
@@ -1217,3 +1216,35 @@ class ConanCenterTests(ConanClientTestCase):
         tools.save('conanfile.py', content=conanfile)
         output = self.conan(['create', 'conanfile.py', 'name/version@user/test'])
         self.assertNotIn("Lib folder doesn't exist, can't collect libraries", output)
+
+    def test_dangling_patches(self):
+        tools.save(os.path.join('all', 'conanfile.py'), content=self.conanfile_base.format(placeholder=''))
+        conandata = textwrap.dedent("""
+                            sources:
+                                1.0:
+                                    url: fakeurl
+                                    md5: 12323423423
+                            patches:
+                                "1.1":
+                                    patch_file: "patches/patch.diff"
+                """)
+
+        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertIn("are in 'patches' but not in 'sources'",
+                      output)
+
+        conandata = textwrap.dedent("""
+                                    sources:
+                                        1.0:
+                                            url: fakeurl
+                                            md5: 12323423423
+                                    patches:
+                                        "1.0":
+                                            patch_file: "patches/patch.diff"
+                        """)
+
+        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertIn("The patch file 'patches/patch.diff' does not exist.",
+                      output)

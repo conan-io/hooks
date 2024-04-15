@@ -91,6 +91,7 @@ kb_errors = {"KB-H001": "DEPRECATED GLOBAL CPPSTD",
              "KB-H075": "REQUIREMENT OVERRIDE PARAMETER",
              "KB-H076": "EITHER STATIC OR SHARED OF EACH LIB",
              "KB-H077": "APPLE RELOCATABLE SHARED LIBS",
+             "KB-H078": "NO DANGLING PATCHES"
              }
 
 
@@ -911,6 +912,34 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         match = re.search(r'(^|\n)\s*self.requires\(.*override=True.*\)', conanfile_content)
         if match:
             out.error("self.requires('package/version', override=True) is forbidden, do not force override parameter.")
+
+    @run_test("KB-H078", output)
+    def test(out):
+        conandata_path = os.path.join(export_folder_path, "conandata.yml")
+        conandata_yml = load_yml(conandata_path)
+
+        if not conandata_yml:
+            return
+
+        if 'sources' not in conandata_yml or 'patches' not in conandata_yml:
+            return
+
+        versions_conandata = conandata_yml['sources'].keys()
+        versions_patches = conandata_yml['patches'].keys()
+        difference = set(versions_patches) - set(versions_conandata)
+        if difference:
+            out.error("The versions {} are in 'patches' but not in 'sources'.".format(difference))
+
+        for patches in conandata_yml['patches'].values():
+            if not isinstance(patches, list):
+                # out.error("The 'patches' entry should be a list of patches.")
+                patches = [patches]
+            for patch in patches:
+                if 'patch_file' not in patch:
+                    # out.error("The 'patch_file' key is required in all patches.")
+                    continue
+                if not os.path.isfile(os.path.join(export_folder_path, patch['patch_file'])):
+                    out.error("The patch file '{}' does not exist.".format(patch['patch_file']))
 
 
 @raise_if_error_output
