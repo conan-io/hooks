@@ -918,6 +918,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         conandata_yml = load_yml(conandata_path)
 
+        if not config_yml or not conandata_yml:
+            return
+
         if 'sources' not in conandata_yml or 'patches' not in conandata_yml:
             return
 
