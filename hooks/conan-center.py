@@ -1118,7 +1118,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     @run_test("KB-H013", output)
     def test(out):
         if conanfile.name in ["cmake", "android-ndk", "zulu-openjdk", "mingw-w64", "mingw-builds",
-                              "openjdk", "mono", "gcc", "mold", "tz", "gawk", "maven", "binutils"]:
+                              "openjdk", "mono", "gcc", "mold", "tz", "gawk", "maven", "binutils",
+                              "gfortran"]:
             return
 
         base_known_folders = ["lib", "bin", "include", "res", "licenses"]
