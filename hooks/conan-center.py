@@ -882,6 +882,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H070", output)
     def test(out):
+        # Don't enforce it for applications
+        if getattr(conanfile, "package_type", None) == "application":
+            return
         settings = getattr(conanfile, "settings", None)
         if settings:
             settings = settings if isinstance(settings, (list, tuple)) else [settings]
