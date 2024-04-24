@@ -922,10 +922,12 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
         conandata_yml = load_yml(conandata_path)
 
         if not conandata_yml:
-            return
+            conandata_yml = {}
 
-        if 'sources' not in conandata_yml or 'patches' not in conandata_yml:
-            return
+        if 'sources' not in conandata_yml:
+            conandata_yml['sources'] = {}
+        if 'patches' not in conandata_yml:
+            conandata_yml['patches'] = {}
 
         versions_conandata = conandata_yml['sources'].keys()
         versions_patches = conandata_yml['patches'].keys()
@@ -943,6 +945,28 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     continue
                 if not os.path.isfile(os.path.join(export_folder_path, patch['patch_file'])):
                     out.error("The patch file '{}' does not exist.".format(patch['patch_file']))
+        
+        patches_path = os.path.join(export_folder_path, "patches")
+        unused_patches: list[str] = []
+        if os.path.isdir(patches_path):
+            unused_patches.extend(
+                os.path.join(root[len(patches_path) + 1:], f)
+                for root, _, files in os.walk(patches_path) for f in files)
+        unused_patches.sort()
+        for patches in conandata_yml["patches"].values():
+            if not isinstance(patches, list):
+                continue
+            for patch in patches:
+                if 'patch_file' not in patch:
+                    continue
+                patch_file_name = str(patch["patch_file"])
+                patch_file_name = os.path.relpath(patch_file_name)  # fixes the path (double slashes for example)
+                patch_file_name = patch_file_name[8:]
+                if patch_file_name in unused_patches:
+                    unused_patches.remove(patch_file_name)
+        for patch in unused_patches:
+            out.error(f"Following patch files is not referenced in conandata.yml: patches/{patch}")
+             
 
 
 @raise_if_error_output

@@ -1248,3 +1248,22 @@ class ConanCenterTests(ConanClientTestCase):
         output = self.conan(['export', 'all', 'name/version@user/test'])
         self.assertIn("The patch file 'patches/patch.diff' does not exist.",
                       output)
+                      
+        conandata = textwrap.dedent("""
+                                    sources:
+                                        1.0:
+                                            url: fakeurl
+                                            md5: 12323423423
+                        """)
+
+        tools.save(os.path.join("all", "conandata.yml"), content=conandata)
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertNotIn("Following patch files is not referenced in conandata.yml",
+                         output)
+
+        tools.save(os.path.join("all", "patches", "patch.diff"), content="")
+        output = self.conan(['export', 'all', 'name/version@user/test'])
+        self.assertIn("Following patch files is not referenced in conandata.yml: patches/patch.diff",
+                      output)
+
+        
