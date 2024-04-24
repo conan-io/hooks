@@ -965,7 +965,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                 if patch_file_name in unused_patches:
                     unused_patches.remove(patch_file_name)
         for patch in unused_patches:
-            out.error(f"Following patch files is not referenced in conandata.yml: patches/{patch}")
+            out.error(f"Following patch file is not referenced in conandata.yml: patches/{patch}")
              
 
 
