@@ -378,18 +378,9 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
-        allowed_sources = ["md5", "sha1", "sha256", "url"]
-        allowed_patches = ["patch_file", "base_path", "url", "sha256", "sha1", "md5", "patch_type", "patch_source", "patch_description"]
+        allowed_sources = ["sha256", "url"]
 
-        extra_allowed_patches = {
-            "openssh": ["patch_os", "patch_os_version"],
-            "gmp": ["patch_os"]
-        }
-
-        allowed_patches.extend(extra_allowed_patches.get(conanfile.name, []))
-
-        weak_checksums = ["md5", "sha1"]
-        checksums = ["md5", "sha1", "sha256"]
+        checksums = [ "sha256"]
         found_checksums = []
         has_sources = False
         is_google_source = False
@@ -469,10 +460,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
             if version not in conandata_yml[entry]:
                 continue
             for element in conandata_yml[entry][version]:
-                if entry == "patches":
-                    if not validate_recursive(element, conandata_yml[entry][version], "patches",
-                                              allowed_patches):
-                        return
                 if entry == "sources":
                     if not validate_recursive(element, conandata_yml[entry][version], "sources",
                                               allowed_sources):
@@ -483,9 +470,6 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
                     validate_checksum_recursive(element, conandata_yml[entry][version])
             if not found_checksums and has_sources and not is_google_source:
                 out.error("The checksum key 'sha256' must be declared and can not be empty.")
-            elif found_checksums and 'sha256' not in found_checksums:
-                out.warn(f"Consider 'sha256' instead of {weak_checksums}. It's considerably more secure than others.")
-
 
     @run_test("KB-H034", output)
     def test(out):
