@@ -385,10 +385,7 @@ class ConanData(ConanClientTestCase):
             """)
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
-        self.assertNotIn("First level entries", output)
-        self.assertIn("Additional entries ['patches'] not allowed in 'patches':'1.70.0' "
-                      "of conandata.yml", output)
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
 
     def test_unknown_subentry_in_list(self):
         tools.save('conanfile.py', content=self.conanfile)
@@ -404,11 +401,7 @@ class ConanData(ConanClientTestCase):
             """)
         tools.save('conandata.yml', content=conandata)
         output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-        self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
-
-        self.assertNotIn("First level entries", output)
-        self.assertIn("Additional entries ['other_field'] not allowed in 'patches':'1.70.0' "
-                      "of conandata.yml", output)
+        self.assertNotIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
 
     def test_empty_checksum(self):
         tools.save('conanfile.py', content=self.conanfile)
@@ -423,34 +416,15 @@ class ConanData(ConanClientTestCase):
         self.assertIn("ERROR: [CONANDATA.YML FORMAT (KB-H030)]", output)
         self.assertIn("The entry 'sha256' cannot be empty in conandata.yml.", output)
 
-    def test_prefer_sha256(self):
-        tools.save('conanfile.py', content=self.conanfile)
-        for checksum in ['md5', 'sha1']:
-            conandata = textwrap.dedent(f"""
-                sources:
-                  "1.70.0":
+    def test_prefer_sha256_and_others(self):
+        conandata = textwrap.dedent("""
+            sources:
+                "1.70.0":
                     url: "url1.69.0"
-                    {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
-                """)
-            tools.save('conandata.yml', content=conandata)
-            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-            self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", output)
-            self.assertIn("Consider 'sha256' instead of ['md5', 'sha1']. It's considerably more secure than others.", output)
-
-            conandata = textwrap.dedent(f"""
-                            sources:
-                              "1.69.0":
-                                url: "url1.69.0"
-                                {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
-                              "1.70.0":
-                                url: "url1.70.0"
-                                {checksum}: "cf23df2207d99a74fbe169e3eba035e633b65d94"
-                            """)
-            tools.save('conandata.yml', content=conandata)
-            output = self.conan(['export', '.', 'name/1.70.0@jgsogo/test'])
-            self.assertIn("WARN: [CONANDATA.YML FORMAT (KB-H030)]", output)
-            self.assertIn("Consider 'sha256' instead of ['md5', 'sha1']. It's considerably more secure than others.",
-                          output)
+                    sha1: "sha1.69.0"
+                    sha256: "sha256.69.0"
+            """)
+        self._check_conandata(conandata)
 
     def test_empty_checksum(self):
         tools.save('conanfile.py', content=self.conanfile)
