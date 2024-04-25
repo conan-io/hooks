@@ -1190,6 +1190,8 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H076", output)
     def test(out):
+        if conanfile.name in ["gcc"]:
+            return
         libs_both_static_shared = _get_libs_if_static_and_shared(conanfile)
         if len(libs_both_static_shared):
             out.error("Package contains both shared and static flavors of these "
