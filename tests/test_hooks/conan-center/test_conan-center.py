@@ -1258,12 +1258,12 @@ class ConanCenterTests(ConanClientTestCase):
 
         tools.save(os.path.join("all", "conandata.yml"), content=conandata)
         output = self.conan(['export', 'all', 'name/version@user/test'])
-        self.assertNotIn("Following patch file is not referenced in conandata.yml",
+        self.assertNotIn("Following patch file(s) are/is not referenced in conandata.yml",
                          output)
 
         tools.save(os.path.join("all", "patches", "patch.diff"), content="")
         output = self.conan(['export', 'all', 'name/version@user/test'])
-        self.assertIn("Following patch file is not referenced in conandata.yml: patches/patch.diff",
+        self.assertIn("Following patch file(s) are/is not referenced in conandata.yml: patches/patch.diff",
                       output)
 
         
