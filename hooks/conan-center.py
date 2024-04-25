@@ -378,7 +378,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     def test(out):
         conandata_path = os.path.join(export_folder_path, "conandata.yml")
         version = conanfile.version
-        allowed_sources = ["sha256", "url"]
+        allowed_sources = ["sha256", "md5", "sha1", "url"]
 
         checksums = [ "sha256"]
         found_checksums = []
