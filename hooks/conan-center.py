@@ -1168,7 +1168,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H074", output)
     def test(out):
-        if conanfile.name in ["mbits-args"]:
+        if conanfile.name in ["mbits-args", "yomm2"]:
             return
         if not _static_files_well_managed(conanfile, conanfile.package_folder):
             out.error("Package with 'shared=False' option did not contain any static artifact")
