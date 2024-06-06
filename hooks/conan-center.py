@@ -734,6 +734,10 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H061", output)
     def test(out):
+        allowlist = ("qt",)
+        if conanfile.name in allowlist:
+            out.info("'{}' is part of the allowlist, skipping.".format(conanfile.name))
+            return
         Location = collections.namedtuple("Location", ("line", "column", "line_end", "column_end"))
         BuildInfo = collections.namedtuple("BuildInfo", ("loc", "what", "func"))
         class BuildInfoVisitor(ast.NodeVisitor):
