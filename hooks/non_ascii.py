@@ -29,4 +29,4 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     test_package_path = os.path.join(test_package_dir, "conanfile.py")
     if os.path.exists(test_package_path):
         test_package_content = tools.load(test_package_path)
-        check_non_ascii("test_package/conanfile.py", test_package_content)
+        check_non_ascii("test_package/conanfile.py", test_package_content, output)
