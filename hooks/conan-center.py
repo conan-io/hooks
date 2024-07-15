@@ -958,7 +958,7 @@ def pre_source(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H010", output)
     def test(out):
-        if conanfile.version == "system":
+        if conanfile.version in ["system", "virtual"]:
             return
         if not os.path.exists(conandata_source):
             out.error("Create a file 'conandata.yml' file with the sources "
@@ -1063,7 +1063,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
     this.reference = str(conanfile)
     @run_test("KB-H012", output)
     def test(out):
-        if conanfile.version == "system":
+        if conanfile.version in ["system", "virtual"]:
             return
         licenses_folder = os.path.join(os.path.join(conanfile.package_folder, "licenses"))
         if not os.path.exists(licenses_folder):
@@ -1102,7 +1102,7 @@ def post_package(output, conanfile, conanfile_path, **kwargs):
 
     @run_test("KB-H014", output)
     def test(out):
-        if conanfile.version == "system":
+        if conanfile.version in ["system", "virtual"]:
             return
 
         # INFO: allowlist for package names
