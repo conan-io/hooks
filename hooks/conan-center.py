@@ -491,7 +491,7 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
 
     @run_test("KB-H039", output)
     def test(out):
-        allowed_list = ["openjdk"]
+        allowed_list = {"openjdk"}
         search_attrs = ["scm", "build_policy"]
         forbidden_attrs = []
         if conanfile.name in allowed_list:
