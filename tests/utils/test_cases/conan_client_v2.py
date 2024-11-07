@@ -6,7 +6,8 @@ import tempfile
 import uuid
 import subprocess
 
-from conan.cli.exit_codes import SUCCESS
+from conans.cli.exit_codes import SUCCESS
+
 from tests.utils.environ_vars import context_env
 
 
