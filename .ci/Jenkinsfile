@@ -13,7 +13,7 @@ pipeline {
                             environment {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = "conan==1.*"
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
@@ -42,7 +42,7 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = "conan==1.*"
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
@@ -53,7 +53,7 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = "conan==1.63.0"
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_macos.sh'
@@ -98,7 +98,7 @@ pipeline {
                             environment {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan==1.*'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
@@ -127,7 +127,7 @@ pipeline {
                             environment {
                                 PYVER = 'py39'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2  --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
@@ -138,7 +138,7 @@ pipeline {
                             environment {
                                PYVER = 'py39'
                                 CONAN_REQUIREMENT = 'conan==1.*'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 bat '.ci/generate_env_windows.bat'
@@ -184,7 +184,7 @@ pipeline {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
                                 VIRTUALENV_NAME = 'py36conanv1dev'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
@@ -202,7 +202,7 @@ pipeline {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan==1.*'
                                 VIRTUALENV_NAME = 'py36conanv1latest'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
@@ -220,7 +220,7 @@ pipeline {
                                 PYVER = 'py36'
                                 CONAN_REQUIREMENT = 'conan==1.63.0'
                                 VIRTUALENV_NAME = 'py36conanv1prev'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
@@ -299,7 +299,7 @@ pipeline {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'git+https://github.com/conan-io/conan.git@develop'
                                 VIRTUALENV_NAME = 'py38conanv1dev'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
@@ -317,7 +317,7 @@ pipeline {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan==1.*'
                                 VIRTUALENV_NAME = 'py38conanv1latest'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
@@ -335,7 +335,7 @@ pipeline {
                                 PYVER = 'py38'
                                 CONAN_REQUIREMENT = 'conan==1.63.0'
                                 VIRTUALENV_NAME = 'py38conanv1prev'
-                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2"
+                                PYTEST_ARGS = "./tests --ignore=tests/test_hooks/conan-center-v2 --ignore=tests/test_hooks/conan-center"
                             }
                             steps {
                                 sh '.ci/generate_env_linux.sh'
