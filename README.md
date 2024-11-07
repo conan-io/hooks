@@ -63,7 +63,7 @@ These are the hooks currently available in this repository
 
 > ⚠️ conan-center-index no longer uses this hook and should be considered **unmaintained**.
 >
-> The ConanCenterIndex is currently trying new hooks that are not public yet.
+> The conan-center-index is currently using new hooks internally.
 
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
 in [Conan Center](https://conan.io/center/).
