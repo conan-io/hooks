@@ -61,7 +61,7 @@ These are the hooks currently available in this repository
 
 ### [Conan Center](hooks/conan-center.py) (**DEPRECATED**)
 
-> ⚠️ ConanCenterIndex no longer uses this hook and should be considered as no longer maintained.
+> ⚠️ conan-center-index no longer uses this hook and should be considered **unmaintained**.
 >
 > The ConanCenterIndex is currently trying new hooks that are not public yet.
 
