@@ -6,7 +6,7 @@
 
 Repository to develop **experimental** [Conan](https://conan.io) hooks for Conan >= 1.8.
 
- * [Conan Center](#conan-center)
+ * [Conan Center](#conan-center) (**DEPRECATED**)
  * [Attribute checker](#attribute-checker)
  * [Binary linter](#binary-linter)
  * [Github updater](#github-updater)
@@ -59,7 +59,11 @@ If you handle multiple dependencies in your project is better to add a *conan.co
 
 These are the hooks currently available in this repository
 
-### [Conan Center](hooks/conan-center.py)
+### [Conan Center](hooks/conan-center.py) (**DEPRECATED**)
+
+> ⚠️ ConanCenterIndex no longer uses this hook and should be considered as no longer maintained.
+>
+> The ConanCenterIndex is currently trying new hooks that are not public yet.
 
 This hook does checks for the [inclusion guidelines of third-party libraries](https://docs.conan.io/en/latest/uploading_packages/artifactory/conan_center_guide.html)
 in [Conan Center](https://conan.io/center/).
@@ -92,11 +96,6 @@ variable ``CONAN_HOOK_ERROR_LEVEL``:
 #### Conan 2.x support
 
 The Conan Center hook is **NOT** supported by Conan v2 yet. Do not try to run this file with Conan v2.
-
-There is an effort on the [disabled-hook_conan-center-v2.py](hooks/disabled-hook_conan-center-v2.py), but is not updated and should be broken by now.
-
-The support for Conan 2.x should be rethinked first, because others items like linter and extensions should be considered too.
-
 
 ### [Attribute checker](hooks/attribute_checker.py)
 
@@ -194,11 +193,14 @@ really useful to check for typos.
 
 This hook requires additional dependencies to work: `pip install yamllint`.
 
-### [Reduce conandata.yml](hooks/hook_reduce_conandata.py)
+### [Reduce conandata.yml](hooks/hook_reduce_conandata.py) (**DEPRECATED**)
 
 Same as KB-H031, but for conan 2.0.
+
 Reduces `conandata.yml` files, keeping only entry for the current package version.
 It only helps to avoid generation of extra recipe revisions in case of adding new versions.
+
+For Conan 2.0, prefer using [trim_conandata](https://docs.conan.io/2/reference/tools/files/basic.html#conan.tools.files.conandata.trim_conandata) instead.
 
 ## License
 

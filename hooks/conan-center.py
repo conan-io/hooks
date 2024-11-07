@@ -198,6 +198,8 @@ def pre_export(output, conanfile, conanfile_path, reference, **kwargs):
     header_only = _is_recipe_header_only(conanfile)
     installer = settings is not None and "os_build" in settings and "arch_build" in settings
 
+    output.warning("DEPRECATED!!! This hook is no longer used by ConanCenterIndex and incompatible with Conan 2.0.")
+
     @run_test("KB-H001", output)
     def test(out):
         if settings and "cppstd" in settings:
