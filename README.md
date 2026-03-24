@@ -1,3 +1,5 @@
+# This hooks repository was for Conan 1.X and it is not longer maintained, it is archived.
+
 # Conan Hooks
 
 ![logo](images/logo.png)
